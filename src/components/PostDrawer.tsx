@@ -23,35 +23,30 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
   return (
     <>
-      {/* Overlay */}
       <div className="fixed inset-0 bg-foreground/20 z-40" onClick={onClose} />
 
-      {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-[420px] bg-card border-l border-border shadow-2xl z-50 animate-slide-in-right flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Detalhes do Post</h2>
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-card border-l border-border shadow-2xl z-50 animate-slide-in-right flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Detalhes do Post</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Title */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
-            <p className="text-foreground font-medium mt-1">{post.title}</p>
+            <p className="text-foreground font-medium mt-1 text-sm sm:text-base">{post.title}</p>
           </div>
 
-          {/* Date */}
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</label>
-            <p className="text-foreground mt-1 capitalize">
+            <p className="text-foreground mt-1 capitalize text-sm">
               {format(new Date(post.date + "T12:00:00"), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
 
-          {/* Format & Category */}
-          <div className="flex gap-4">
+          <div className="flex gap-3 sm:gap-4">
             <div className="flex-1">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Formato</label>
               <span className="block mt-1 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground text-sm font-medium w-fit">
@@ -69,7 +64,6 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
             </div>
           </div>
 
-          {/* Network */}
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rede Social</label>
             <div className="flex items-center gap-2 mt-1">
@@ -78,10 +72,9 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
             </div>
           </div>
 
-          {/* Status */}
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {statuses.map(s => (
                 <button
                   key={s}
@@ -96,7 +89,6 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas</label>
             <textarea
@@ -108,8 +100,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
           </div>
         </div>
 
-        {/* Footer action */}
-        <div className="p-6 border-t border-border">
+        <div className="p-4 sm:p-6 border-t border-border">
           <button
             onClick={() => updatePost(post.id, { status: "Publicado" })}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
