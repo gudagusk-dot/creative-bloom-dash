@@ -9,7 +9,8 @@ import { categoryConfig, ContentPost } from "@/data/content";
 import { Instagram } from "lucide-react";
 import { PostDrawer } from "./PostDrawer";
 
-const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const dayNamesFull = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const dayNamesShort = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const NetworkIcon = ({ network }: { network: string }) => {
   if (network.includes("TikTok")) {
@@ -40,18 +41,19 @@ export const CalendarGrid = () => {
 
   return (
     <>
-      <div className="px-6 pb-6 flex-1">
+      <div className="px-4 sm:px-6 pb-4 sm:pb-6 flex-1">
         {/* Day headers */}
         <div className="grid grid-cols-7 mb-1">
-          {dayNames.map(d => (
-            <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2 uppercase tracking-wider">
-              {d}
+          {dayNamesFull.map((d, i) => (
+            <div key={d + i} className="text-center text-[10px] sm:text-xs font-semibold text-muted-foreground py-1.5 sm:py-2 uppercase tracking-wider">
+              <span className="hidden sm:inline">{d}</span>
+              <span className="sm:hidden">{dayNamesShort[i]}</span>
             </div>
           ))}
         </div>
 
         {/* Calendar cells */}
-        <div className="grid grid-cols-7 gap-1 auto-rows-fr" style={{ minHeight: "calc(100vh - 340px)" }}>
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 auto-rows-fr" style={{ minHeight: "calc(100vh - 340px)" }}>
           {days.map(day => {
             const inMonth = isSameMonth(day, currentMonth);
             const today = isToday(day);
@@ -60,7 +62,7 @@ export const CalendarGrid = () => {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-lg border p-2 flex flex-col transition-colors ${
+                className={`rounded-md sm:rounded-lg border p-1 sm:p-2 flex flex-col transition-colors min-h-[60px] sm:min-h-0 ${
                   !inMonth
                     ? "bg-muted/30 border-transparent"
                     : today
@@ -70,36 +72,45 @@ export const CalendarGrid = () => {
                     : "bg-muted/20 border-border/50"
                 }`}
               >
-                <span className={`text-xs font-medium mb-1 ${
+                <span className={`text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 ${
                   !inMonth ? "text-muted-foreground/40" : today ? "text-primary font-bold" : "text-muted-foreground"
                 }`}>
                   {format(day, "d")}
                 </span>
-                <div className="space-y-1 flex-1 overflow-hidden">
+                <div className="space-y-0.5 sm:space-y-1 flex-1 overflow-hidden">
                   {dayPosts.slice(0, 2).map(post => (
                     <button
                       key={post.id}
                       onClick={() => setSelectedPost(post)}
-                      className="w-full text-left rounded-md p-1.5 hover:ring-1 hover:ring-primary/30 transition-all group cursor-pointer"
+                      className="w-full text-left rounded-md p-1 sm:p-1.5 hover:ring-1 hover:ring-primary/30 transition-all group cursor-pointer"
                       style={{ backgroundColor: `${categoryConfig[post.category].color}15` }}
                     >
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <span
-                          className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold text-white leading-none"
-                          style={{ backgroundColor: categoryConfig[post.category].color }}
-                        >
-                          {post.format}
-                        </span>
-                        <NetworkIcon network={post.network} />
-                        <span className={`ml-auto w-1.5 h-1.5 rounded-full ${statusDot[post.status]}`} />
+                      {/* Mobile: just colored dot */}
+                      <div className="sm:hidden flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categoryConfig[post.category].color }} />
+                        <p className="text-[8px] text-foreground leading-tight line-clamp-1">{post.format}</p>
+                        <span className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${statusDot[post.status]}`} />
                       </div>
-                      <p className="text-[10px] text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                        {post.title}
-                      </p>
+                      {/* Desktop: full card */}
+                      <div className="hidden sm:block">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span
+                            className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold text-white leading-none"
+                            style={{ backgroundColor: categoryConfig[post.category].color }}
+                          >
+                            {post.format}
+                          </span>
+                          <NetworkIcon network={post.network} />
+                          <span className={`ml-auto w-1.5 h-1.5 rounded-full ${statusDot[post.status]}`} />
+                        </div>
+                        <p className="text-[10px] text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                          {post.title}
+                        </p>
+                      </div>
                     </button>
                   ))}
                   {dayPosts.length > 2 && (
-                    <span className="text-[9px] text-muted-foreground">+{dayPosts.length - 2} mais</span>
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground">+{dayPosts.length - 2}</span>
                   )}
                 </div>
               </div>
