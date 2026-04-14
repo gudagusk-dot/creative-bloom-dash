@@ -10,6 +10,8 @@ interface ContentContextType {
   networkFilter: "all" | "Instagram" | "TikTok";
   setNetworkFilter: (n: "all" | "Instagram" | "TikTok") => void;
   updatePost: (id: string, updates: Partial<ContentPost>) => void;
+  addPost: (post: Omit<ContentPost, "id">) => void;
+  deletePost: (id: string) => void;
   filteredPosts: ContentPost[];
 }
 
@@ -23,7 +25,7 @@ export const useContent = () => {
 
 export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const [posts, setPosts] = useState<ContentPost[]>(initialPosts);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 3, 1)); // April 2026
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 3, 1));
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [networkFilter, setNetworkFilter] = useState<"all" | "Instagram" | "TikTok">("all");
 
@@ -35,6 +37,15 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
 
   const updatePost = useCallback((id: string, updates: Partial<ContentPost>) => {
     setPosts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+  }, []);
+
+  const addPost = useCallback((post: Omit<ContentPost, "id">) => {
+    const id = crypto.randomUUID();
+    setPosts(prev => [...prev, { ...post, id }]);
+  }, []);
+
+  const deletePost = useCallback((id: string) => {
+    setPosts(prev => prev.filter(p => p.id !== id));
   }, []);
 
   const filteredPosts = posts.filter(p => {
@@ -51,7 +62,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       posts, currentMonth, setCurrentMonth,
       selectedCategories, toggleCategory,
       networkFilter, setNetworkFilter,
-      updatePost, filteredPosts,
+      updatePost, addPost, deletePost, filteredPosts,
     }}>
       {children}
     </ContentContext.Provider>
