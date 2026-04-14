@@ -12,6 +12,7 @@ export interface ContentPost {
   network: SocialNetwork;
   status: PostStatus;
   notes: string;
+  script: string; // roteiro - rich text HTML
 }
 
 export const categoryConfig: Record<Category, { color: string; tailwind: string }> = {
