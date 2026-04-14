@@ -6,9 +6,10 @@ import { MobileMenuButton } from "./AppSidebar";
 
 interface Props {
   onMenuOpen: () => void;
+  onNewPost: () => void;
 }
 
-export const CalendarHeader = ({ onMenuOpen }: Props) => {
+export const CalendarHeader = ({ onMenuOpen, onNewPost }: Props) => {
   const { currentMonth, setCurrentMonth, posts } = useContent();
 
   const monthPosts = posts.filter(p => {
@@ -43,7 +44,6 @@ export const CalendarHeader = ({ onMenuOpen }: Props) => {
           </button>
         </div>
 
-        {/* Progress - hidden on smallest screens, inline on sm+ */}
         <div className="hidden sm:flex items-center gap-3 ml-4">
           <span className="text-sm text-muted-foreground">
             {published}/{total}
@@ -55,7 +55,6 @@ export const CalendarHeader = ({ onMenuOpen }: Props) => {
         </div>
       </div>
 
-      {/* Mobile progress bar */}
       <div className="flex sm:hidden items-center gap-3 w-full">
         <span className="text-xs text-muted-foreground">{published}/{total} publicados</span>
         <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
@@ -64,7 +63,10 @@ export const CalendarHeader = ({ onMenuOpen }: Props) => {
         <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
       </div>
 
-      <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+      <button
+        onClick={onNewPost}
+        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+      >
         <Plus className="h-4 w-4" />
         Novo Conteúdo
       </button>
