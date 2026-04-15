@@ -17,13 +17,13 @@ const NetworkIcon = ({ network }: { network: string }) => {
   if (network.includes("TikTok")) {
     return <span className="text-[10px]">🎵</span>;
   }
-  return <Instagram className="h-3 w-3 text-cat-bastidores" />;
+  return <Instagram className="h-3 w-3 text-muted-foreground" />;
 };
 
-const statusDot: Record<string, string> = {
-  "A fazer": "bg-muted-foreground/40",
-  "Em produção": "bg-cat-situacoes",
-  "Publicado": "bg-cat-autoridade",
+const statusLabel: Record<string, string> = {
+  "A fazer": "A fazer",
+  "Em produção": "Produzindo",
+  "Publicado": "✓",
 };
 
 export const CalendarGrid = () => {
@@ -53,84 +53,90 @@ export const CalendarGrid = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 auto-rows-fr" style={{ minHeight: "calc(100vh - 340px)" }}>
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 auto-rows-fr" style={{ minHeight: "calc(100vh - 340px)" }}>
           {days.map(day => {
             const inMonth = isSameMonth(day, currentMonth);
             const today = isToday(day);
             const dayPosts = getPostsForDay(day);
             const dateStr = format(day, "yyyy-MM-dd");
 
-            return (
-              <div
-                key={day.toISOString()}
-                className={`rounded-md sm:rounded-lg border p-1 sm:p-2 flex flex-col transition-colors min-h-[60px] sm:min-h-0 group ${
-                  !inMonth
-                    ? "bg-muted/30 border-transparent"
-                    : today
-                    ? "bg-card border-primary/50 shadow-sm"
-                    : dayPosts.length > 0
-                    ? "bg-card border-border"
-                    : "bg-muted/20 border-border/50"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-                  <span className={`text-[10px] sm:text-xs font-medium ${
-                    !inMonth ? "text-muted-foreground/40" : today ? "text-primary font-bold" : "text-muted-foreground"
-                  }`}>
-                    {format(day, "d")}
-                  </span>
-                  {inMonth && (
-                    <button
-                      onClick={() => setNewPostDate(dateStr)}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-primary/10 transition-all text-muted-foreground hover:text-primary"
-                      title="Adicionar conteúdo"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-0.5 sm:space-y-1 flex-1 overflow-hidden">
-                  {dayPosts.slice(0, 2).map(post => (
-                    <button
-                      key={post.id}
-                      onClick={() => setSelectedPost(post)}
-                      className="w-full text-left rounded-md p-1 sm:p-1.5 hover:ring-1 hover:ring-primary/30 transition-all group/card cursor-pointer"
-                      style={{ backgroundColor: `${categoryConfig[post.category].color}15` }}
-                    >
-                      <div className="sm:hidden flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categoryConfig[post.category].color }} />
-                        <p className="text-[8px] text-foreground leading-tight line-clamp-1">{post.format}</p>
-                        <span className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${statusDot[post.status]}`} />
-                      </div>
-                      <div className="hidden sm:block">
-                        <div className="flex items-center gap-1 mb-0.5">
+            // If there are posts, each post IS the card for that day
+            if (dayPosts.length > 0 && inMonth) {
+              return (
+                <div key={day.toISOString()} className="flex flex-col gap-1 min-h-[70px] sm:min-h-0">
+                  {dayPosts.map((post, idx) => {
+                    const catColor = categoryConfig[post.category]?.color || "#999";
+                    return (
+                      <button
+                        key={post.id}
+                        onClick={() => setSelectedPost(post)}
+                        className="w-full rounded-lg p-1.5 sm:p-2 flex flex-col items-center justify-center text-center transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer border border-transparent hover:border-white/30 relative group"
+                        style={{ backgroundColor: catColor + "20", borderColor: catColor + "40" }}
+                      >
+                        {/* Day number */}
+                        <span className={`absolute top-1 left-1.5 text-[9px] sm:text-[10px] font-bold ${today ? "text-primary" : "text-muted-foreground"}`}>
+                          {idx === 0 ? format(day, "d") : ""}
+                        </span>
+
+                        {/* Format + Network badges */}
+                        <div className="flex items-center gap-1 mb-0.5 mt-2 sm:mt-3">
                           <span
-                            className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold text-white leading-none"
-                            style={{ backgroundColor: categoryConfig[post.category].color }}
+                            className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold text-white leading-none"
+                            style={{ backgroundColor: catColor }}
                           >
                             {post.format}
                           </span>
                           <NetworkIcon network={post.network} />
-                          <span className={`ml-auto w-1.5 h-1.5 rounded-full ${statusDot[post.status]}`} />
                         </div>
-                        <p className="text-[10px] text-foreground leading-tight line-clamp-2 group-hover/card:text-primary transition-colors">
+
+                        {/* Full title - no truncation */}
+                        <p className="text-[9px] sm:text-[11px] text-foreground leading-tight font-medium px-0.5">
                           {post.title}
                         </p>
-                      </div>
-                    </button>
-                  ))}
-                  {dayPosts.length > 2 && (
-                    <span className="text-[8px] sm:text-[9px] text-muted-foreground">+{dayPosts.length - 2}</span>
-                  )}
-                  {dayPosts.length === 0 && inMonth && (
-                    <button
-                      onClick={() => setNewPostDate(dateStr)}
-                      className="w-full h-full min-h-[20px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Plus className="h-4 w-4 text-muted-foreground/50" />
-                    </button>
-                  )}
+
+                        {/* Status indicator */}
+                        <span className="text-[7px] sm:text-[8px] text-muted-foreground mt-0.5">
+                          {statusLabel[post.status] || post.status}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {/* Add more button */}
+                  <button
+                    onClick={() => setNewPostDate(dateStr)}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-primary transition-all flex items-center justify-center"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
                 </div>
+              );
+            }
+
+            // Empty day cell
+            return (
+              <div
+                key={day.toISOString()}
+                className={`rounded-lg border p-1 sm:p-2 flex flex-col min-h-[70px] sm:min-h-0 group transition-colors ${
+                  !inMonth
+                    ? "bg-muted/20 border-transparent"
+                    : today
+                    ? "bg-card border-primary/50 shadow-sm"
+                    : "bg-muted/10 border-border/30"
+                }`}
+              >
+                <span className={`text-[10px] sm:text-xs font-medium ${
+                  !inMonth ? "text-muted-foreground/30" : today ? "text-primary font-bold" : "text-muted-foreground"
+                }`}>
+                  {format(day, "d")}
+                </span>
+                {inMonth && (
+                  <button
+                    onClick={() => setNewPostDate(dateStr)}
+                    className="flex-1 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Plus className="h-4 w-4 text-muted-foreground/40 hover:text-primary transition-colors" />
+                  </button>
+                )}
               </div>
             );
           })}
