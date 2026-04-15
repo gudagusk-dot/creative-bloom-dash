@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { CalendarDays, LayoutDashboard, FileText, BarChart3, Menu, X } from "lucide-react";
+import { CalendarDays, LayoutDashboard, FileText, Menu, X, LogOut } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
+import { useUser } from "@/context/UserContext";
 import { categoryConfig, Category } from "@/data/content";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: CalendarDays, label: "Calendário" },
   { icon: FileText, label: "Conteúdos" },
-  { icon: BarChart3, label: "Métricas" },
 ];
 
 const categories = Object.keys(categoryConfig) as Category[];
@@ -20,10 +19,10 @@ export const MobileMenuButton = ({ onClick }: { onClick: () => void }) => (
 
 export const AppSidebar = ({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) => {
   const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory } = useContent();
+  const { userName, logout } = useUser();
 
   return (
     <>
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-foreground/20 z-30 lg:hidden" onClick={onClose} />
       )}
@@ -38,7 +37,7 @@ export const AppSidebar = ({ mobileOpen, onClose }: { mobileOpen?: boolean; onCl
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold text-foreground">Content Planner</span>
+            <span className="text-lg font-semibold text-foreground">Plano de Conteúdo</span>
           </div>
           <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
             <X className="h-5 w-5" />
@@ -105,6 +104,23 @@ export const AppSidebar = ({ mobileOpen, onClose }: { mobileOpen?: boolean; onCl
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* User info + logout */}
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-primary">
+                  {userName?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-sm font-medium text-foreground truncate max-w-[140px]">{userName}</span>
+            </div>
+            <button onClick={logout} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground" title="Sair">
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </aside>
