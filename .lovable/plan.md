@@ -1,38 +1,81 @@
+## Plano Final — Plano de Conteúdo (Teacher Ana)
 
+Recomendação aplicada: **com Realtime** — quando você editar o calendário, o aluno vê a mudança ao vivo, sem recarregar.
 
-## Plano de Melhorias — Plano de Conteúdo (Teacher Ana)
+---
 
-### Resumo das mudanças
+### 1. Calendário — visual e responsivo
 
-1. **Renomear títulos** — "Content Planner" → "Plano de Conteúdo"; aba do navegador → "Conteúdos - Teacher Ana"
-2. **Remover link "Métricas"** da sidebar
-3. **Redesign dos cards do calendário** — fundir o card de data e o card de conteúdo num card único colorido pela categoria, com título completo centralizado (sem truncar)
-4. **Edição com botão Salvar** — ao clicar num card, abrir o drawer de edição com todos os campos (incluindo roteiro rico) e um botão "Salvar" explícito (em vez de salvar automaticamente a cada keystroke). O roteiro salvo aparece renderizado em HTML; ao clicar "Editar roteiro", volta para o editor
-5. **Login simples por nome** — tela de login onde o usuário digita apenas o nome; persistência via Lovable Cloud (Supabase) com tabela `users` (id, name) e tabela `posts` vinculada ao user_id para salvar progresso entre dispositivos
+- Cards uniformes: grid `auto-rows-fr` com altura fixa por linha; todos os dias do mesmo tamanho.
+- Múltiplos posts no mesmo dia: mini cards empilhados dentro da célula, mantendo o tamanho da célula.
+- Centralização total: número do dia no topo, badge de formato + ícone da rede no meio, título completo (sem truncar), status no rodapé.
+- Mobile: `min-h` maior, paddings reduzidos, título em 2-3 linhas legível.
+- Ícone do TikTok: SVG real (preto), no mesmo padrão do Instagram (rosa). Substitui o emoji 🎵.
+
+### 2. Limpeza da UI
+
+- Remover sidebar lateral inteira ("Conteúdos" / Métricas).
+- Substituir por **TopBar** horizontal compacta: logo "Plano de Conteúdo", filtros de rede e categoria, botão "Compartilhar com aluno", usuário + logout.
+- Remover card "Formato" dos KPIs (fica Total, Redes, Progresso).
+- Adicionar opção **"Lembrete"** ao tipo `Format` e às listas em `NewPostDialog` e `PostDrawer`.
+
+### 3. Modo Admin vs Modo Aluno
+
+- Cada usuário logado é admin do **seu próprio calendário**.
+- Botão **"Compartilhar com aluno"** copia link público: `/aluno/{userId}`.
+- Aluno abre o link **sem login**, vê o calendário em modo somente-leitura.
+- Aluno pode apenas: alterar **status** do card e **enviar mídia** (fotos/vídeos do que produziu).
+- Aluno **não pode**: criar, excluir, editar título/categoria/formato/rede/data/roteiro/notas.
+
+### 4. Upload de mídia (fotos/vídeos)
+
+- Bucket público `post-media` no Lovable Cloud.
+- Coluna `media_urls text[]` em `content_posts`.
+- No `PostDrawer`, seção **"Mídia produzida"** com miniaturas, preview ampliado e botão de excluir (admin).
+- Aceita imagens (jpg, png, webp) e vídeos (mp4, mov), até ~50MB.
+
+### 5. Realtime (sincronização ao vivo)
+
+- Habilitar Realtime na tabela `content_posts`.
+- No `ContentContext`, adicionar `supabase.channel(...).on('postgres_changes', ...)` filtrando por `user_id` do dono do calendário.
+- Resultado: edição feita pelo admin aparece automaticamente na tela do aluno (e vice-versa para mudanças de status/upload).
 
 ---
 
 ### Detalhes técnicos
 
-**Arquivos modificados:**
-- `index.html` — title para "Conteúdos - Teacher Ana"
-- `src/components/AppSidebar.tsx` — remover "Métricas" do nav, trocar título para "Plano de Conteúdo"
-- `src/components/CalendarGrid.tsx` — redesign: cada célula-dia com posts vira um card único com fundo na cor da categoria, número do dia no canto, título completo centralizado sem `line-clamp`, formato e rede social como badges pequenos
-- `src/components/PostDrawer.tsx` — adicionar botão "Salvar" no rodapé (acumula edições no state local e salva tudo de uma vez); roteiro com modo visualização (HTML renderizado) e modo edição (RichTextEditor); remover auto-save nos onChange
-- `src/components/CalendarHeader.tsx` — atualizar título exibido
-- `src/context/ContentContext.tsx` — sem grandes mudanças por enquanto (login adicionará persistência depois)
+**Migration SQL:**
+```sql
+ALTER TABLE content_posts ADD COLUMN media_urls text[] NOT NULL DEFAULT '{}';
+ALTER PUBLICATION supabase_realtime ADD TABLE content_posts;
+ALTER TABLE content_posts REPLICA IDENTITY FULL;
 
-**Login e persistência (Lovable Cloud):**
-- Criar tabela `users` (id uuid PK, name text unique)
-- Criar tabela `content_posts` (mesmos campos do ContentPost + user_id FK)
-- Tela `/login` simples: input de nome → upsert no `users` → salvar user_id no contexto
-- Ao carregar, buscar posts do banco; ao salvar/criar/excluir, persistir no banco
-- RLS: cada user só vê/edita seus posts
-- Rota protegida: se não logado, redireciona para `/login`
+INSERT INTO storage.buckets (id, name, public) VALUES ('post-media', 'post-media', true);
 
-**Novo fluxo do drawer:**
-- Campos editáveis com estado local
-- Aba "Roteiro" mostra HTML renderizado (via `dangerouslySetInnerHTML` com DOMPurify sanitization)
-- Botão "Editar roteiro" alterna para o RichTextEditor
-- Botão "Salvar" no final persiste todas as mudanças de uma vez
+CREATE POLICY "Public read media" ON storage.objects FOR SELECT USING (bucket_id = 'post-media');
+CREATE POLICY "Public upload media" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'post-media');
+CREATE POLICY "Public delete media" ON storage.objects FOR DELETE USING (bucket_id = 'post-media');
+```
 
+**Rotas:**
+```
+/login         → login por nome
+/              → calendário modo admin (logado)
+/aluno/:ownerId → calendário modo aluno (público)
+```
+
+**Arquivos:**
+- `src/data/content.ts` — `Format` ganha `"Lembrete"`; `ContentPost` ganha `media_urls: string[]`
+- `src/components/CalendarGrid.tsx` — cards uniformes, ícone TikTok SVG, prop `viewMode`, suporte a `ownerId` opcional
+- `src/components/KpiCards.tsx` — remove card "Formato"
+- `src/components/TopBar.tsx` — **novo**, substitui a sidebar
+- `src/components/AppSidebar.tsx` — removido do layout
+- `src/components/CalendarHeader.tsx` — botão "Compartilhar com aluno"
+- `src/components/PostDrawer.tsx` — modo aluno (read-only exceto status), seção mídia, opção "Lembrete"
+- `src/components/NewPostDialog.tsx` — opção "Lembrete"
+- `src/components/MediaUploader.tsx` — **novo**, upload + preview + excluir
+- `src/context/ContentContext.tsx` — aceita `ownerId` opcional, ativa subscription Realtime
+- `src/pages/StudentView.tsx` — **nova** página pública
+- `src/pages/Index.tsx` — usa TopBar, propaga `viewMode="admin"`
+- `src/App.tsx` — adiciona rota `/aluno/:ownerId`
+- Migration SQL — coluna `media_urls`, bucket `post-media`, realtime

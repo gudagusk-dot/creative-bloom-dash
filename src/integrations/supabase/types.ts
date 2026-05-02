@@ -21,6 +21,7 @@ export type Database = {
           date: string
           format: string
           id: string
+          media_urls: string[]
           network: string
           notes: string
           script: string
@@ -35,6 +36,7 @@ export type Database = {
           date: string
           format: string
           id?: string
+          media_urls?: string[]
           network: string
           notes?: string
           script?: string
@@ -49,6 +51,7 @@ export type Database = {
           date?: string
           format?: string
           id?: string
+          media_urls?: string[]
           network?: string
           notes?: string
           script?: string
