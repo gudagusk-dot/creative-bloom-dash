@@ -1,5 +1,5 @@
 export type Category = "Educativo" | "Situações Reais" | "Autoridade" | "Destrave seu Inglês" | "Bastidores" | "Interação";
-export type Format = "Reels" | "Carrossel" | "Story" | "Foto" | "Vídeo" | "Conversão" | "Produção";
+export type Format = "Reels" | "Carrossel" | "Story" | "Foto" | "Vídeo" | "Conversão" | "Produção" | "Lembrete";
 export type SocialNetwork = "Instagram" | "TikTok" | "TikTok + Instagram";
 export type PostStatus = "A fazer" | "Em produção" | "Publicado";
 
@@ -13,6 +13,7 @@ export interface ContentPost {
   status: PostStatus;
   notes: string;
   script: string; // roteiro - rich text HTML
+  media_urls?: string[];
 }
 
 export const categoryConfig: Record<Category, { color: string; tailwind: string }> = {

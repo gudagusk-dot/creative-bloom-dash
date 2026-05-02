@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ContentProvider } from "@/context/ContentContext";
-import { AppSidebar } from "@/components/AppSidebar";
+import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
 import { CalendarGrid } from "@/components/CalendarGrid";
@@ -8,18 +8,15 @@ import { NewPostDialog } from "@/components/NewPostDialog";
 import { Plus } from "lucide-react";
 
 const Index = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newPostOpen, setNewPostOpen] = useState(false);
 
   return (
-    <ContentProvider>
-      <div className="flex min-h-screen w-full relative">
-        <AppSidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-w-0">
-          <CalendarHeader onMenuOpen={() => setSidebarOpen(true)} onNewPost={() => setNewPostOpen(true)} />
-          <KpiCards />
-          <CalendarGrid />
-        </div>
+    <ContentProvider viewMode="admin">
+      <div className="min-h-screen w-full flex flex-col">
+        <TopBar viewMode="admin" />
+        <CalendarHeader onNewPost={() => setNewPostOpen(true)} />
+        <KpiCards />
+        <CalendarGrid />
 
         <button
           onClick={() => setNewPostOpen(true)}
