@@ -13,7 +13,7 @@ export interface ContentPost {
   status: PostStatus;
   notes: string;
   script: string; // roteiro - rich text HTML
-  media_urls: string[];
+  media_urls?: string[];
 }
 
 export const categoryConfig: Record<Category, { color: string; tailwind: string }> = {
