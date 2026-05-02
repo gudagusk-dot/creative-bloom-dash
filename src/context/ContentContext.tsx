@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import { ContentPost, Category, SocialNetwork, initialPosts } from "@/data/content";
+import { ContentPost, Category, initialPosts } from "@/data/content";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "./UserContext";
 
@@ -16,6 +16,8 @@ interface ContentContextType {
   deletePost: (id: string) => Promise<void>;
   filteredPosts: ContentPost[];
   loading: boolean;
+  ownerId: string | null;
+  viewMode: "admin" | "student";
 }
 
 const ContentContext = createContext<ContentContextType | null>(null);
@@ -26,8 +28,30 @@ export const useContent = () => {
   return ctx;
 };
 
-export const ContentProvider = ({ children }: { children: ReactNode }) => {
+const mapRow = (p: any): ContentPost => ({
+  id: p.id,
+  date: p.date,
+  format: p.format,
+  title: p.title,
+  category: p.category,
+  network: p.network,
+  status: p.status,
+  notes: p.notes,
+  script: p.script,
+  media_urls: p.media_urls || [],
+});
+
+interface ProviderProps {
+  children: ReactNode;
+  /** If provided, overrides the logged-in user. Used by /aluno/:ownerId */
+  ownerIdOverride?: string;
+  viewMode?: "admin" | "student";
+}
+
+export const ContentProvider = ({ children, ownerIdOverride, viewMode = "admin" }: ProviderProps) => {
   const { userId } = useUser();
+  const ownerId = ownerIdOverride || userId;
+
   const [posts, setPosts] = useState<ContentPost[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 3, 1));
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
@@ -36,30 +60,20 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
 
   // Load posts from DB
   useEffect(() => {
-    if (!userId) return;
+    if (!ownerId) return;
     const loadPosts = async () => {
       setLoading(true);
       const { data } = await supabase
         .from("content_posts")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", ownerId);
 
       if (data && data.length > 0) {
-        setPosts(data.map(p => ({
-          id: p.id,
-          date: p.date,
-          format: p.format as any,
-          title: p.title,
-          category: p.category as any,
-          network: p.network as any,
-          status: p.status as any,
-          notes: p.notes,
-          script: p.script,
-        })));
-      } else {
-        // Seed initial posts for new user
+        setPosts(data.map(mapRow));
+      } else if (viewMode === "admin") {
+        // Seed initial posts for new admin only
         const toInsert = initialPosts.map(p => ({
-          user_id: userId,
+          user_id: ownerId,
           date: p.date,
           format: p.format,
           title: p.title,
@@ -73,24 +87,39 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
           .from("content_posts")
           .insert(toInsert)
           .select("*");
-        if (inserted) {
-          setPosts(inserted.map(p => ({
-            id: p.id,
-            date: p.date,
-            format: p.format as any,
-            title: p.title,
-            category: p.category as any,
-            network: p.network as any,
-            status: p.status as any,
-            notes: p.notes,
-            script: p.script,
-          })));
-        }
+        if (inserted) setPosts(inserted.map(mapRow));
+      } else {
+        setPosts([]);
       }
       setLoading(false);
     };
     loadPosts();
-  }, [userId]);
+  }, [ownerId, viewMode]);
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!ownerId) return;
+    const channel = supabase
+      .channel(`content_posts:${ownerId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "content_posts", filter: `user_id=eq.${ownerId}` },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const row = mapRow(payload.new);
+            setPosts(prev => prev.some(p => p.id === row.id) ? prev : [...prev, row]);
+          } else if (payload.eventType === "UPDATE") {
+            const row = mapRow(payload.new);
+            setPosts(prev => prev.map(p => p.id === row.id ? row : p));
+          } else if (payload.eventType === "DELETE") {
+            const oldId = (payload.old as any).id;
+            setPosts(prev => prev.filter(p => p.id !== oldId));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [ownerId]);
 
   const toggleCategory = useCallback((c: Category) => {
     setSelectedCategories(prev =>
@@ -104,26 +133,17 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addPost = useCallback(async (post: Omit<ContentPost, "id">) => {
-    if (!userId) return;
-    const { data, error } = await supabase
+    if (!ownerId) return;
+    const { data } = await supabase
       .from("content_posts")
-      .insert({ ...post, user_id: userId })
+      .insert({ ...post, user_id: ownerId })
       .select("*")
       .single();
     if (data) {
-      setPosts(prev => [...prev, {
-        id: data.id,
-        date: data.date,
-        format: data.format as any,
-        title: data.title,
-        category: data.category as any,
-        network: data.network as any,
-        status: data.status as any,
-        notes: data.notes,
-        script: data.script,
-      }]);
+      const row = mapRow(data);
+      setPosts(prev => prev.some(p => p.id === row.id) ? prev : [...prev, row]);
     }
-  }, [userId]);
+  }, [ownerId]);
 
   const deletePost = useCallback(async (id: string) => {
     setPosts(prev => prev.filter(p => p.id !== id));
@@ -145,6 +165,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       selectedCategories, toggleCategory,
       networkFilter, setNetworkFilter,
       updatePost, addPost, deletePost, filteredPosts, loading,
+      ownerId, viewMode,
     }}>
       {children}
     </ContentContext.Provider>
