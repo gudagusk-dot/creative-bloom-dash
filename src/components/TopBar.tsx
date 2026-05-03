@@ -38,15 +38,25 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
         </div>
 
         <div className="flex items-center gap-2">
-          {viewMode === "admin" && (
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
-              title="Copiar link do aluno"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-cat-autoridade" /> : <Share2 className="h-3.5 w-3.5" />}
-              <span className="hidden sm:inline">{copied ? "Copiado!" : "Compartilhar com aluno"}</span>
-            </button>
+          {viewMode === "admin" && adminId && (
+            <>
+              <button
+                onClick={() => setProgressOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
+                title="Progresso do aluno"
+              >
+                <Activity className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Progresso</span>
+              </button>
+              <button
+                onClick={() => setShareOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                title="Compartilhar com aluno"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Compartilhar com aluno</span>
+              </button>
+            </>
           )}
 
           {viewMode === "admin" && userName && (
