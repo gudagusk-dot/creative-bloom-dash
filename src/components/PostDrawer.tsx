@@ -278,6 +278,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
               mediaUrls={mediaUrls}
               canDelete={isAdmin}
               onChange={handleMediaChange}
+              ownerId={ownerId}
+              logAsStudent={!isAdmin}
             />
           )}
         </div>
