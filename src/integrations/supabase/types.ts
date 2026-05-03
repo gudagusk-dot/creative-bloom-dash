@@ -70,6 +70,33 @@ export type Database = {
           },
         ]
       }
+      post_activity: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       simple_users: {
         Row: {
           created_at: string
