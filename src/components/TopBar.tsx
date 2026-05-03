@@ -1,8 +1,10 @@
-import { CalendarDays, LogOut, Share2, Check } from "lucide-react";
+import { CalendarDays, LogOut, Share2, Activity } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { useUser } from "@/context/UserContext";
 import { categoryConfig, Category } from "@/data/content";
 import { useState } from "react";
+import { ShareDialog } from "./ShareDialog";
+import { ProgressPanel } from "./ProgressPanel";
 
 const categories = Object.keys(categoryConfig) as Category[];
 
@@ -15,16 +17,9 @@ interface Props {
 export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
   const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory } = useContent();
   const { userName, logout, userId } = useUser();
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = () => {
-    const id = ownerId || userId;
-    if (!id) return;
-    const url = `${window.location.origin}/aluno/${id}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const [shareOpen, setShareOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const adminId = ownerId || userId;
 
   return (
     <div className="border-b border-border bg-card">
