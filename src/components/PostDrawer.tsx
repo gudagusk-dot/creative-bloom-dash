@@ -4,6 +4,7 @@ import { ContentPost, categoryConfig, PostStatus, Category, Format, SocialNetwor
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
 import { MediaUploader } from "./MediaUploader";
+import { logActivity } from "@/lib/activity";
 
 interface PostDrawerProps {
   post: ContentPost | null;
@@ -22,7 +23,7 @@ const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", 
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode } = useContent();
+  const { updatePost, deletePost, viewMode, ownerId } = useContent();
   const isAdmin = viewMode === "admin";
 
   const [title, setTitle] = useState("");
@@ -67,7 +68,10 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      // Student can only update status + media
+      // Student can only update status + media; log status change
+      if (status !== post.status && ownerId) {
+        await logActivity(post.id, ownerId, "status_changed", { from: post.status, to: status });
+      }
       await updatePost(post.id, { status, media_urls: mediaUrls });
     }
     setSaving(false);
@@ -274,6 +278,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
               mediaUrls={mediaUrls}
               canDelete={isAdmin}
               onChange={handleMediaChange}
+              ownerId={ownerId}
+              logAsStudent={!isAdmin}
             />
           )}
         </div>

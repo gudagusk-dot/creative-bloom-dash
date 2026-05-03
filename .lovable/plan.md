@@ -1,81 +1,84 @@
-## Plano Final — Plano de Conteúdo (Teacher Ana)
+## Plano — Compartilhamento e Acompanhamento do Aluno
 
-Recomendação aplicada: **com Realtime** — quando você editar o calendário, o aluno vê a mudança ao vivo, sem recarregar.
-
----
-
-### 1. Calendário — visual e responsivo
-
-- Cards uniformes: grid `auto-rows-fr` com altura fixa por linha; todos os dias do mesmo tamanho.
-- Múltiplos posts no mesmo dia: mini cards empilhados dentro da célula, mantendo o tamanho da célula.
-- Centralização total: número do dia no topo, badge de formato + ícone da rede no meio, título completo (sem truncar), status no rodapé.
-- Mobile: `min-h` maior, paddings reduzidos, título em 2-3 linhas legível.
-- Ícone do TikTok: SVG real (preto), no mesmo padrão do Instagram (rosa). Substitui o emoji 🎵.
-
-### 2. Limpeza da UI
-
-- Remover sidebar lateral inteira ("Conteúdos" / Métricas).
-- Substituir por **TopBar** horizontal compacta: logo "Plano de Conteúdo", filtros de rede e categoria, botão "Compartilhar com aluno", usuário + logout.
-- Remover card "Formato" dos KPIs (fica Total, Redes, Progresso).
-- Adicionar opção **"Lembrete"** ao tipo `Format` e às listas em `NewPostDialog` e `PostDrawer`.
-
-### 3. Modo Admin vs Modo Aluno
-
-- Cada usuário logado é admin do **seu próprio calendário**.
-- Botão **"Compartilhar com aluno"** copia link público: `/aluno/{userId}`.
-- Aluno abre o link **sem login**, vê o calendário em modo somente-leitura.
-- Aluno pode apenas: alterar **status** do card e **enviar mídia** (fotos/vídeos do que produziu).
-- Aluno **não pode**: criar, excluir, editar título/categoria/formato/rede/data/roteiro/notas.
-
-### 4. Upload de mídia (fotos/vídeos)
-
-- Bucket público `post-media` no Lovable Cloud.
-- Coluna `media_urls text[]` em `content_posts`.
-- No `PostDrawer`, seção **"Mídia produzida"** com miniaturas, preview ampliado e botão de excluir (admin).
-- Aceita imagens (jpg, png, webp) e vídeos (mp4, mov), até ~50MB.
-
-### 5. Realtime (sincronização ao vivo)
-
-- Habilitar Realtime na tabela `content_posts`.
-- No `ContentContext`, adicionar `supabase.channel(...).on('postgres_changes', ...)` filtrando por `user_id` do dono do calendário.
-- Resultado: edição feita pelo admin aparece automaticamente na tela do aluno (e vice-versa para mudanças de status/upload).
+A ferramenta está ótima. Vamos focar só na parte do **professor**: melhorar o botão "Compartilhar com aluno" e criar uma **área de acompanhamento do progresso** do aluno.
 
 ---
 
-### Detalhes técnicos
+### 1. Modal "Compartilhar com aluno"
 
-**Migration SQL:**
-```sql
-ALTER TABLE content_posts ADD COLUMN media_urls text[] NOT NULL DEFAULT '{}';
-ALTER PUBLICATION supabase_realtime ADD TABLE content_posts;
-ALTER TABLE content_posts REPLICA IDENTITY FULL;
+Hoje o botão só copia o link de forma silenciosa (sem feedback claro), o que dá a impressão de que "não funciona". Vamos transformar em um **modal dedicado** com:
 
-INSERT INTO storage.buckets (id, name, public) VALUES ('post-media', 'post-media', true);
+- Título: "Compartilhar calendário com o aluno"
+- Explicação curta: "Envie este link para seu aluno. Ele poderá ver o calendário, marcar status e enviar mídias — sem precisar de login."
+- Campo de texto com o link `/aluno/{seuId}` (somente leitura, selecionável)
+- Botão **"Copiar link"** com confirmação visual ("Copiado!")
+- Botão **"Abrir em nova aba"** para o professor pré-visualizar a versão do aluno
+- Botão **"Compartilhar no WhatsApp"** (abre `https://wa.me/?text=...` com o link pré-preenchido)
+- QR Code do link (útil para mostrar no celular do aluno presencial)
 
-CREATE POLICY "Public read media" ON storage.objects FOR SELECT USING (bucket_id = 'post-media');
-CREATE POLICY "Public upload media" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'post-media');
-CREATE POLICY "Public delete media" ON storage.objects FOR DELETE USING (bucket_id = 'post-media');
+### 2. Painel "Progresso do Aluno" (novo)
+
+Novo botão na TopBar do admin: **"Progresso"** (ícone de gráfico). Abre um **drawer/modal lateral** com:
+
+**Resumo no topo (cards pequenos):**
+- Total de conteúdos do mês
+- Publicados / Em produção / A fazer (com %)
+- Total de mídias enviadas pelo aluno
+
+**Linha do tempo de atividade:**
+- Lista cronológica das últimas mudanças feitas pelo aluno:
+  - "Marcou *Título do post* como Publicado" — há 2h
+  - "Enviou 3 mídias para *Título do post*" — ontem
+  - "Marcou como Em produção" — há 3 dias
+
+**Galeria de mídias enviadas:**
+- Grid com todas as mídias (fotos/vídeos) que o aluno subiu
+- Cada miniatura mostra a qual post pertence (clicável → abre o PostDrawer)
+- Filtro por status do post
+
+**Lista de pendências:**
+- Posts cuja data já passou e ainda estão como "A fazer" (atrasados — em vermelho)
+- Posts da próxima semana ainda "A fazer" (próximos — em amarelo)
+
+### 3. Como o tracking vai funcionar (back-end)
+
+Para o painel de progresso mostrar histórico ("o aluno marcou X há 2h"), precisamos registrar as ações do aluno. Nova tabela:
+
+```
+post_activity
+  id uuid pk
+  post_id uuid → content_posts.id
+  user_id uuid (dono do calendário, para filtro/RLS)
+  action text   ('status_changed' | 'media_uploaded' | 'media_removed')
+  details jsonb ({ from: 'A fazer', to: 'Publicado', count: 3, ... })
+  created_at timestamptz default now()
 ```
 
-**Rotas:**
-```
-/login         → login por nome
-/              → calendário modo admin (logado)
-/aluno/:ownerId → calendário modo aluno (público)
-```
+- Quando o aluno muda status no `PostDrawer` → insere linha em `post_activity`.
+- Quando faz upload no `MediaUploader` → insere linha.
+- RLS: leitura/escrita pública (igual `content_posts`, alinhado ao modelo atual sem login do aluno).
+- Realtime habilitado → professor vê atividade ao vivo enquanto o aluno mexe.
 
-**Arquivos:**
-- `src/data/content.ts` — `Format` ganha `"Lembrete"`; `ContentPost` ganha `media_urls: string[]`
-- `src/components/CalendarGrid.tsx` — cards uniformes, ícone TikTok SVG, prop `viewMode`, suporte a `ownerId` opcional
-- `src/components/KpiCards.tsx` — remove card "Formato"
-- `src/components/TopBar.tsx` — **novo**, substitui a sidebar
-- `src/components/AppSidebar.tsx` — removido do layout
-- `src/components/CalendarHeader.tsx` — botão "Compartilhar com aluno"
-- `src/components/PostDrawer.tsx` — modo aluno (read-only exceto status), seção mídia, opção "Lembrete"
-- `src/components/NewPostDialog.tsx` — opção "Lembrete"
-- `src/components/MediaUploader.tsx` — **novo**, upload + preview + excluir
-- `src/context/ContentContext.tsx` — aceita `ownerId` opcional, ativa subscription Realtime
-- `src/pages/StudentView.tsx` — **nova** página pública
-- `src/pages/Index.tsx` — usa TopBar, propaga `viewMode="admin"`
-- `src/App.tsx` — adiciona rota `/aluno/:ownerId`
-- Migration SQL — coluna `media_urls`, bucket `post-media`, realtime
+### 4. Acesso do aluno (sem mudanças funcionais)
+
+Confirmando o que já existe e está correto:
+- Aluno entra **só** pelo link `/aluno/{ownerId}` — não há tela de login para ele.
+- Não consegue criar/excluir/editar conteúdo.
+- Pode: trocar **status**, fazer **upload de mídias**, ler **roteiro**.
+
+Pequeno ajuste de UX no modo aluno: esconder o botão "Novo Conteúdo" mobile (FAB) — hoje ele aparece só no Index, mas vamos garantir que não vaze para a StudentView.
+
+---
+
+### Arquivos afetados
+
+- **Novo** `src/components/ShareDialog.tsx` — modal com link, copiar, WhatsApp, QR code, abrir preview
+- **Novo** `src/components/ProgressPanel.tsx` — drawer com KPIs, timeline, galeria, pendências
+- **Novo** `src/lib/activity.ts` — helpers `logActivity(postId, action, details)`
+- **Editar** `src/components/TopBar.tsx` — abrir ShareDialog em vez de copiar direto; adicionar botão "Progresso" (admin)
+- **Editar** `src/components/PostDrawer.tsx` — chamar `logActivity` ao trocar status (modo aluno)
+- **Editar** `src/components/MediaUploader.tsx` — chamar `logActivity` em upload/remoção (modo aluno)
+- **Migration**: criar tabela `post_activity` + RLS pública + realtime + index por `user_id, created_at`
+- **Dependência nova**: `qrcode.react` para o QR Code
+
+Confirma que pode aplicar?
