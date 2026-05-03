@@ -119,6 +119,12 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
           })}
         </div>
       </div>
+      {adminId && (
+        <>
+          <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} ownerId={adminId} />
+          <ProgressPanel open={progressOpen} onClose={() => setProgressOpen(false)} ownerId={adminId} />
+        </>
+      )}
     </div>
   );
 };
