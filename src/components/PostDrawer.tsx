@@ -23,7 +23,7 @@ const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", 
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode } = useContent();
+  const { updatePost, deletePost, viewMode, ownerId } = useContent();
   const isAdmin = viewMode === "admin";
 
   const [title, setTitle] = useState("");
