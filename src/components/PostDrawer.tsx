@@ -68,7 +68,10 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      // Student can only update status + media
+      // Student can only update status + media; log status change
+      if (status !== post.status && ownerId) {
+        await logActivity(post.id, ownerId, "status_changed", { from: post.status, to: status });
+      }
       await updatePost(post.id, { status, media_urls: mediaUrls });
     }
     setSaving(false);
