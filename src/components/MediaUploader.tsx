@@ -42,6 +42,9 @@ export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange, ownerId,
       newUrls.push(data.publicUrl);
     }
     onChange([...(mediaUrls || []), ...newUrls]);
+    if (logAsStudent && ownerId && newUrls.length > 0) {
+      await logActivity(postId, ownerId, "media_uploaded", { count: newUrls.length });
+    }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
   };
