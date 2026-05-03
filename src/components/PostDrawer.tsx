@@ -4,6 +4,7 @@ import { ContentPost, categoryConfig, PostStatus, Category, Format, SocialNetwor
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
 import { MediaUploader } from "./MediaUploader";
+import { logActivity } from "@/lib/activity";
 
 interface PostDrawerProps {
   post: ContentPost | null;
