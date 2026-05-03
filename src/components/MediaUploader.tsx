@@ -1,17 +1,20 @@
 import { useRef, useState } from "react";
 import { Upload, Trash2, Image as ImageIcon, Video as VideoIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logActivity } from "@/lib/activity";
 
 interface Props {
   postId: string;
   mediaUrls: string[];
   canDelete: boolean;
   onChange: (urls: string[]) => void;
+  ownerId?: string | null;
+  logAsStudent?: boolean;
 }
 
 const MAX_BYTES = 50 * 1024 * 1024;
 
-export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange }: Props) => {
+export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange, ownerId, logAsStudent }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
