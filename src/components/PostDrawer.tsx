@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Trash2, Save, Pencil, Eye } from "lucide-react";
+import { X, Trash2, Save, Pencil, Eye, ExternalLink } from "lucide-react";
 import { ContentPost, categoryConfig, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
@@ -23,7 +23,7 @@ const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", 
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode, ownerId } = useContent();
+  const { updatePost, deletePost, viewMode, ownerId, studentId } = useContent();
   const isAdmin = viewMode === "admin";
 
   const [title, setTitle] = useState("");
@@ -35,10 +35,14 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [publishedUrl, setPublishedUrl] = useState("");
+  const [studentNotes, setStudentNotes] = useState("");
   const [editingScript, setEditingScript] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const [activeTab, setActiveTab] = useState<"detalhes" | "roteiro" | "midia">("detalhes");
+  // Tabs differ by mode
+  const [adminTab, setAdminTab] = useState<"detalhes" | "roteiro" | "midia" | "entrega">("detalhes");
+  const [studentTab, setStudentTab] = useState<"conteudo" | "entrega">("conteudo");
 
   useEffect(() => {
     if (post) {
@@ -51,9 +55,12 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       setScript(post.script || "");
       setNotes(post.notes);
       setMediaUrls(post.media_urls || []);
+      setPublishedUrl(post.published_url || "");
+      setStudentNotes(post.student_notes || "");
       setDirty(false);
       setEditingScript(false);
-      setActiveTab("detalhes");
+      setAdminTab("detalhes");
+      setStudentTab("conteudo");
     }
   }, [post]);
 
@@ -68,11 +75,18 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      // Student can only update status + media; log status change
-      if (status !== post.status && ownerId) {
-        await logActivity(post.id, ownerId, "status_changed", { from: post.status, to: status });
+      // Student updates: status, link, comment
+      const ownerForLog = ownerId || "";
+      if (status !== post.status && ownerForLog) {
+        await logActivity(post.id, ownerForLog, studentId, "status_changed", { from: post.status, to: status });
       }
-      await updatePost(post.id, { status, media_urls: mediaUrls });
+      if (publishedUrl !== (post.published_url || "") && ownerForLog && publishedUrl.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: publishedUrl });
+      }
+      if (studentNotes !== (post.student_notes || "") && ownerForLog && studentNotes.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "note_added", {});
+      }
+      await updatePost(post.id, { status, media_urls: mediaUrls, published_url: publishedUrl, student_notes: studentNotes });
     }
     setSaving(false);
     setDirty(false);
@@ -86,10 +100,11 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
   const handleMediaChange = async (urls: string[]) => {
     setMediaUrls(urls);
-    // persist immediately so it shows up for everyone
     await updatePost(post.id, { media_urls: urls });
     setDirty(false);
   };
+
+  const catColor = categoryConfig[category]?.color || "#999";
 
   return (
     <>
@@ -115,90 +130,48 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
         {/* Tabs */}
         <div className="flex border-b border-border">
-          {(["detalhes", "roteiro", "midia"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors capitalize ${
-                activeTab === tab
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab === "midia" ? "Mídia" : tab}
-            </button>
-          ))}
+          {isAdmin
+            ? (["detalhes", "roteiro", "midia", "entrega"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setAdminTab(tab)}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors capitalize ${
+                    adminTab === tab ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === "midia" ? "Mídia" : tab}
+                </button>
+              ))
+            : (["conteudo", "entrega"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setStudentTab(tab)}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors capitalize ${
+                    studentTab === tab ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === "conteudo" ? "Conteúdo" : "Entrega"}
+                </button>
+              ))
+          }
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          {activeTab === "detalhes" && (
+          {/* ===== STUDENT VIEW ===== */}
+          {!isAdmin && studentTab === "conteudo" && (
             <>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
-                <input
-                  value={title}
-                  onChange={e => { setTitle(e.target.value); markDirty(); }}
-                  disabled={!isAdmin}
-                  className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed"
-                />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded" style={{ backgroundColor: catColor }}>
+                  {postFormat}
+                </span>
+                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{network}</span>
+                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{category}</span>
+                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{date}</span>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={e => { setDate(e.target.value); markDirty(); }}
-                  disabled={!isAdmin}
-                  className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-70"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Formato</label>
-                  <select
-                    value={postFormat}
-                    onChange={e => { setPostFormat(e.target.value as Format); markDirty(); }}
-                    disabled={!isAdmin}
-                    className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-70"
-                  >
-                    {formats.map(f => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rede Social</label>
-                  <select
-                    value={network}
-                    onChange={e => { setNetwork(e.target.value as SocialNetwork); markDirty(); }}
-                    disabled={!isAdmin}
-                    className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-70"
-                  >
-                    {networks.map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {categories.map(c => (
-                    <button
-                      key={c}
-                      onClick={() => { if (isAdmin) { setCategory(c); markDirty(); } }}
-                      disabled={!isAdmin}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:cursor-not-allowed ${
-                        category === c
-                          ? "text-white ring-2 ring-offset-1 ring-primary/30"
-                          : "bg-secondary text-muted-foreground hover:bg-muted"
-                      }`}
-                      style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+                <h3 className="text-base font-semibold text-foreground leading-tight">{title}</h3>
               </div>
 
               <div>
@@ -216,71 +189,216 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                     </button>
                   ))}
                 </div>
-                {!isAdmin && (
-                  <p className="text-[11px] text-muted-foreground mt-2">
-                    Você pode atualizar o status à medida que produzir.
-                  </p>
+              </div>
+
+              {script && script !== "<p></p>" && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Roteiro / Referência</label>
+                  <div className="mt-2 rounded-lg border border-border bg-background p-3">
+                    <div className="prose prose-sm max-w-none text-foreground" dangerouslySetInnerHTML={{ __html: script }} />
+                  </div>
+                </div>
+              )}
+
+              {notes && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Observações da professora</label>
+                  <p className="mt-2 text-sm text-foreground bg-secondary/50 rounded-lg p-3 whitespace-pre-wrap">{notes}</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {!isAdmin && studentTab === "entrega" && (
+            <>
+              <div>
+                <MediaUploader
+                  postId={post.id}
+                  mediaUrls={mediaUrls}
+                  canDelete={false}
+                  onChange={handleMediaChange}
+                  ownerId={ownerId}
+                  studentId={studentId}
+                  logAsStudent={true}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
+                <input
+                  type="url"
+                  value={publishedUrl}
+                  onChange={e => { setPublishedUrl(e.target.value); markDirty(); }}
+                  placeholder="https://instagram.com/p/..."
+                  className="w-full mt-2 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                />
+                {publishedUrl && (
+                  <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
+                    <ExternalLink className="h-3 w-3" /> Abrir
+                  </a>
                 )}
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comentário / Anotação</label>
                 <textarea
-                  value={notes}
-                  onChange={e => { setNotes(e.target.value); markDirty(); }}
-                  disabled={!isAdmin}
-                  placeholder="Adicione notas sobre este post..."
-                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-24 focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-70"
+                  value={studentNotes}
+                  onChange={e => { setStudentNotes(e.target.value); markDirty(); }}
+                  placeholder="Deixe um recado para a professora..."
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-24 focus:ring-2 focus:ring-primary/30 focus:outline-none"
                 />
               </div>
             </>
           )}
 
-          {activeTab === "roteiro" && (
+          {/* ===== ADMIN VIEW ===== */}
+          {isAdmin && adminTab === "detalhes" && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
+                <input
+                  value={title}
+                  onChange={e => { setTitle(e.target.value); markDirty(); }}
+                  className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => { setDate(e.target.value); markDirty(); }}
+                  className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Formato</label>
+                  <select
+                    value={postFormat}
+                    onChange={e => { setPostFormat(e.target.value as Format); markDirty(); }}
+                    className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  >
+                    {formats.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rede Social</label>
+                  <select
+                    value={network}
+                    onChange={e => { setNetwork(e.target.value as SocialNetwork); markDirty(); }}
+                    className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  >
+                    {networks.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {categories.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => { setCategory(c); markDirty(); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        category === c ? "text-white ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
+                      }`}
+                      style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
+                    >{c}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {statuses.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => { setStatus(s); markDirty(); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        status === s ? statusColors[s] + " ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
+                      }`}
+                    >{s}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas internas</label>
+                <textarea
+                  value={notes}
+                  onChange={e => { setNotes(e.target.value); markDirty(); }}
+                  placeholder="Adicione notas sobre este post..."
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-24 focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                />
+              </div>
+            </>
+          )}
+
+          {isAdmin && adminTab === "roteiro" && (
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Roteiro</label>
-                {isAdmin && (
-                  <button
-                    onClick={() => setEditingScript(!editingScript)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
-                  >
-                    {editingScript ? <><Eye className="h-3 w-3" /> Visualizar</> : <><Pencil className="h-3 w-3" /> Editar</>}
-                  </button>
-                )}
+                <button
+                  onClick={() => setEditingScript(!editingScript)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
+                >
+                  {editingScript ? <><Eye className="h-3 w-3" /> Visualizar</> : <><Pencil className="h-3 w-3" /> Editar</>}
+                </button>
               </div>
 
-              {isAdmin && editingScript ? (
-                <RichTextEditor
-                  content={script}
-                  onChange={html => { setScript(html); markDirty(); }}
-                />
+              {editingScript ? (
+                <RichTextEditor content={script} onChange={html => { setScript(html); markDirty(); }} />
               ) : (
                 <div className="rounded-lg border border-border bg-background p-4 min-h-[200px]">
                   {script && script !== "<p></p>" ? (
-                    <div
-                      className="prose prose-sm max-w-none text-foreground"
-                      dangerouslySetInnerHTML={{ __html: script }}
-                    />
+                    <div className="prose prose-sm max-w-none text-foreground" dangerouslySetInnerHTML={{ __html: script }} />
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">
-                      {isAdmin ? "Nenhum roteiro adicionado. Clique em \"Editar\" para começar." : "Nenhum roteiro adicionado."}
-                    </p>
+                    <p className="text-sm text-muted-foreground italic">Nenhum roteiro adicionado. Clique em "Editar" para começar.</p>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {activeTab === "midia" && (
+          {isAdmin && adminTab === "midia" && (
             <MediaUploader
               postId={post.id}
               mediaUrls={mediaUrls}
-              canDelete={isAdmin}
+              canDelete={true}
               onChange={handleMediaChange}
               ownerId={ownerId}
-              logAsStudent={!isAdmin}
+              studentId={studentId}
+              logAsStudent={false}
             />
+          )}
+
+          {isAdmin && adminTab === "entrega" && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
+                {publishedUrl ? (
+                  <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" /> {publishedUrl}
+                  </a>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic mt-2">Aluno ainda não enviou o link.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comentário do aluno</label>
+                {studentNotes ? (
+                  <p className="mt-2 text-sm text-foreground bg-secondary/50 rounded-lg p-3 whitespace-pre-wrap">{studentNotes}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic mt-2">Sem comentários.</p>
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -290,9 +408,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
             onClick={handleSave}
             disabled={saving || !dirty}
             className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${
-              dirty
-                ? "bg-primary text-primary-foreground hover:opacity-90"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
+              dirty ? "bg-primary text-primary-foreground hover:opacity-90" : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
           >
             <Save className="h-4 w-4" />

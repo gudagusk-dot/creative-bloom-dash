@@ -24,8 +24,11 @@ export type Database = {
           media_urls: string[]
           network: string
           notes: string
+          published_url: string
           script: string
           status: string
+          student_id: string | null
+          student_notes: string
           title: string
           updated_at: string
           user_id: string
@@ -39,8 +42,11 @@ export type Database = {
           media_urls?: string[]
           network: string
           notes?: string
+          published_url?: string
           script?: string
           status?: string
+          student_id?: string | null
+          student_notes?: string
           title: string
           updated_at?: string
           user_id: string
@@ -54,8 +60,11 @@ export type Database = {
           media_urls?: string[]
           network?: string
           notes?: string
+          published_url?: string
           script?: string
           status?: string
+          student_id?: string | null
+          student_notes?: string
           title?: string
           updated_at?: string
           user_id?: string
@@ -77,6 +86,7 @@ export type Database = {
           details: Json
           id: string
           post_id: string
+          student_id: string | null
           user_id: string
         }
         Insert: {
@@ -85,6 +95,7 @@ export type Database = {
           details?: Json
           id?: string
           post_id: string
+          student_id?: string | null
           user_id: string
         }
         Update: {
@@ -93,6 +104,7 @@ export type Database = {
           details?: Json
           id?: string
           post_id?: string
+          student_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -112,6 +124,36 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          slug: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          slug: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          slug?: string
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }

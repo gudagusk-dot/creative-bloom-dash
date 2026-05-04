@@ -9,12 +9,13 @@ interface Props {
   canDelete: boolean;
   onChange: (urls: string[]) => void;
   ownerId?: string | null;
+  studentId?: string | null;
   logAsStudent?: boolean;
 }
 
 const MAX_BYTES = 50 * 1024 * 1024;
 
-export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange, ownerId, logAsStudent }: Props) => {
+export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange, ownerId, studentId, logAsStudent }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export const MediaUploader = ({ postId, mediaUrls, canDelete, onChange, ownerId,
     }
     onChange([...(mediaUrls || []), ...newUrls]);
     if (logAsStudent && ownerId && newUrls.length > 0) {
-      await logActivity(postId, ownerId, "media_uploaded", { count: newUrls.length });
+      await logActivity(postId, ownerId, studentId || null, "media_uploaded", { count: newUrls.length });
     }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = "";

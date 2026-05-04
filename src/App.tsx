@@ -4,7 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider, useUser } from "@/context/UserContext";
-import Index from "./pages/Index.tsx";
+import { StudentsProvider } from "@/context/StudentsContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import StudentsDashboard from "./pages/StudentsDashboard.tsx";
+import CalendarPage from "./pages/CalendarPage.tsx";
 import Login from "./pages/Login.tsx";
 import StudentView from "./pages/StudentView.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -27,20 +30,25 @@ const LoginRoute = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <UserProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginRoute />} />
-            <Route path="/aluno/:ownerId" element={<StudentView />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <StudentsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginRoute />} />
+                <Route path="/aluno/:slug" element={<StudentView />} />
+                <Route path="/" element={<ProtectedRoute><StudentsDashboard /></ProtectedRoute>} />
+                <Route path="/calendario/:slug" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </StudentsProvider>
+      </UserProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
