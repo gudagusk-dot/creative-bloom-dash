@@ -14,6 +14,8 @@ export interface ContentPost {
   notes: string;
   script: string; // roteiro - rich text HTML
   media_urls?: string[];
+  published_url?: string;
+  student_notes?: string;
 }
 
 export const categoryConfig: Record<Category, { color: string; tailwind: string }> = {
