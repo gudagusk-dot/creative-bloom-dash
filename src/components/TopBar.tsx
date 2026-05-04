@@ -1,44 +1,50 @@
-import { CalendarDays, LogOut, Share2, Activity } from "lucide-react";
+import { CalendarDays, LogOut, Share2, Activity, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useContent } from "@/context/ContentContext";
 import { useUser } from "@/context/UserContext";
 import { categoryConfig, Category } from "@/data/content";
 import { useState } from "react";
 import { ShareDialog } from "./ShareDialog";
 import { ProgressPanel } from "./ProgressPanel";
+import { ThemeToggle } from "./ThemeToggle";
+import { Student } from "@/context/StudentsContext";
 
 const categories = Object.keys(categoryConfig) as Category[];
 
 interface Props {
   viewMode: "admin" | "student";
-  ownerId?: string;
-  ownerName?: string;
+  student?: Student | null;
 }
 
-export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
-  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory } = useContent();
-  const { userName, logout, userId } = useUser();
+export const TopBar = ({ viewMode, student }: Props) => {
+  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId } = useContent();
+  const { userName, logout } = useUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
-  const adminId = ownerId || userId;
 
   return (
     <div className="border-b border-border bg-card">
       {/* Top row */}
       <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
         <div className="flex items-center gap-2 min-w-0">
+          {viewMode === "admin" && (
+            <Link to="/" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" title="Voltar para alunos">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          )}
           <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
           <span className="text-sm sm:text-lg font-semibold text-foreground truncate">
-            Plano de Conteúdo
+            {student?.name || "Plano de Conteúdo"}
           </span>
-          {viewMode === "student" && ownerName && (
-            <span className="hidden sm:inline text-xs text-muted-foreground ml-2 truncate">
-              · {ownerName}
-            </span>
+          {viewMode === "student" && (
+            <span className="hidden sm:inline text-xs text-muted-foreground ml-2 truncate">· Modo aluno</span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          {viewMode === "admin" && adminId && (
+          <ThemeToggle />
+
+          {viewMode === "admin" && student && (
             <>
               <button
                 onClick={() => setProgressOpen(true)}
@@ -54,7 +60,7 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
                 title="Compartilhar com aluno"
               >
                 <Share2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Compartilhar com aluno</span>
+                <span className="hidden sm:inline">Compartilhar</span>
               </button>
             </>
           )}
@@ -62,11 +68,8 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
           {viewMode === "admin" && userName && (
             <div className="flex items-center gap-1.5">
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-semibold text-primary">
-                  {userName.charAt(0).toUpperCase()}
-                </span>
+                <span className="text-xs font-semibold text-primary">{userName.charAt(0).toUpperCase()}</span>
               </div>
-              <span className="hidden sm:inline text-xs font-medium text-foreground">{userName}</span>
               <button onClick={logout} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground" title="Sair">
                 <LogOut className="h-4 w-4" />
               </button>
@@ -74,7 +77,7 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
           )}
 
           {viewMode === "student" && (
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md">Modo aluno</span>
+            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md">Aluno</span>
           )}
         </div>
       </div>
@@ -109,20 +112,17 @@ export const TopBar = ({ viewMode, ownerId, ownerName }: Props) => {
                 }`}
                 style={active ? { backgroundColor: categoryConfig[cat].color } : {}}
               >
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full mr-1"
-                  style={{ backgroundColor: categoryConfig[cat].color }}
-                />
+                <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: categoryConfig[cat].color }} />
                 {cat}
               </button>
             );
           })}
         </div>
       </div>
-      {adminId && (
+      {viewMode === "admin" && student && (
         <>
-          <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} ownerId={adminId} />
-          <ProgressPanel open={progressOpen} onClose={() => setProgressOpen(false)} ownerId={adminId} />
+          <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} student={student} />
+          {studentId && <ProgressPanel open={progressOpen} onClose={() => setProgressOpen(false)} studentId={studentId} />}
         </>
       )}
     </div>
