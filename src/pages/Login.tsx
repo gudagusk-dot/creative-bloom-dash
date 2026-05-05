@@ -30,7 +30,6 @@ const Login = () => {
             <CalendarDays className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Plano de Conteúdo</h1>
-          <p className="text-muted-foreground mt-1">Teacher Ana</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
