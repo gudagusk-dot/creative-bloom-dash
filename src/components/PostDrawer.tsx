@@ -108,9 +108,9 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-foreground/20 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] bg-card border-l border-border shadow-2xl z-50 animate-slide-in-right flex flex-col">
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 animate-slide-in-right flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
           <h2 className="text-base sm:text-lg font-semibold text-foreground">
