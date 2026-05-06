@@ -49,10 +49,10 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
 
   return (
     <>
-      <div className="fixed inset-0 bg-foreground/20 z-40" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] bg-card border-l border-border shadow-2xl z-50 animate-slide-in-right flex flex-col">
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">Novo Conteúdo</h2>
+      <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 animate-slide-in-right flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border/60">
+          <h2 className="font-display text-lg sm:text-xl font-medium text-foreground tracking-tight">Novo Conteúdo</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
             <X className="h-5 w-5" />
           </button>
@@ -140,11 +140,11 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 border-t border-border">
+        <div className="p-4 sm:p-6 border-t border-border/60">
           <button
             onClick={handleSubmit}
             disabled={!title.trim()}
-            className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full bg-gradient-primary text-primary-foreground py-3 rounded-xl font-medium text-sm shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 transition-all ease-soft disabled:opacity-50 disabled:hover:translate-y-0"
           >
             Criar Conteúdo
           </button>

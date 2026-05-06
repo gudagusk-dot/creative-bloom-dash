@@ -49,30 +49,30 @@ export const StudentCard = ({ student, onShare, onDelete }: Props) => {
   const pct = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow relative group">
-      <div className="flex items-start justify-between mb-3">
+    <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 hover:border-primary/30 transition-all duration-300 ease-soft relative group">
+      <div className="flex items-start justify-between mb-4">
         <Link to={`/calendario/${student.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="text-sm font-semibold text-primary">{student.name.charAt(0).toUpperCase()}</span>
+          <div className="w-11 h-11 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft group-hover:shadow-glow transition-shadow">
+            <span className="font-display text-base font-medium text-primary-foreground">{student.name.charAt(0).toUpperCase()}</span>
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground truncate">{student.name}</h3>
+            <h3 className="font-display text-base font-medium text-foreground truncate tracking-tight">{student.name}</h3>
             <p className="text-[11px] text-muted-foreground truncate">/aluno/{student.slug}</p>
           </div>
         </Link>
 
         <div className="relative">
-          <button onClick={() => setMenuOpen(o => !o)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
+          <button onClick={() => setMenuOpen(o => !o)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
             <MoreVertical className="h-4 w-4" />
           </button>
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-lg shadow-lg z-20 py-1">
-                <button onClick={() => { setMenuOpen(false); onShare(student); }} className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-secondary flex items-center gap-2">
+              <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-xl shadow-soft-lg z-20 py-1 animate-scale-in origin-top-right">
+                <button onClick={() => { setMenuOpen(false); onShare(student); }} className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-secondary flex items-center gap-2 transition-colors">
                   <Share2 className="h-3.5 w-3.5" /> Compartilhar
                 </button>
-                <button onClick={() => { setMenuOpen(false); onDelete(student); }} className="w-full text-left px-3 py-2 text-xs text-destructive hover:bg-destructive/10 flex items-center gap-2">
+                <button onClick={() => { setMenuOpen(false); onDelete(student); }} className="w-full text-left px-3 py-2 text-xs text-destructive hover:bg-destructive/10 flex items-center gap-2 transition-colors">
                   <Trash2 className="h-3.5 w-3.5" /> Excluir
                 </button>
               </div>
@@ -84,36 +84,36 @@ export const StudentCard = ({ student, onShare, onDelete }: Props) => {
       <Link to={`/calendario/${student.slug}`} className="block">
         <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
           <span>{stats.published}/{stats.total} publicados</span>
-          <span className="font-semibold text-foreground">{pct}%</span>
+          <span className="font-display text-sm font-medium text-foreground">{pct}%</span>
         </div>
-        <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden mb-3">
-          <div className="h-full bg-cat-autoridade rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden mb-4">
+          <div className="h-full bg-gradient-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-secondary/40 py-1.5">
-            <div className="text-sm font-semibold text-foreground">{stats.pending}</div>
+          <div className="rounded-xl bg-secondary/40 py-2">
+            <div className="font-display text-base font-medium text-foreground">{stats.pending}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pendentes</div>
           </div>
-          <div className="rounded-lg bg-secondary/40 py-1.5">
-            <div className="text-sm font-semibold text-foreground">{stats.published}</div>
+          <div className="rounded-xl bg-secondary/40 py-2">
+            <div className="font-display text-base font-medium text-foreground">{stats.published}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Publicados</div>
           </div>
-          <div className="rounded-lg bg-secondary/40 py-1.5">
-            <div className="text-sm font-semibold text-foreground">{stats.media}</div>
+          <div className="rounded-xl bg-secondary/40 py-2">
+            <div className="font-display text-base font-medium text-foreground">{stats.media}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Mídias</div>
           </div>
         </div>
       </Link>
 
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/60">
         {student.whatsapp && (
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <MessageCircle className="h-3 w-3" /> {student.whatsapp}
           </span>
         )}
-        <Link to={`/calendario/${student.slug}`} className="ml-auto flex items-center gap-1 text-[11px] text-primary font-medium hover:underline">
-          <CalendarDays className="h-3 w-3" /> Abrir calendário
+        <Link to={`/calendario/${student.slug}`} className="ml-auto flex items-center gap-1 text-[11px] text-primary font-medium hover:gap-1.5 transition-all">
+          <CalendarDays className="h-3 w-3" /> Abrir calendário →
         </Link>
       </div>
     </div>

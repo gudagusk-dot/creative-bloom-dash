@@ -126,9 +126,9 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-foreground/20 z-40" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-card border-l border-border shadow-2xl z-50 flex flex-col animate-slide-in-right">
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
+      <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[620px] bg-card border-l border-border/60 shadow-soft-xl z-50 flex flex-col animate-slide-in-right">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/60">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
             <h2 className="text-base sm:text-lg font-semibold text-foreground">Progresso do aluno</h2>
@@ -250,8 +250,8 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
 };
 
 const Stat = ({ label, value, accent }: { label: string; value: number; accent?: string }) => (
-  <div className="rounded-lg border border-border bg-background p-2.5">
-    <div className={`text-xl font-semibold ${accent || "text-foreground"}`}>{value}</div>
-    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+  <div className="rounded-xl border border-border/60 bg-background p-2.5">
+    <div className={`font-display text-xl font-light ${accent || "text-foreground"}`}>{value}</div>
+    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{label}</div>
   </div>
 );

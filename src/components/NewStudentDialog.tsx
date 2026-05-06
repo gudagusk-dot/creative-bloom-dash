@@ -35,7 +35,7 @@ export const NewStudentDialog = ({ open, onClose, onCreated }: Props) => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) { reset(); onClose(); } }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Novo calendário</DialogTitle>
+          <DialogTitle className="font-display text-2xl font-light tracking-tight">Novo calendário</DialogTitle>
           <DialogDescription>
             Cadastre um aluno e crie um calendário dedicado para ele.
           </DialogDescription>
@@ -80,7 +80,7 @@ export const NewStudentDialog = ({ open, onClose, onCreated }: Props) => {
           <button
             type="submit"
             disabled={!name.trim() || saving}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-primary text-primary-foreground font-medium text-sm shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 transition-all ease-soft disabled:opacity-50 disabled:hover:translate-y-0"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Criar calendário

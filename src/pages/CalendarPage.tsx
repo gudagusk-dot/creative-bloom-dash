@@ -36,7 +36,7 @@ const CalendarPage = () => {
 
         <button
           onClick={() => setNewPostOpen(true)}
-          className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center z-20 hover:opacity-90 transition-opacity"
+          className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-gradient-primary text-primary-foreground rounded-full shadow-soft-lg flex items-center justify-center z-20 hover:scale-110 active:scale-95 transition-transform ease-soft"
         >
           <Plus className="h-6 w-6" />
         </button>

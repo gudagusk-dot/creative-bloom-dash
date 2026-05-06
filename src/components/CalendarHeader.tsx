@@ -21,47 +21,47 @@ export const CalendarHeader = ({ onNewPost }: Props) => {
   const isAdmin = viewMode === "admin";
 
   return (
-    <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-card gap-3 sm:gap-0">
+    <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-border/60 bg-card gap-3 sm:gap-0">
       <div className="flex items-center gap-3 w-full sm:w-auto">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <h1 className="text-base sm:text-xl font-semibold text-foreground capitalize min-w-[140px] sm:min-w-[180px] text-center">
+          <h1 className="font-display text-xl sm:text-2xl font-light text-foreground capitalize min-w-[160px] sm:min-w-[200px] text-center tracking-tight">
             {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
           </h1>
           <button
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="hidden sm:flex items-center gap-3 ml-4">
-          <span className="text-sm text-muted-foreground">{published}/{total}</span>
-          <div className="w-24 lg:w-32 h-2 bg-secondary rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div className="hidden sm:flex items-center gap-3 ml-4 pl-4 border-l border-border/60">
+          <span className="text-xs text-muted-foreground font-medium">{published}/{total}</span>
+          <div className="w-24 lg:w-32 h-1.5 bg-secondary rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
+          <span className="text-xs font-display font-medium text-foreground">{pct}%</span>
         </div>
       </div>
 
       <div className="flex sm:hidden items-center gap-3 w-full">
         <span className="text-xs text-muted-foreground">{published}/{total} publicados</span>
-        <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
-        <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
+        <span className="text-xs font-display font-medium text-foreground">{pct}%</span>
       </div>
 
       {isAdmin && onNewPost && (
         <button
           onClick={onNewPost}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-primary text-primary-foreground rounded-xl text-sm font-medium shadow-soft hover:shadow-soft-md hover:-translate-y-0.5 transition-all ease-soft"
         >
           <Plus className="h-4 w-4" />
           Novo Conteúdo
