@@ -55,7 +55,7 @@ export const ShareDialog = ({ open, onClose, student }: Props) => {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Compartilhar com {student.name}</DialogTitle>
+          <DialogTitle className="font-display text-2xl font-light tracking-tight">Compartilhar com {student.name}</DialogTitle>
           <DialogDescription>
             Envie este link. O aluno acessa direto, sem login, e suas atualizações ficam salvas.
           </DialogDescription>
