@@ -71,6 +71,22 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {templates.length > 0 && (
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> Aplicar template
+              </label>
+              <select
+                onChange={e => { if (e.target.value) applyTemplate(e.target.value); e.target.value = ""; }}
+                defaultValue=""
+                className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+              >
+                <option value="">— Escolher template —</option>
+                {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</label>
             <input
