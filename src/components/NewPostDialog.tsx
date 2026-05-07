@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork, categoryConfig } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTemplates } from "@/hooks/useTemplates";
 
 interface NewPostDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
   const { addPost } = useContent();
+  const { templates } = useTemplates();
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
@@ -25,6 +27,16 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
+
+  const applyTemplate = (id: string) => {
+    const t = templates.find(x => x.id === id);
+    if (!t) return;
+    setPostFormat(t.format);
+    setCategory(t.category);
+    setNetwork(t.network);
+    if (t.default_title) setTitle(t.default_title);
+    if (t.default_script) setScript(t.default_script);
+  };
 
   if (!open) return null;
 
@@ -59,6 +71,22 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {templates.length > 0 && (
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> Aplicar template
+              </label>
+              <select
+                onChange={e => { if (e.target.value) applyTemplate(e.target.value); e.target.value = ""; }}
+                defaultValue=""
+                className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+              >
+                <option value="">— Escolher template —</option>
+                {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</label>
             <input

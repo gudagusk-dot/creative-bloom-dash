@@ -7,10 +7,14 @@ import { StudentCard } from "@/components/StudentCard";
 import { NewStudentDialog } from "@/components/NewStudentDialog";
 import { ShareDialog } from "@/components/ShareDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GlobalSearch } from "@/components/GlobalSearch";
+
+import { useStudentsStats } from "@/hooks/useStudentsStats";
 
 const StudentsDashboard = () => {
   const { userName, logout } = useUser();
   const { students, loading, deleteStudent } = useStudents();
+  const { stats } = useStudentsStats(students.map(s => s.id));
   const [newOpen, setNewOpen] = useState(false);
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
 
@@ -129,7 +133,7 @@ const StudentsDashboard = () => {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
                 }}
               >
-                <StudentCard student={s} onShare={setShareStudent} onDelete={handleDelete} />
+                <StudentCard student={s} stats={stats[s.id]} onShare={setShareStudent} onDelete={handleDelete} />
               </motion.div>
             ))}
           </motion.div>
@@ -140,6 +144,7 @@ const StudentsDashboard = () => {
       {shareStudent && (
         <ShareDialog open={!!shareStudent} onClose={() => setShareStudent(null)} student={shareStudent} />
       )}
+      <GlobalSearch />
     </div>
   );
 };

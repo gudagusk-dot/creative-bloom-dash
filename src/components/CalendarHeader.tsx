@@ -1,14 +1,24 @@
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarView } from "./CalendarGrid";
+import { TemplatesDialog } from "./TemplatesDialog";
+import { exportCalendarPDF } from "@/lib/pdfExport";
+import { toast } from "sonner";
 
 interface Props {
   onNewPost?: () => void;
+  view: CalendarView;
+  onChangeView: (v: CalendarView) => void;
+  studentName?: string;
 }
 
-export const CalendarHeader = ({ onNewPost }: Props) => {
+export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: Props) => {
   const { currentMonth, setCurrentMonth, posts, viewMode } = useContent();
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const monthPosts = posts.filter(p => {
     const d = new Date(p.date);
@@ -58,15 +68,67 @@ export const CalendarHeader = ({ onNewPost }: Props) => {
         <span className="text-xs font-display font-medium text-foreground">{pct}%</span>
       </div>
 
-      {isAdmin && onNewPost && (
-        <button
-          onClick={onNewPost}
-          className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-primary text-primary-foreground rounded-xl text-sm font-medium shadow-soft hover:shadow-soft-md hover:-translate-y-0.5 transition-all ease-soft"
-        >
-          <Plus className="h-4 w-4" />
-          Novo Conteúdo
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center bg-secondary rounded-lg p-0.5">
+          {([
+            ["month", CalendarDays, "Mês"],
+            ["week", LayoutGrid, "Semana"],
+            ["list", List, "Lista"],
+          ] as const).map(([k, Icon, label]) => (
+            <button
+              key={k}
+              onClick={() => onChangeView(k)}
+              title={label}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                view === k ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => setTemplatesOpen(true)}
+              title="Templates"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
+            >
+              <FileText className="h-3.5 w-3.5" /> Templates
+            </button>
+            <button
+              onClick={async () => {
+                setExporting(true);
+                try {
+                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName });
+                  toast.success("PDF gerado!");
+                } catch (e) {
+                  toast.error("Erro ao gerar PDF");
+                } finally { setExporting(false); }
+              }}
+              disabled={exporting}
+              title="Exportar PDF"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              <Download className="h-3.5 w-3.5" /> {exporting ? "Gerando…" : "PDF"}
+            </button>
+          </>
+        )}
+
+        {isAdmin && onNewPost && (
+          <button
+            onClick={onNewPost}
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-primary text-primary-foreground rounded-xl text-sm font-medium shadow-soft hover:shadow-soft-md hover:-translate-y-0.5 transition-all ease-soft"
+          >
+            <Plus className="h-4 w-4" />
+            Novo Conteúdo
+          </button>
+        )}
+      </div>
+
+      {isAdmin && <TemplatesDialog open={templatesOpen} onClose={() => setTemplatesOpen(false)} />}
     </header>
   );
 };

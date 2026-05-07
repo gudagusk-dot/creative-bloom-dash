@@ -4,8 +4,9 @@ import { ContentProvider } from "@/context/ContentContext";
 import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
-import { CalendarGrid } from "@/components/CalendarGrid";
+import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
 import { NewPostDialog } from "@/components/NewPostDialog";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { Plus } from "lucide-react";
 import { useStudents, Student } from "@/context/StudentsContext";
 import { useUser } from "@/context/UserContext";
@@ -16,11 +17,18 @@ const CalendarPage = () => {
   const { getBySlug } = useStudents();
   const [student, setStudent] = useState<Student | null | undefined>(undefined);
   const [newPostOpen, setNewPostOpen] = useState(false);
+  const { view, setView } = useCalendarView();
 
   useEffect(() => {
     if (!slug) return;
-    getBySlug(slug).then(setStudent);
-  }, [slug, getBySlug]);
+    getBySlug(slug).then(async (s) => {
+      setStudent(s);
+      if (s && userId) {
+        const { markStudentSeen } = await import("@/hooks/useStudentsStats");
+        markStudentSeen(userId, s.id);
+      }
+    });
+  }, [slug, getBySlug, userId]);
 
   if (student === undefined) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!student) return <Navigate to="/" replace />;
@@ -30,9 +38,10 @@ const CalendarPage = () => {
     <ContentProvider studentId={student.id} ownerId={userId} viewMode="admin">
       <div className="min-h-screen w-full flex flex-col">
         <TopBar viewMode="admin" student={student} />
-        <CalendarHeader onNewPost={() => setNewPostOpen(true)} />
-        <KpiCards />
-        <CalendarGrid />
+        <CalendarHeader onNewPost={() => setNewPostOpen(true)} view={view} onChangeView={setView} studentName={student.name} />
+        {view === "month" && <KpiCards />}
+        <CalendarGrid view={view} />
+        <GlobalSearch />
 
         <button
           onClick={() => setNewPostOpen(true)}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Activity, Image as ImageIcon, Video as VideoIcon, AlertCircle, Clock, ExternalLink, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContent } from "@/context/ContentContext";
@@ -122,12 +123,21 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
     );
   };
 
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
   if (!open) return null;
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[620px] bg-card border-l border-border/60 shadow-soft-xl z-50 flex flex-col animate-slide-in-right">
+      <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-[100] animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[620px] bg-card border-l border-border/60 shadow-soft-xl z-[101] flex flex-col animate-slide-in-right">
+
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/60">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -245,7 +255,8 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
         )}
       </div>
       <PostDrawer post={openPost} onClose={() => setOpenPost(null)} />
-    </>
+    </>,
+    document.body
   );
 };
 

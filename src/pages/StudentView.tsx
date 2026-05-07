@@ -4,7 +4,7 @@ import { ContentProvider } from "@/context/ContentContext";
 import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
-import { CalendarGrid } from "@/components/CalendarGrid";
+import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
 import { supabase } from "@/integrations/supabase/client";
 
 interface StudentLite { id: string; owner_id: string; name: string; slug: string; }
@@ -40,12 +40,19 @@ const StudentView = () => {
   if (!student) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Calendário não encontrado.</div>;
 
   return (
+    <StudentViewInner student={student} />
+  );
+};
+
+const StudentViewInner = ({ student }: { student: StudentLite }) => {
+  const { view, setView } = useCalendarView();
+  return (
     <ContentProvider studentId={student.id} ownerId={student.owner_id} viewMode="student">
       <div className="min-h-screen w-full flex flex-col">
         <TopBar viewMode="student" student={student as any} />
-        <CalendarHeader />
-        <KpiCards />
-        <CalendarGrid />
+        <CalendarHeader view={view} onChangeView={setView} />
+        {view === "month" && <KpiCards />}
+        <CalendarGrid view={view} />
       </div>
     </ContentProvider>
   );
