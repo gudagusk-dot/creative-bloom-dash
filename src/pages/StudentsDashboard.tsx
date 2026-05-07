@@ -141,6 +141,7 @@ const StudentsDashboard = () => {
       {shareStudent && (
         <ShareDialog open={!!shareStudent} onClose={() => setShareStudent(null)} student={shareStudent} />
       )}
+      <GlobalSearch />
     </div>
   );
 };
