@@ -32,7 +32,7 @@ const CalendarPage = () => {
     <ContentProvider studentId={student.id} ownerId={userId} viewMode="admin">
       <div className="min-h-screen w-full flex flex-col">
         <TopBar viewMode="admin" student={student} />
-        <CalendarHeader onNewPost={() => setNewPostOpen(true)} view={view} onChangeView={setView} />
+        <CalendarHeader onNewPost={() => setNewPostOpen(true)} view={view} onChangeView={setView} studentName={student.name} />
         {view === "month" && <KpiCards />}
         <CalendarGrid view={view} />
         <GlobalSearch />
