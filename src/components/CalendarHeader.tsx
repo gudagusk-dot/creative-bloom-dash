@@ -1,13 +1,16 @@
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarView } from "./CalendarGrid";
 
 interface Props {
   onNewPost?: () => void;
+  view: CalendarView;
+  onChangeView: (v: CalendarView) => void;
 }
 
-export const CalendarHeader = ({ onNewPost }: Props) => {
+export const CalendarHeader = ({ onNewPost, view, onChangeView }: Props) => {
   const { currentMonth, setCurrentMonth, posts, viewMode } = useContent();
 
   const monthPosts = posts.filter(p => {
