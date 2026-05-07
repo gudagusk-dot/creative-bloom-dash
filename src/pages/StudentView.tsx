@@ -4,7 +4,7 @@ import { ContentProvider } from "@/context/ContentContext";
 import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
-import { CalendarGrid } from "@/components/CalendarGrid";
+import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
 import { supabase } from "@/integrations/supabase/client";
 
 interface StudentLite { id: string; owner_id: string; name: string; slug: string; }
