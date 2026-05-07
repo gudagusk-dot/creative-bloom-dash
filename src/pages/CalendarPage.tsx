@@ -4,8 +4,9 @@ import { ContentProvider } from "@/context/ContentContext";
 import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
-import { CalendarGrid } from "@/components/CalendarGrid";
+import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
 import { NewPostDialog } from "@/components/NewPostDialog";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { Plus } from "lucide-react";
 import { useStudents, Student } from "@/context/StudentsContext";
 import { useUser } from "@/context/UserContext";
@@ -16,6 +17,7 @@ const CalendarPage = () => {
   const { getBySlug } = useStudents();
   const [student, setStudent] = useState<Student | null | undefined>(undefined);
   const [newPostOpen, setNewPostOpen] = useState(false);
+  const { view, setView } = useCalendarView();
 
   useEffect(() => {
     if (!slug) return;

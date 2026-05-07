@@ -61,15 +61,37 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView }: Props) => {
         <span className="text-xs font-display font-medium text-foreground">{pct}%</span>
       </div>
 
-      {isAdmin && onNewPost && (
-        <button
-          onClick={onNewPost}
-          className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-primary text-primary-foreground rounded-xl text-sm font-medium shadow-soft hover:shadow-soft-md hover:-translate-y-0.5 transition-all ease-soft"
-        >
-          <Plus className="h-4 w-4" />
-          Novo Conteúdo
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center bg-secondary rounded-lg p-0.5">
+          {([
+            ["month", CalendarDays, "Mês"],
+            ["week", LayoutGrid, "Semana"],
+            ["list", List, "Lista"],
+          ] as const).map(([k, Icon, label]) => (
+            <button
+              key={k}
+              onClick={() => onChangeView(k)}
+              title={label}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                view === k ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {isAdmin && onNewPost && (
+          <button
+            onClick={onNewPost}
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-primary text-primary-foreground rounded-xl text-sm font-medium shadow-soft hover:shadow-soft-md hover:-translate-y-0.5 transition-all ease-soft"
+          >
+            <Plus className="h-4 w-4" />
+            Novo Conteúdo
+          </button>
+        )}
+      </div>
     </header>
   );
 };
