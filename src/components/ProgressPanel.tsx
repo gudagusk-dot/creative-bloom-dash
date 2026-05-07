@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Activity, Image as ImageIcon, Video as VideoIcon, AlertCircle, Clock, ExternalLink, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContent } from "@/context/ContentContext";

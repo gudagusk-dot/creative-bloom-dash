@@ -53,7 +53,12 @@ interface ProviderProps {
 
 export const ContentProvider = ({ children, studentId, ownerId, viewMode = "admin" }: ProviderProps) => {
   const [posts, setPosts] = useState<ContentPost[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 3, 1));
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [networkFilter, setNetworkFilter] = useState<"all" | "Instagram" | "TikTok">("all");
   const [loading, setLoading] = useState(true);
