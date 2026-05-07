@@ -21,8 +21,14 @@ const CalendarPage = () => {
 
   useEffect(() => {
     if (!slug) return;
-    getBySlug(slug).then(setStudent);
-  }, [slug, getBySlug]);
+    getBySlug(slug).then(async (s) => {
+      setStudent(s);
+      if (s && userId) {
+        const { markStudentSeen } = await import("@/hooks/useStudentsStats");
+        markStudentSeen(userId, s.id);
+      }
+    });
+  }, [slug, getBySlug, userId]);
 
   if (student === undefined) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!student) return <Navigate to="/" replace />;
