@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork, categoryConfig } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTemplates } from "@/hooks/useTemplates";
 
 interface NewPostDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
   const { addPost } = useContent();
+  const { templates } = useTemplates();
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
@@ -25,6 +27,16 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
+
+  const applyTemplate = (id: string) => {
+    const t = templates.find(x => x.id === id);
+    if (!t) return;
+    setPostFormat(t.format);
+    setCategory(t.category);
+    setNetwork(t.network);
+    if (t.default_title) setTitle(t.default_title);
+    if (t.default_script) setScript(t.default_script);
+  };
 
   if (!open) return null;
 
