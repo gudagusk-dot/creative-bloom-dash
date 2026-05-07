@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_visits: {
+        Row: {
+          id: string
+          last_seen_at: string
+          owner_id: string
+          student_id: string
+        }
+        Insert: {
+          id?: string
+          last_seen_at?: string
+          owner_id: string
+          student_id: string
+        }
+        Update: {
+          id?: string
+          last_seen_at?: string
+          owner_id?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       content_posts: {
         Row: {
           category: string
@@ -78,6 +99,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_templates: {
+        Row: {
+          category: string
+          created_at: string
+          default_script: string
+          default_title: string
+          format: string
+          id: string
+          name: string
+          network: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          default_script?: string
+          default_title?: string
+          format: string
+          id?: string
+          name: string
+          network?: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          default_script?: string
+          default_title?: string
+          format?: string
+          id?: string
+          name?: string
+          network?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       post_activity: {
         Row: {
