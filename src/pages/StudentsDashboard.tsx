@@ -7,6 +7,7 @@ import { StudentCard } from "@/components/StudentCard";
 import { NewStudentDialog } from "@/components/NewStudentDialog";
 import { ShareDialog } from "@/components/ShareDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 const StudentsDashboard = () => {
   const { userName, logout } = useUser();
