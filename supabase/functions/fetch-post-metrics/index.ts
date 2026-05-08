@@ -41,9 +41,9 @@ async function scrape(url: string) {
   console.log(`[scrape] platform=${platform} url=${url}`);
 
   if (platform === "instagram") {
-    const item = await runActor("apify~instagram-post-scraper", {
-      username: [],
+    const item = await runActor("apify~instagram-scraper", {
       directUrls: [url],
+      resultsType: "posts",
       resultsLimit: 1,
       addParentData: false,
     });
