@@ -1,104 +1,98 @@
-# Quick Wins Visuais — Refinamento completo
 
-Vou aplicar uma rodada de polimento estético em todo o app, sem mexer em lógica de negócio. O objetivo é elevar a percepção de qualidade do produto: tipografia mais editorial, paleta mais sofisticada, mais respiro, microinterações suaves e estados vazios bonitos.
+## Visão geral
 
----
-
-## 1. Tipografia editorial
-
-- Adicionar par tipográfico premium:
-  - **Fraunces** (display serif moderno) para títulos grandes, headings de página e números de KPI
-  - **Inter** continua como body (já está)
-- Configurar `font-display` e `font-sans` no Tailwind
-- Aplicar hierarquia consistente: H1 em Fraunces, subtítulos e UI em Inter
-- Aumentar `tracking` em títulos e `leading` em parágrafos
-
-## 2. Paleta refinada (light + dark)
-
-- Dessaturar levemente as 6 cores de categoria — versão "soft" pra fundo dos cards do calendário (opacidade ~15%) e cor cheia só nos badges/dots
-- Trocar o roxo primário por um tom mais sofisticado e menos saturado (algo entre violeta profundo e índigo) que funciona bem em light e dark
-- Refinar tokens neutros: backgrounds com leve warm tint em vez de cinza puro
-- Sombras mais suaves com tom da cor primária (em vez de preto puro)
-- Bordas mais sutis (menor opacidade)
-
-## 3. Mais respiro e hierarquia
-
-- Aumentar padding interno de cards, drawers e dialogs
-- Espaçamento maior entre seções
-- KPI cards com números grandes em Fraunces, label pequeno em Inter uppercase
-- TopBar com mais ar, divisor de filtros mais sutil
-- Calendário: células com padding ligeiramente maior, transições nas bordas
-
-## 4. Microinterações com framer-motion
-
-- Instalar `framer-motion`
-- Aplicar:
-  - Fade + slide nos drawers (PostDrawer, ProgressPanel)
-  - Stagger fade-in nos cards de aluno (StudentsDashboard)
-  - Hover scale sutil + sombra colorida nos cards do calendário
-  - Transição suave ao trocar de mês no calendário
-  - Scale-in nos dialogs (NewPostDialog, NewStudentDialog, ShareDialog)
-  - Animação no FAB mobile (pulse leve)
-- Usar `motion.div` apenas onde agrega — sem exagero
-
-## 5. Estados vazios bonitos
-
-- **StudentsDashboard sem alunos**: ilustração leve (ícone grande estilizado) + título em Fraunces + CTA "Adicionar primeiro aluno"
-- **Calendário sem posts no mês**: mensagem amigável centralizada com ícone
-- **ProgressPanel sem atividade**: ícone + texto explicativo
-- **Filtros sem resultado**: feedback claro
-
-## 6. Login com split-screen elegante
-
-- Layout em 2 colunas no desktop:
-  - Esquerda: visual com gradiente sofisticado (do primary pro accent), padrão sutil de fundo, citação ou tagline em Fraunces grande
-  - Direita: formulário minimalista, mais respiro, input maior, botão com hover refinado
-- Mobile: cai pra coluna única mantendo o cabeçalho visual no topo
-
-## 7. Componentes pontuais
-
-- **TopBar**: avatar do admin com ring sutil, ThemeToggle com transição de ícone
-- **Filtros de categoria**: pill mais arredondado, transição de cor mais suave
-- **Cards de aluno**: hover com lift sutil (translate-y + shadow colorida), avatar com inicial em Fraunces
-- **Botões**: refinar variants do shadcn pra incluir um `premium` com gradient sutil
+Três frentes independentes, entregues em ondas. Tudo aditivo — nada do banco ou código atual será perdido.
 
 ---
 
-## Arquivos que vou tocar
+## Onda 1 — PDF profissional
 
-**Tokens / config:**
-- `src/index.css` — paleta refinada, novas variáveis de sombra/gradiente, import de Fraunces
-- `tailwind.config.ts` — adicionar `font-display`, animations extras, sombras customizadas
-- `package.json` — adicionar `framer-motion`
+Substituir o `pdfExport.ts` atual (jsPDF cru) por um relatório multi-página com identidade visual.
 
-**Componentes visuais:**
-- `src/pages/Login.tsx` — split-screen
-- `src/pages/StudentsDashboard.tsx` — empty state + stagger animation
-- `src/components/StudentCard.tsx` — hover refinado, avatar
-- `src/components/CalendarGrid.tsx` — paleta soft, transições, empty state
-- `src/components/CalendarHeader.tsx` — tipografia
-- `src/components/KpiCards.tsx` — números em Fraunces
-- `src/components/TopBar.tsx` — refinamentos visuais
-- `src/components/PostDrawer.tsx` — animação de entrada
-- `src/components/ProgressPanel.tsx` — animação + empty state
-- `src/components/NewPostDialog.tsx`, `NewStudentDialog.tsx`, `ShareDialog.tsx` — scale-in
-- `src/components/ThemeToggle.tsx` — transição de ícone
-- `src/components/ui/button.tsx` — variant `premium`
+**Estrutura do PDF (A4 retrato, 4–6 páginas):**
 
-**Sem mexer em:**
-- Lógica de Context (ContentContext, StudentsContext, UserContext, ThemeContext)
-- Schema de banco / migrations
-- Edge functions
-- Roteamento
-- `supabase/client.ts`, `types.ts`
+1. **Capa** — gradient roxo/rosa da tela de login, logo/título "Plano de Conteúdo", nome do aluno, mês/ano, data de geração.
+2. **Resumo executivo** — 4 KPIs grandes em cards: Total de posts, Publicados, Pendentes, % de execução. Frase curta de status.
+3. **Gráficos** —
+   - Donut: Executado vs Pendente vs Atrasado
+   - Barras horizontais: posts por categoria (cores oficiais das categorias)
+   - Barras: posts por rede (Instagram / TikTok / Reels)
+4. **Calendário mensal** — grid visual com cores de status por dia.
+5. **Lista de posts do mês** (tabela): data, título, categoria, rede, status, link.
+
+**Stack técnica:**
+- `jspdf` + `jspdf-autotable` (já temos jspdf) para tabelas.
+- `chart.js` + `chartjs-node-canvas` não roda no browser; vamos usar **chart.js no cliente** renderizando em `<canvas>` off-screen e convertendo para imagem com `toDataURL()` antes de inserir no PDF.
+- Cores via tokens HSL já existentes em `index.css`.
+- Novo arquivo `src/lib/pdf/` com módulos: `cover.ts`, `kpis.ts`, `charts.ts`, `calendar.ts`, `postsTable.ts`, `index.ts`.
 
 ---
 
-## Resultado esperado
+## Onda 2 — Dashboard de métricas por aluno
 
-- App com aparência claramente mais "premium" e editorial
-- Tema dark e light ambos polidos
-- Sensação de fluidez nas interações sem lentidão
-- Estados vazios deixam de ser "buracos" e viram oportunidades de orientação
+**Mudança no card (`StudentCard.tsx`):**
+- Remover o clique no card inteiro.
+- Adicionar 2 botões claros no rodapé: **Calendário** (ícone calendar) e **Métricas** (ícone bar-chart).
 
-Sem nenhuma mudança de funcionalidade — tudo continua funcionando exatamente igual, só fica mais bonito.
+**Nova rota `/aluno/{slug}/metricas` (`StudentMetrics.tsx`):**
+- Header com nome do aluno + seletor de mês.
+- KPIs: total publicado, total de likes, views, comentários, engajamento médio.
+- Gráficos (recharts, já presumo instalado — confirmar):
+  - Linha: evolução de posts publicados por semana
+  - Barras: top 5 posts por views
+  - Pizza: distribuição por categoria
+  - Barras agrupadas: performance por rede social
+- Tabela: todos os posts publicados com link, métricas e botão "Atualizar métricas".
+- Botão "Atualizar todas" no topo que dispara scraping em lote.
+
+---
+
+## Onda 3 — Scraping de métricas (Apify freemium)
+
+**Decisão:** Apify oferece $5 de créditos grátis/mês + actors prontos para Instagram e TikTok que retornam likes/views/comentários por URL de post. Único provider que cobre as duas redes com tier free real.
+
+**Fluxo:**
+1. Criar tabela `post_metrics` (post_id FK, likes, views, comments, shares, fetched_at, raw_json).
+2. Pedir ao usuário a `APIFY_API_TOKEN` via `add_secret` (ele cria conta grátis em apify.com → Settings → Integrations).
+3. Edge function `fetch-post-metrics`:
+   - Recebe `post_id`.
+   - Lê `published_link` do post.
+   - Detecta plataforma pela URL (instagram.com / tiktok.com).
+   - Chama actor Apify correspondente (`apify/instagram-post-scraper` ou `clockworks/tiktok-scraper`) via REST sync endpoint.
+   - Faz upsert em `post_metrics`.
+4. Edge function `fetch-student-metrics` para batch (todos os posts publicados do aluno no mês).
+5. Frontend chama via `supabase.functions.invoke()` com loading + toast.
+6. KPIs e gráficos da Onda 2 leem de `post_metrics`.
+
+**Limites/expectativas que vou comunicar:**
+- ~100–300 posts/mês cabem no tier grátis dependendo do actor.
+- Stories/Reels privados não são suportados.
+- Rate limit: 1 post por vez no batch para não estourar quota.
+
+---
+
+## Mudanças no banco
+
+Migration única com:
+
+- **`post_metrics`** — post_id (FK content_posts), likes, views, comments, shares, engagement_rate, raw (jsonb), fetched_at, created_at, updated_at. RLS: dono do post (via owner_id do post pai) lê/escreve.
+
+Nada existente é alterado.
+
+---
+
+## Novos secrets
+
+- `APIFY_API_TOKEN` (será solicitado via `add_secret` no início da Onda 3).
+
+---
+
+## Ordem de execução
+
+1. Onda 1 (PDF) — sem dependências.
+2. Onda 2 estrutura (rota + 2 botões + página vazia com gráficos mockados a partir do `content_posts`).
+3. Migration `post_metrics`.
+4. Pedido do `APIFY_API_TOKEN`.
+5. Onda 3 (edge functions + integração na página de métricas).
+
+Cada onda é testável e reversível independente.
