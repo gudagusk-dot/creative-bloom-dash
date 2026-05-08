@@ -17,35 +17,40 @@ const detectPlatform = (url: string): "instagram" | "tiktok" | null => {
 };
 
 async function runActor(actorId: string, input: Record<string, unknown>) {
-  const url = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=90`;
+  const url = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=180`;
+  console.log(`[apify] calling actor=${actorId} input=${JSON.stringify(input)}`);
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+  console.log(`[apify] actor=${actorId} status=${res.status}`);
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`Apify ${actorId} failed [${res.status}]: ${txt.slice(0, 300)}`);
+    console.error(`[apify] error body: ${txt.slice(0, 500)}`);
+    throw new Error(`Apify ${actorId} falhou [${res.status}]: ${txt.slice(0, 200)}`);
   }
   const items = await res.json();
+  console.log(`[apify] received ${Array.isArray(items) ? items.length : 0} items`);
   return Array.isArray(items) ? items[0] : items;
 }
 
 async function scrape(url: string) {
   const platform = detectPlatform(url);
   if (!platform) throw new Error("URL não reconhecida (use Instagram ou TikTok)");
+  console.log(`[scrape] platform=${platform} url=${url}`);
 
   if (platform === "instagram") {
     const item = await runActor("apify~instagram-post-scraper", {
-      username: [],
       directUrls: [url],
       resultsLimit: 1,
     });
+    if (!item) throw new Error("Post do Instagram não encontrado ou privado");
     return {
       platform,
-      likes: item?.likesCount ?? 0,
-      comments: item?.commentsCount ?? 0,
-      views: item?.videoViewCount ?? item?.videoPlayCount ?? 0,
+      likes: Number(item?.likesCount) || 0,
+      comments: Number(item?.commentsCount) || 0,
+      views: Number(item?.videoViewCount ?? item?.videoPlayCount) || 0,
       shares: 0,
       raw: item ?? {},
     };
@@ -56,12 +61,13 @@ async function scrape(url: string) {
       shouldDownloadVideos: false,
       shouldDownloadCovers: false,
     });
+    if (!item) throw new Error("Post do TikTok não encontrado ou privado");
     return {
       platform,
-      likes: item?.diggCount ?? 0,
-      comments: item?.commentCount ?? 0,
-      views: item?.playCount ?? 0,
-      shares: item?.shareCount ?? 0,
+      likes: Number(item?.diggCount) || 0,
+      comments: Number(item?.commentCount) || 0,
+      views: Number(item?.playCount) || 0,
+      shares: Number(item?.shareCount) || 0,
       raw: item ?? {},
     };
   }
@@ -72,13 +78,15 @@ Deno.serve(async (req) => {
 
   try {
     if (!APIFY_TOKEN) {
-      return new Response(JSON.stringify({ error: "APIFY_API_TOKEN não configurado" }), {
+      console.error("APIFY_API_TOKEN ausente");
+      return new Response(JSON.stringify({ error: "APIFY_API_TOKEN não configurado no projeto" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const body = await req.json();
     const postIds: string[] = Array.isArray(body.post_ids) ? body.post_ids : (body.post_id ? [body.post_id] : []);
+    console.log(`[req] post_ids=${postIds.length}`);
     if (!postIds.length) {
       return new Response(JSON.stringify({ error: "post_id ou post_ids requerido" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -90,7 +98,11 @@ Deno.serve(async (req) => {
       .from("content_posts")
       .select("id, published_url, title")
       .in("id", postIds);
-    if (pErr) throw pErr;
+    if (pErr) {
+      console.error("[db] select error", pErr);
+      throw pErr;
+    }
+    console.log(`[db] found ${posts?.length || 0} posts`);
 
     const results: Array<{ post_id: string; ok: boolean; error?: string; metrics?: any }> = [];
 
@@ -115,10 +127,16 @@ Deno.serve(async (req) => {
             raw: m.raw,
             fetched_at: new Date().toISOString(),
           }, { onConflict: "post_id" });
-        if (upErr) throw upErr;
+        if (upErr) {
+          console.error("[db] upsert error", upErr);
+          throw upErr;
+        }
+        console.log(`[ok] post=${p.id} likes=${m.likes} views=${m.views}`);
         results.push({ post_id: p.id, ok: true, metrics: m });
       } catch (e) {
-        results.push({ post_id: p.id, ok: false, error: e instanceof Error ? e.message : String(e) });
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[fail] post=${p.id} ${msg}`);
+        results.push({ post_id: p.id, ok: false, error: msg });
       }
     }
 
@@ -126,7 +144,9 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[fatal]", msg);
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
