@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, MessageCircle, Trash2, Share2, MoreVertical, Bell, Clock } from "lucide-react";
+import { CalendarDays, MessageCircle, Trash2, Share2, MoreVertical, Bell, Clock, BarChart3 } from "lucide-react";
 import { Student } from "@/context/StudentsContext";
 import { StudentStats } from "@/hooks/useStudentsStats";
 import { formatDistanceToNow } from "date-fns";
