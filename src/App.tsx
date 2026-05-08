@@ -10,6 +10,7 @@ import StudentsDashboard from "./pages/StudentsDashboard.tsx";
 import CalendarPage from "./pages/CalendarPage.tsx";
 import Login from "./pages/Login.tsx";
 import StudentView from "./pages/StudentView.tsx";
+import StudentMetrics from "./pages/StudentMetrics.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/aluno/:slug" element={<StudentView />} />
                 <Route path="/" element={<ProtectedRoute><StudentsDashboard /></ProtectedRoute>} />
                 <Route path="/calendario/:slug" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+                <Route path="/metricas/:slug" element={<ProtectedRoute><StudentMetrics /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

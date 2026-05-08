@@ -169,6 +169,51 @@ export type Database = {
         }
         Relationships: []
       }
+      post_metrics: {
+        Row: {
+          comments: number
+          created_at: string
+          engagement_rate: number
+          fetched_at: string
+          id: string
+          likes: number
+          platform: string
+          post_id: string
+          raw: Json
+          shares: number
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          comments?: number
+          created_at?: string
+          engagement_rate?: number
+          fetched_at?: string
+          id?: string
+          likes?: number
+          platform?: string
+          post_id: string
+          raw?: Json
+          shares?: number
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          comments?: number
+          created_at?: string
+          engagement_rate?: number
+          fetched_at?: string
+          id?: string
+          likes?: number
+          platform?: string
+          post_id?: string
+          raw?: Json
+          shares?: number
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
       simple_users: {
         Row: {
           created_at: string
