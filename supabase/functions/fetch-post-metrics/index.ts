@@ -1,6 +1,9 @@
 // Edge function: fetch-post-metrics
 // Scrapes Instagram / TikTok post metrics using Apify free-tier actors.
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const APIFY_TOKEN = Deno.env.get("APIFY_API_TOKEN");
