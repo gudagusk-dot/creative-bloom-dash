@@ -43,6 +43,7 @@ const App = () => (
                 <Route path="/aluno/:slug" element={<StudentView />} />
                 <Route path="/" element={<ProtectedRoute><StudentsDashboard /></ProtectedRoute>} />
                 <Route path="/calendario/:slug" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+                <Route path="/metricas/:slug" element={<ProtectedRoute><StudentMetrics /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
