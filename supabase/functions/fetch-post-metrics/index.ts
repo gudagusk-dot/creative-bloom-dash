@@ -42,8 +42,10 @@ async function scrape(url: string) {
 
   if (platform === "instagram") {
     const item = await runActor("apify~instagram-post-scraper", {
+      username: [],
       directUrls: [url],
       resultsLimit: 1,
+      addParentData: false,
     });
     if (!item) throw new Error("Post do Instagram não encontrado ou privado");
     return {
