@@ -99,14 +99,24 @@ export const StudentCard = ({ student, stats, onShare, onDelete }: Props) => {
         )}
       </Link>
 
-      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/60">
-        {student.whatsapp && (
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MessageCircle className="h-3 w-3" /> {student.whatsapp}
-          </span>
-        )}
-        <Link to={`/calendario/${student.slug}`} className="ml-auto flex items-center gap-1 text-[11px] text-primary font-medium hover:gap-1.5 transition-all">
-          <CalendarDays className="h-3 w-3" /> Abrir calendário →
+      {student.whatsapp && (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-4 mb-2">
+          <MessageCircle className="h-3 w-3" /> {student.whatsapp}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-border/60">
+        <Link
+          to={`/calendario/${student.slug}`}
+          className="flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground transition-colors"
+        >
+          <CalendarDays className="h-3.5 w-3.5" /> Calendário
+        </Link>
+        <Link
+          to={`/metricas/${student.slug}`}
+          className="flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-gradient-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-soft"
+        >
+          <BarChart3 className="h-3.5 w-3.5" /> Métricas
         </Link>
       </div>
     </div>
