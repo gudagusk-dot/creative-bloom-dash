@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -160,12 +161,12 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'General Sans', 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'ss02';
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Fraunces', 'Inter', serif;
+    font-family: 'Fraunces', 'General Sans', serif;
     font-optical-sizing: auto;
     letter-spacing: -0.02em;
   }

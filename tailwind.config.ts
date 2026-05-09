@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        display: ["Fraunces", "Inter", "serif"],
+        sans: ["General Sans", "Inter", "system-ui", "sans-serif"],
+        display: ["Fraunces", "General Sans", "serif"],
         serif: ["Fraunces", "serif"],
       },
       colors: {
