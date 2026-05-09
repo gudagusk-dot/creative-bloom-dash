@@ -16,6 +16,8 @@ interface PostDrawerProps {
 const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
+
+export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
   const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor } = useContent();
   const isAdmin = viewMode === "admin";
 
