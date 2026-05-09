@@ -1,4 +1,6 @@
-export type Category = "Educativo" | "Situações Reais" | "Autoridade" | "Destrave seu Inglês" | "Bastidores" | "Interação";
+// Category is now a free-form string per calendar; the legacy 6 names below
+// are kept ONLY as a seed/fallback (used when an admin chooses to seed posts).
+export type Category = string;
 export type Format = "Reels" | "Carrossel" | "Story" | "Foto" | "Vídeo" | "Conversão" | "Produção" | "Lembrete";
 export type SocialNetwork = "Instagram" | "TikTok" | "TikTok + Instagram";
 export type PostStatus = "A fazer" | "Em produção" | "Publicado";
@@ -18,7 +20,9 @@ export interface ContentPost {
   student_notes?: string;
 }
 
-export const categoryConfig: Record<Category, { color: string; tailwind: string }> = {
+/** Legacy palette — used only when seeding example posts. Real categories now
+ *  live in the `student_categories` table per calendar. */
+export const categoryConfig: Record<string, { color: string; tailwind: string }> = {
   "Educativo": { color: "#00BCD4", tailwind: "bg-cat-educativo" },
   "Situações Reais": { color: "#FFC107", tailwind: "bg-cat-situacoes" },
   "Autoridade": { color: "#4CAF50", tailwind: "bg-cat-autoridade" },
@@ -26,6 +30,9 @@ export const categoryConfig: Record<Category, { color: string; tailwind: string 
   "Bastidores": { color: "#7B1FA2", tailwind: "bg-cat-bastidores" },
   "Interação": { color: "#FF5722", tailwind: "bg-cat-interacao" },
 };
+
+/** Default fallback color when a category is unknown (calendar without categories yet). */
+export const FALLBACK_CATEGORY_COLOR = "#6B7280";
 
 export const initialPosts: ContentPost[] = [
   // Abril 2026
