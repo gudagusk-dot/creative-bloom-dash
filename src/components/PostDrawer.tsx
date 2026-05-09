@@ -282,29 +282,37 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
                 />
               </div>
 
-              <div>
+              <div className="pt-4">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
                 <input
                   type="url"
                   value={publishedUrl}
-                  onChange={e => { setPublishedUrl(e.target.value); markDirty(); }}
+                  onChange={e => {
+                    setPublishedUrl(e.target.value);
+                    markDirty();
+                  }}
+                  onBlur={() => handleAutoSave(undefined, publishedUrl)}
                   placeholder="https://instagram.com/p/..."
-                  className="w-full mt-2 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
                 />
                 {publishedUrl && (
                   <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
-                    <ExternalLink className="h-3 w-3" /> Abrir
+                    <ExternalLink className="h-3 w-3" /> Abrir link
                   </a>
                 )}
               </div>
 
-              <div>
+              <div className="pt-4">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comentário / Anotação</label>
                 <textarea
                   value={studentNotes}
-                  onChange={e => { setStudentNotes(e.target.value); markDirty(); }}
+                  onChange={e => {
+                    setStudentNotes(e.target.value);
+                    markDirty();
+                  }}
+                  onBlur={() => handleAutoSave(undefined, undefined, studentNotes)}
                   placeholder="Deixe um recado para a professora..."
-                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-24 focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-32 focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
                 />
               </div>
             </>
