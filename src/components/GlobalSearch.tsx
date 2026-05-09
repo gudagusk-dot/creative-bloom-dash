@@ -97,7 +97,7 @@ export const GlobalSearch = () => {
             <ul className="divide-y divide-border/60">
               {filtered.map(p => {
                 const s = students[p.student_id];
-                const color = (categoryConfig as any)[p.category]?.color || "#999";
+                const color = FALLBACK_CATEGORY_COLOR;
                 return (
                   <li key={p.id}>
                     <button
