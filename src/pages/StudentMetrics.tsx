@@ -223,9 +223,12 @@ const StudentMetrics = () => {
     const me = endOfMonth(month).getTime();
     return posts.filter(p => {
       const t = new Date(p.date + "T12:00:00").getTime();
-      return t >= ms && t <= me;
+      if (t < ms || t > me) return false;
+      if (platformFilter === "all") return true;
+      const net = (p.network || "").toLowerCase();
+      return net === platformFilter;
     });
-  }, [posts, month]);
+  }, [posts, month, platformFilter]);
 
   const kpis = useMemo(() => {
     const ms = monthPosts.map(p => metrics[p.id]).filter(Boolean) as PostMetric[];
