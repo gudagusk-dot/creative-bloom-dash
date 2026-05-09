@@ -393,7 +393,7 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
-              <Sparkles className="h-2.5 w-2.5" /> Brenda IA · powered by Lovable AI
+              <Sparkles className="h-2.5 w-2.5" /> Brenda IA - powered by Brenda Prestes
             </p>
           </div>
         )}
