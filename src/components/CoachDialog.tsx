@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3, ArrowLeft, Video, LayoutGrid, Layers } from "lucide-react";
+import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3, ArrowLeft, Video, LayoutGrid, Layers, Copy, UserSearch, Hash, MessageSquareText } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,13 +13,18 @@ interface Props {
 }
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
-type Step = "menu" | "briefing" | "chat";
+type Step = "menu" | "briefing" | "chat" | "scrape";
 type FormatChoice = "video" | "carrossel" | "ambos";
+type ScrapeKind = "copy_content" | "analyze_profile" | "analyze_hashtag" | "analyze_comments";
 
 const QUICK_ACTIONS = [
-  { id: "analyze", label: "Analisar calendário", icon: BarChart3, hint: "Padrões, tom de voz, lacunas e ajustes táticos." },
-  { id: "suggest", label: "Sugerir 3 ideias", icon: Lightbulb, hint: "Briefing rápido + 3 ideias com gancho e estrutura." },
-  { id: "rewrite", label: "Melhorar último roteiro", icon: Wand2, hint: "Reescreve o post mais recente com copy de elite." },
+  { id: "analyze", label: "Analisar calendário", icon: BarChart3, hint: "Padrões, tom de voz, lacunas e ajustes táticos.", group: "calendar" as const },
+  { id: "suggest", label: "Sugerir 3 ideias", icon: Lightbulb, hint: "Briefing rápido + 3 ideias com gancho e estrutura.", group: "calendar" as const },
+  { id: "rewrite", label: "Melhorar último roteiro", icon: Wand2, hint: "Reescreve o post mais recente com copy de elite.", group: "calendar" as const },
+  { id: "copy_content", label: "Copiar conteúdo", icon: Copy, hint: "Cole um link: métricas reais + análise + roteiro recriado.", group: "external" as const },
+  { id: "analyze_profile", label: "Espionar perfil", icon: UserSearch, hint: "Diagnóstico de um perfil + 3 ideias adaptadas.", group: "external" as const },
+  { id: "analyze_hashtag", label: "Radar de hashtag", icon: Hash, hint: "Top posts da hashtag + ângulos vencedores.", group: "external" as const },
+  { id: "analyze_comments", label: "Decifrar comentários", icon: MessageSquareText, hint: "Dores e linguagem do público + ganchos prontos.", group: "external" as const },
 ] as const;
 
 const FORMAT_OPTIONS: { id: FormatChoice; label: string; hint: string; icon: typeof Video }[] = [
@@ -27,6 +32,13 @@ const FORMAT_OPTIONS: { id: FormatChoice; label: string; hint: string; icon: typ
   { id: "carrossel", label: "Carrossel (Instagram)", hint: "6-10 slides estáticos.", icon: LayoutGrid },
   { id: "ambos", label: "Misto", hint: "Brenda escolhe o melhor formato por ideia.", icon: Layers },
 ];
+
+const SCRAPE_CONFIG: Record<ScrapeKind, { tool: "post" | "profile" | "hashtag" | "comments"; title: string; placeholder: string; helper: string; needsPlatform?: boolean }> = {
+  copy_content: { tool: "post", title: "Copiar conteúdo", placeholder: "https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/...", helper: "Cole o link de um post viral. A Brenda puxa as métricas reais e analisa por que funcionou." },
+  analyze_profile: { tool: "profile", title: "Espionar perfil", placeholder: "https://www.instagram.com/usuario ou @usuario", helper: "Cole a URL ou o @ do perfil que você quer estudar." },
+  analyze_hashtag: { tool: "hashtag", title: "Radar de hashtag", placeholder: "inglesonline", helper: "Digite a hashtag (sem #). Escolha a plataforma.", needsPlatform: true },
+  analyze_comments: { tool: "comments", title: "Decifrar comentários", placeholder: "https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/...", helper: "Cole o link de um post: a Brenda extrai dores e linguagem do público dos comentários." },
+};
 
 export const CoachDialog = ({ open, onClose, studentName }: Props) => {
   const { posts } = useContent();
@@ -36,6 +48,9 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
   const [step, setStep] = useState<Step>("menu");
   const [briefingFormat, setBriefingFormat] = useState<FormatChoice | null>(null);
   const [briefingTheme, setBriefingTheme] = useState("");
+  const [scrapeKind, setScrapeKind] = useState<ScrapeKind | null>(null);
+  const [scrapeInput, setScrapeInput] = useState("");
+  const [scrapePlatform, setScrapePlatform] = useState<"instagram" | "tiktok">("instagram");
 
   if (!open) return null;
 
@@ -82,6 +97,53 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
       }
       const plain = last.script.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       callBrenda("rewrite", plain, `Melhorar o roteiro de "${last.title}".`);
+    } else if (id === "copy_content" || id === "analyze_profile" || id === "analyze_hashtag" || id === "analyze_comments") {
+      setScrapeKind(id as ScrapeKind);
+      setScrapeInput("");
+      setScrapePlatform("instagram");
+      setStep("scrape");
+    }
+  };
+
+  const submitScrape = async () => {
+    if (!scrapeKind) return;
+    const cfg = SCRAPE_CONFIG[scrapeKind];
+    const value = scrapeInput.trim();
+    if (!value) return;
+
+    const userLabel = `${cfg.title}: ${value}${cfg.needsPlatform ? ` (${scrapePlatform})` : ""}`;
+    setMessages([{ role: "user", content: userLabel }]);
+    setStep("chat");
+    setLoading(true);
+    try {
+      // 1. Build apify input
+      let input: any = {};
+      if (cfg.tool === "post" || cfg.tool === "comments") input = { url: value };
+      else if (cfg.tool === "profile") {
+        if (/^https?:/i.test(value)) input = { url: value };
+        else input = { handle: value, platform: scrapePlatform };
+      } else if (cfg.tool === "hashtag") input = { hashtag: value, platform: scrapePlatform };
+
+      const { data: scrapeData, error: scrapeErr } = await supabase.functions.invoke("apify-tools", {
+        body: { tool: cfg.tool, input },
+      });
+      if (scrapeErr) throw scrapeErr;
+      if (scrapeData?.error) throw new Error(scrapeData.error);
+      const scraped = scrapeData?.data;
+      if (!scraped) throw new Error("Sem dados retornados");
+
+      // 2. Call Brenda IA
+      const { data: aiData, error: aiErr } = await supabase.functions.invoke("ai-content-coach", {
+        body: { action: scrapeKind, scraped, posts_context: buildPostsContext() },
+      });
+      if (aiErr) throw aiErr;
+      if (aiData?.error) throw new Error(aiData.error);
+      setMessages(prev => [...prev, { role: "assistant", content: aiData?.text || "Sem resposta." }]);
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao analisar");
+      setMessages(prev => [...prev, { role: "assistant", content: `⚠️ ${e?.message || "Erro ao gerar resposta."}` }]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,7 +166,28 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
     setStep("menu");
     setBriefingFormat(null);
     setBriefingTheme("");
+    setScrapeKind(null);
+    setScrapeInput("");
   };
+
+  const calendarActions = QUICK_ACTIONS.filter(a => a.group === "calendar");
+  const externalActions = QUICK_ACTIONS.filter(a => a.group === "external");
+  const renderAction = (a: typeof QUICK_ACTIONS[number]) => (
+    <button
+      key={a.id}
+      onClick={() => onQuickAction(a.id)}
+      disabled={loading}
+      className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-background hover:border-primary/40 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
+    >
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 group-hover:from-primary/25 group-hover:to-accent/25 transition-colors">
+        <a.icon className="h-4.5 w-4.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground">{a.label}</p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">{a.hint}</p>
+      </div>
+    </button>
+  );
 
   return createPortal(
     <>
@@ -137,31 +220,67 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
 
         {/* Body */}
         {step === "menu" && (
-          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">Ações rápidas</p>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">📅 Sobre o calendário</p>
+            <div className="grid grid-cols-1 gap-2.5 mb-5">
+              {calendarActions.map(renderAction)}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">🛰️ Inteligência externa</p>
             <div className="grid grid-cols-1 gap-2.5">
-              {QUICK_ACTIONS.map(a => (
-                <button
-                  key={a.id}
-                  onClick={() => onQuickAction(a.id)}
-                  disabled={loading}
-                  className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-background hover:border-primary/40 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 group-hover:from-primary/25 group-hover:to-accent/25 transition-colors">
-                    <a.icon className="h-4.5 w-4.5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{a.label}</p>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">{a.hint}</p>
-                  </div>
-                </button>
-              ))}
+              {externalActions.map(renderAction)}
             </div>
             <p className="text-[11px] text-muted-foreground italic mt-5 text-center">
               {posts.length} post(s) carregados como contexto.
             </p>
           </div>
         )}
+
+        {step === "scrape" && scrapeKind && (
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">
+            <div className="rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 p-4 mb-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary mb-1">Inteligência externa</p>
+              <h3 className="font-display text-lg font-semibold text-foreground tracking-tight">{SCRAPE_CONFIG[scrapeKind].title}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{SCRAPE_CONFIG[scrapeKind].helper}</p>
+            </div>
+            {SCRAPE_CONFIG[scrapeKind].needsPlatform && (
+              <>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">Plataforma</p>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {(["instagram", "tiktok"] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setScrapePlatform(p)}
+                      className={`px-3 py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
+                        scrapePlatform === p
+                          ? "border-primary bg-primary/10 ring-2 ring-primary/30 text-foreground"
+                          : "border-border bg-background hover:border-primary/40 text-muted-foreground"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">
+              {SCRAPE_CONFIG[scrapeKind].tool === "hashtag" ? "Hashtag" : SCRAPE_CONFIG[scrapeKind].tool === "profile" ? "Perfil (URL ou @)" : "Link do post"}
+            </p>
+            <input
+              value={scrapeInput}
+              onChange={e => setScrapeInput(e.target.value)}
+              placeholder={SCRAPE_CONFIG[scrapeKind].placeholder}
+              className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none mb-4"
+            />
+            <button
+              onClick={submitScrape}
+              disabled={!scrapeInput.trim() || loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              <Sparkles className="h-4 w-4" /> Analisar
+            </button>
+          </div>
+        )}
+
 
         {step === "briefing" && (
           <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">

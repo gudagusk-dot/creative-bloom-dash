@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, Wand2, Loader2 } from "lucide-react";
+import { X, Sparkles, Wand2, Loader2, Link2, FileText } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
@@ -32,6 +32,64 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [mode, setMode] = useState<"scratch" | "inspire">("scratch");
+  const [inspireUrl, setInspireUrl] = useState("");
+  const [inspireLoading, setInspireLoading] = useState(false);
+  const [inspirePreview, setInspirePreview] = useState<any>(null);
+
+  const inspireFromPost = async () => {
+    const url = inspireUrl.trim();
+    if (!url || inspireLoading) return;
+    if (!/instagram\.com|tiktok\.com/i.test(url)) {
+      toast.error("Cole um link válido do Instagram ou TikTok");
+      return;
+    }
+    setInspireLoading(true);
+    try {
+      // 1. Scrape post
+      const { data: scrapeData, error: scrapeErr } = await supabase.functions.invoke("apify-tools", {
+        body: { tool: "post", input: { url } },
+      });
+      if (scrapeErr) throw scrapeErr;
+      if (scrapeData?.error) throw new Error(scrapeData.error);
+      const scraped = scrapeData?.data;
+      if (!scraped) throw new Error("Não foi possível analisar o post");
+      setInspirePreview(scraped);
+
+      // Auto-set network to match
+      if (scraped.platform === "tiktok") setNetwork("TikTok");
+      else if (scraped.platform === "instagram") setNetwork("Instagram");
+
+      // 2. Ask Brenda IA to inspire
+      const posts_context = posts.slice(0, 20).map(p => ({
+        title: p.title, category: p.category, format: p.format, network: p.network, status: p.status, script: p.script,
+      }));
+      const { data: aiData, error: aiErr } = await supabase.functions.invoke("ai-content-coach", {
+        body: { action: "inspire_from_post", scraped, posts_context },
+      });
+      if (aiErr) throw aiErr;
+      if (aiData?.error) throw new Error(aiData.error);
+      const text = (aiData?.text || "").trim();
+
+      // Extract title from "### 📝 Título sugerido" line, fallback first non-empty
+      let extractedTitle = "";
+      const titleMatch = text.match(/###\s*📝\s*Título sugerido\s*\n+\s*\[?([^\]\n]+?)\]?\s*\n/i);
+      if (titleMatch) extractedTitle = titleMatch[1].trim();
+      if (!extractedTitle) {
+        const lines = text.split(/\n+/).filter((l: string) => l.trim() && !l.startsWith("#"));
+        extractedTitle = lines[0]?.replace(/^[\-*\s]+/, "").slice(0, 120) || "";
+      }
+
+      if (!title) setTitle(extractedTitle);
+      setScript(`<p>${text.replace(/\n/g, "</p><p>")}</p>`);
+      setMode("scratch");
+      toast.success("Inspiração gerada! Revise e salve.");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao analisar o post");
+    } finally {
+      setInspireLoading(false);
+    }
+  };
 
   const generateWithAI = async () => {
     if (!aiPrompt.trim() || aiLoading) return;
@@ -105,6 +163,62 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {/* Mode tabs */}
+          <div className="flex gap-1 p-1 bg-secondary rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMode("scratch")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === "scratch" ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" /> Do zero
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("inspire")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === "inspire" ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Link2 className="h-3.5 w-3.5" /> Inspirar em um post
+            </button>
+          </div>
+
+          {mode === "inspire" && (
+            <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 animate-fade-in">
+              <p className="text-[11px] text-muted-foreground">Cole o link de um post do Instagram ou TikTok. A Brenda IA analisa o gancho e reescreve adaptado ao seu nicho.</p>
+              <input
+                value={inspireUrl}
+                onChange={e => setInspireUrl(e.target.value)}
+                placeholder="https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/..."
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={inspireFromPost}
+                disabled={!inspireUrl.trim() || inspireLoading}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gradient-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:-translate-y-0.5 transition-all shadow-soft"
+              >
+                {inspireLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {inspireLoading ? "Analisando post e gerando…" : "Buscar e gerar"}
+              </button>
+              {inspirePreview && (
+                <div className="flex gap-3 p-2 rounded-lg bg-card border border-border/60">
+                  {inspirePreview.media?.thumbnail && (
+                    <img src={inspirePreview.media.thumbnail} alt="" className="w-14 h-14 rounded-md object-cover" />
+                  )}
+                  <div className="flex-1 min-w-0 text-[11px]">
+                    <div className="font-medium text-foreground truncate">@{inspirePreview.author}</div>
+                    <div className="text-muted-foreground">
+                      {inspirePreview.metrics?.views || 0} views · {inspirePreview.metrics?.likes || 0} ❤ · {inspirePreview.metrics?.comments || 0} 💬
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {templates.length > 0 && (
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
