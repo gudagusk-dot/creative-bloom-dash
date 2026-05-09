@@ -1,7 +1,7 @@
 // Category is now a free-form string per calendar; the legacy 6 names below
 // are kept ONLY as a seed/fallback (used when an admin chooses to seed posts).
 export type Category = string;
-export type Format = "Reels" | "Carrossel" | "Story" | "Foto" | "Vídeo" | "Conversão" | "Produção" | "Lembrete";
+export type Format = "Reels" | "Carrossel" | "Story" | "Foto" | "Vídeo" | "Live" | "Conversão" | "Produção" | "Lembrete";
 export type SocialNetwork = "Instagram" | "TikTok" | "TikTok + Instagram";
 export type PostStatus = "A fazer" | "Em produção" | "Publicado";
 

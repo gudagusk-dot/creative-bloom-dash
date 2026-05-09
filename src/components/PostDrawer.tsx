@@ -14,7 +14,7 @@ interface PostDrawerProps {
 }
 
 const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
-const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
+const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Live", "Conversão", "Produção", "Lembrete"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {

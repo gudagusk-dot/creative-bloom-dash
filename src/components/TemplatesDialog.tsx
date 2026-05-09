@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useTemplates } from "@/hooks/useTemplates";
 import { Category, Format, SocialNetwork, FALLBACK_CATEGORY_COLOR } from "@/data/content";
 
-const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
+const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Live", "Conversão", "Produção", "Lembrete"];
 const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
