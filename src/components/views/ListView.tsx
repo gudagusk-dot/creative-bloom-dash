@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "@/components/PostDrawer";
 
 export const ListView = () => {
