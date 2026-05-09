@@ -35,7 +35,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="md:col-span-2 space-y-8">
+        <div className="md:col-span-2 space-y-8 order-2 md:order-1">
           {/* Today section */}
           <section>
             <div className="flex items-center gap-2 mb-4">
@@ -77,7 +77,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
           </section>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 order-1 md:order-2 flex flex-col">
           {/* Stats card */}
           <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
             <h3 className="font-display text-lg font-medium mb-4 flex items-center gap-2">

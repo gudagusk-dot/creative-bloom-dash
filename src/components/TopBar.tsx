@@ -84,45 +84,45 @@ export const TopBar = ({ viewMode, student }: Props) => {
         </div>
       </div>
 
-      {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-2 px-4 sm:px-6 pb-3 border-t border-border/40 pt-2.5">
-        <div className="flex gap-1.5">
-          {(["all", "Instagram", "TikTok"] as const).map(n => (
-            <button
-              key={n}
-              onClick={() => setNetworkFilter(n)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200 ease-soft ${
-                networkFilter === n
-                  ? "bg-foreground text-background"
-                  : "bg-secondary text-secondary-foreground hover:bg-muted"
-              }`}
-            >
-              {n === "all" ? "Todas" : n}
-            </button>
-          ))}
-        </div>
-        <div className="w-px h-5 bg-border/60 mx-1" />
-        <div className="flex flex-wrap gap-1.5 items-center">
-          {categories.length === 0 && viewMode === "admin" && (
-            <span className="text-[11px] text-muted-foreground italic">Sem categorias ainda</span>
-          )}
-          {categories.map(cat => {
-            const active = selectedCategories.includes(cat.name);
-            return (
+      {/* Filters row — only for admin */}
+      {viewMode === "admin" && (
+        <div className="flex flex-wrap items-center gap-2 px-4 sm:px-6 pb-3 border-t border-border/40 pt-2.5">
+          <div className="flex gap-1.5">
+            {(["all", "Instagram", "TikTok"] as const).map(n => (
               <button
-                key={cat.id}
-                onClick={() => toggleCategory(cat.name)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200 ease-soft border flex items-center ${
-                  active ? "border-transparent text-white shadow-soft" : "border-border/60 text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                key={n}
+                onClick={() => setNetworkFilter(n)}
+                className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200 ease-soft ${
+                  networkFilter === n
+                    ? "bg-foreground text-background"
+                    : "bg-secondary text-secondary-foreground hover:bg-muted"
                 }`}
-                style={active ? { backgroundColor: cat.color } : {}}
               >
-                <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: cat.color }} />
-                {cat.name}
+                {n === "all" ? "Todas" : n}
               </button>
-            );
-          })}
-          {viewMode === "admin" && (
+            ))}
+          </div>
+          <div className="w-px h-5 bg-border/60 mx-1" />
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {categories.length === 0 && (
+              <span className="text-[11px] text-muted-foreground italic">Sem categorias ainda</span>
+            )}
+            {categories.map(cat => {
+              const active = selectedCategories.includes(cat.name);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => toggleCategory(cat.name)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200 ease-soft border flex items-center ${
+                    active ? "border-transparent text-white shadow-soft" : "border-border/60 text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                  }`}
+                  style={active ? { backgroundColor: cat.color } : {}}
+                >
+                  <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: cat.color }} />
+                  {cat.name}
+                </button>
+              );
+            })}
             <button
               onClick={() => setManageOpen(true)}
               className="ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
@@ -130,9 +130,9 @@ export const TopBar = ({ viewMode, student }: Props) => {
             >
               <Settings2 className="h-3.5 w-3.5" />
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
       {viewMode === "admin" && (
         <ManageCategoriesDialog open={manageOpen} onClose={() => setManageOpen(false)} />
       )}
