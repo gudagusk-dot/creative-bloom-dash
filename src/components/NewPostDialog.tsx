@@ -132,21 +132,26 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
 
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2 items-center">
+              {categories.length === 0 && (
+                <span className="text-xs text-muted-foreground italic">Nenhuma categoria criada ainda.</span>
+              )}
               {categories.map(c => (
                 <button
-                  key={c}
-                  onClick={() => setCategory(c)}
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategory(c.name)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    category === c
+                    category === c.name
                       ? "text-white ring-2 ring-offset-1 ring-primary/30"
                       : "bg-secondary text-muted-foreground hover:bg-muted"
                   }`}
-                  style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
+                  style={category === c.name ? { backgroundColor: c.color } : {}}
                 >
-                  {c}
+                  {c.name}
                 </button>
               ))}
+              <NewCategoryPopover onCreated={(name) => setCategory(name)} />
             </div>
           </div>
 
