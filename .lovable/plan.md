@@ -1,65 +1,61 @@
-## 1. Foto do Instagram nos cards de aluno
+## Ajustes na Brenda IA + sugestão de tipografia
 
-A foto será baixada via Apify (mesma integração que já busca seguidores) e guardada no nosso Storage para não expirar.
+### 1. Roteiros mais limpos (sem direção de cena)
 
-- Adicionar coluna `avatar_url` em `students` (URL pública da nossa Storage).
-- Criar bucket público `student-avatars` para hospedar as imagens.
-- Estender o edge function `fetch-follower-snapshot` para, em cada execução:
-  1. Pegar `profilePicUrlHD` (Instagram) ou `avatarLarger`/`avatar` (TikTok, fallback).
-  2. Baixar a imagem, fazer upload em `student-avatars/{student_id}.jpg` (com `upsert: true`).
-  3. Atualizar `students.avatar_url` com a URL pública.
-- Disparar o snapshot logo após criar um aluno novo (`StudentsContext.createStudent`) — assim a foto aparece em segundos sem esperar o cron.
-- Botão manual “Atualizar foto” no menu do card (atalho que reusa a mesma função).
-- `StudentCard` e `StudentsDashboard` (avatar do header) passam a renderizar `<img src={avatar_url} className="rounded-full object-cover" />`, com fallback para a inicial quando ainda não existe foto.
+Atualizar o prompt no edge function `ai-content-coach` para que TODOS os roteiros gerados (ações `suggest`, `rewrite`, `script` e respostas em `chat`) sigam uma nova regra rígida:
 
-## 2. Cards de aluno com altura padronizada
+- **Proibido:** descrever expressões faciais, postura, gestos, enquadramento, figurino, cenário, ângulos de câmera, B-roll, "sugestões de corte", indicações entre parênteses do tipo "(olhando para a câmera)", "(com expressão de surpresa)", etc.
+- **Permitido apenas:** marcação de tempo + fala literal + on-screen text.
 
-- Transformar o card em flex column com `h-full` (e o container já é `grid`, então todos ficam iguais).
-- Reservar espaço fixo para a seção “próximo post” e “última atividade” mesmo quando vazias (placeholder invisível) para garantir altura consistente.
-- Pequeno polimento: avatar maior (56px), nome + handle alinhados, divisor sutil, rodapé sempre fixo no fim.
+Novo template padrão de roteiro:
 
-## 3. Tema dark “de verdade”
+```text
+🎬 Roteiro
 
-Reescrever os tokens HSL do `.dark` em `src/index.css`:
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
 
-- `--background`: quase preto (`230 20% 5%`) em vez do cinza atual.
-- `--card`: superfície elevada com leve frio (`230 18% 10%`) e borda mais visível (`230 14% 18%`).
-- `--secondary`/`--muted`: dois níveis adicionais de elevação (`12%` e `15%`) para hierarquia clara entre fundo, card e elementos internos.
-- Ajustar `--shadow-*` para sombras mais profundas em fundo escuro.
-- `--primary` mantém o tom violeta, mas com melhor contraste de texto.
-- Revisar componentes que usam `bg-white`/`bg-secondary/40` hardcoded e migrar para tokens (`bg-card`, `bg-muted`).
-- Bordas dos cards passam a ter `border-border/80` em dark para melhor separação visual.
+💬 On-screen text
+- frase curta 1
+- frase curta 2
+```
 
-## 4. Brenda IA — prompt agnóstico de nicho + base ampliada
+Remover dos templates atuais os blocos **"🎞️ Sugestões de corte"** e qualquer instrução que peça "indicações entre parênteses" ou "B-roll".
 
-Reescrever o `systemPrompt` do edge function `ai-content-coach` para:
+### 2. Atualização para a linguagem da geração de vídeo curto
 
-- Remover qualquer menção a “ensino de inglês”. A Brenda lê o calendário do aluno e infere automaticamente o nicho, público, tom e objetivo.
-- Funcionar para qualquer vertical (educação, saúde, fitness, beleza, food, infoproduto, e-commerce, B2B, advocacia, imóveis, dev, etc.).
-- Repertório consolidado (usado mentalmente, não citado nas respostas):
-  - **Copywriting clássico:** Eugene Schwartz (níveis de consciência), David Ogilvy, Gary Halbert, Joe Sugarman.
-  - **Frameworks:** AIDA, PAS, BAB, 4Ps, FAB, StoryBrand (Donald Miller), Hero’s Journey.
-  - **Persuasão:** Cialdini (6+1 gatilhos), Cashvertising (Drew Whitman), Influence at Work.
-  - **Ofertas/vendas:** Alex Hormozi (100M Offers, 100M Leads), Russell Brunson (DotCom Secrets, Expert Secrets), Grant Cardone, Jordan Belfort straight line.
-  - **Conteúdo viral:** Brendan Kane (Hook Point), Made to Stick (Heaths), Contagious (Berger), retention curves do TikTok.
-  - **Brasileiros:** **Leandro Ladeira** (gatilhos mentais aplicados, copy direta brasileira), Erico Rocha (fórmula de lançamento), Pedro Sobral (tráfego pago), Camila Porto, Camilo Coutinho (orgânico/SEO), Felipe Castanhari (storytelling), Gabriel Goffi (oratória).
-  - **Marketing/tráfego:** Seth Godin (permission), Neil Patel (SEO/funis), tráfego orgânico vs pago, ICP, jornada de consciência, funil TOFU/MOFU/BOFU.
-  - **Networking & autoridade:** Keith Ferrazzi, posicionamento de marca pessoal.
-  - **Plataformas:** padrões nativos de Reels, TikTok, Carrosséis, Stories, YouTube Shorts, threads/X, LinkedIn.
-- Regras de saída:
-  - Detectar nicho a partir do calendário antes de sugerir.
-  - Toda ideia/roteiro precisa ter: gancho específico (com número, callout ou contrarian), gatilho psicológico declarado, estrutura por tempo, CTA com baixa fricção.
-  - Manter formatação Markdown rica que já estabelecemos (## título, ### blocos com emojis, blockquote no gancho, separadores `---`).
-- Atualizar também os `prompt`s de `analyze`, `suggest`, `rewrite`, `script`, `chat` para serem genéricos (substituir “ensino de inglês” por “o nicho do aluno”).
+Reforçar no system prompt da Brenda IA:
 
-## Detalhes técnicos
+- Foco em **Reels / TikTok / Shorts de 15–45s** como padrão (carrossel só quando o briefing pedir).
+- Ganchos de **0–2s** com pattern interrupt verbal (número, afirmação polarizadora, pergunta direta) — sem "Você sabia que…", "Hoje eu vou te ensinar…", "Fala galera".
+- Linguagem **direta, coloquial, ritmo rápido**, frases de 6–12 palavras, zero jargão de marketing nas falas.
+- Referências de formato atual: POV, storytime de 20s, "green screen reaction", listas faladas com contagem regressiva, "edutainment", duetos/respostas a comentário, before/after verbal.
+- CTA de **baixa fricção**: "comenta X", "salva", "manda pra alguém que…" — nunca "link na bio" como CTA principal.
+- Banir clichês: "bora?", "se inscreve no canal", "não esqueça de curtir", "deixa o like".
 
-- **Migration:** `ALTER TABLE students ADD COLUMN avatar_url text;` + criação do bucket público `student-avatars` com policies de leitura pública e escrita via service role.
-- **Edge function:** `fetch-follower-snapshot` ganha bloco que faz `fetch(profilePicUrlHD)` → `supabase.storage.from('student-avatars').upload(...)` → `update students set avatar_url`.
-- **Frontend:**
-  - `StudentsContext.createStudent` chama `supabase.functions.invoke('fetch-follower-snapshot', { body: { student_id } })` em background (fire-and-forget) após o insert.
-  - `StudentCard.tsx`, `StudentsDashboard.tsx` (header), e qualquer outro lugar com inicial → renderizam `<img>` quando `avatar_url` existe.
-  - Equalização de altura: `grid` já está; cards ganham `flex flex-col h-full`, footer `mt-auto`, blocos opcionais com `min-h` reservado.
-- **Dark mode:** apenas `src/index.css` — sem mexer em componentes (eles usam tokens). Auditar 3-4 componentes que usam cor direta (`bg-white`, etc.) e migrar.
-- **Brenda prompt:** reescrita completa em `supabase/functions/ai-content-coach/index.ts`. Deploy automático.
-- Sem mudança de schema fora do `avatar_url`. Sem nova dependência npm.
+### 3. Sugestão de tipografia (apenas opinião, sem mudar nada agora)
+
+**Stack atual:** Inter (corpo) + Fraunces (display/serifa).
+
+Diagnóstico honesto:
+- **Inter** é sólida, neutra, ótima legibilidade — porém é a fonte mais usada em SaaS hoje, então tira personalidade.
+- **Fraunces** é uma serifa expressiva e bonita, mas pesa em telas densas (KPIs, cards de calendário) e pode parecer "editorial demais" para um app de produtividade.
+
+Três direções possíveis (escolher uma na próxima rodada):
+
+1. **Mais legível e moderna (recomendada):** trocar Inter por **Geist** ou **Plus Jakarta Sans** no corpo, manter Fraunces só em títulos grandes (h1/hero). Ganho real de leitura em tabelas e cards.
+2. **Mais personalidade editorial:** manter Fraunces em display, trocar Inter por **Söhne** alternativa free como **General Sans** — dá um ar premium tipo Linear/Notion.
+3. **Mais "creator/social media":** **Satoshi** (display) + **Inter Tight** (corpo) — visual mais jovem, alinhado ao público de social media manager.
+
+Posso aplicar qualquer uma dessas — só me diga qual prefere.
+
+---
+
+### Arquivos afetados
+
+- `supabase/functions/ai-content-coach/index.ts` — atualizar `systemPrompt` e os templates dos prompts de `suggest`, `rewrite`, `script` e `chat`.
+
+Nenhum arquivo de UI é alterado nesta etapa (a parte de fontes é só recomendação para você decidir).

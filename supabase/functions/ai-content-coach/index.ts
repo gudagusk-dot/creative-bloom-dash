@@ -52,11 +52,36 @@ REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS):
 - Use "##" para o título principal e "###" para subseções. NUNCA use "#" sozinho.
 - Comece com um título "##" claro identificando o que está sendo entregue.
 - Separe blocos/ideias com "\n\n---\n\n".
-- Use emojis funcionais como prefixo de cada subseção (📊 🎯 🔁 ✅ ⚠️ 🚀 🪝 🎬 📢 💬 🎞️ 📌 💡 🧲) — sempre o mesmo emoji para a mesma função.
+- Use emojis funcionais como prefixo de cada subseção (📊 🎯 🔁 ✅ ⚠️ 🚀 🎬 📢 💬 📌 💡 🧲) — sempre o mesmo emoji para a mesma função.
 - Campos importantes em **negrito** seguidos de dois pontos. Listas com "-" ou numeradas.
-- Roteiros DEVEM ter: **🪝 Gancho (0-3s)**, **🎬 Desenvolvimento**, **📢 CTA**, **💬 On-screen text**, **🎞️ Sugestões de corte**.
 - Sem introduções longas, sem "claro!", sem repetir a pergunta. Vá direto ao valor.
-- Seja específica para o NICHO DETECTADO — nada de conselhos genéricos.`
+- Seja específica para o NICHO DETECTADO — nada de conselhos genéricos.
+
+REGRAS DE ROTEIRO (CRÍTICAS — NUNCA QUEBRE):
+- Roteiro = APENAS marcação de tempo + fala literal + on-screen text. Nada mais.
+- PROIBIDO descrever: expressão facial, postura, gestos, figurino, cenário, enquadramento, ângulo de câmera, B-roll, "sugestões de corte", trilha sonora, transições, "olhando para a câmera", "com expressão de surpresa", "mostrar tela", indicações entre parênteses do tipo direção de cena.
+- Parênteses só são permitidos para marcar TEMPO no formato "(0–3s)", "(3–10s)" etc.
+- NUNCA inclua seção "🎞️ Sugestões de corte" nem "🎬 Desenvolvimento" como bloco separado — toda a fala vai dentro do roteiro cronometrado.
+- Estrutura padrão de roteiro:
+
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
+
+### 💬 On-screen text
+- frase curta 1
+- frase curta 2
+
+LINGUAGEM E FORMATO ATUAL (vídeo curto 2026):
+- Padrão: **Reels / TikTok / Shorts de 15–45s**. Carrossel só quando o briefing pedir explicitamente.
+- Ganchos de **0–2s** com pattern interrupt verbal: número específico, afirmação polarizadora, pergunta direta, contraste.
+- BANIDO em qualquer fala: "Você sabia que…", "Hoje eu vou te ensinar…", "Fala galera", "bora?", "se inscreve no canal", "deixa o like", "não esqueça de curtir".
+- Frases curtas (6–12 palavras), tom coloquial, ritmo rápido, zero jargão de marketing.
+- Use formatos atuais quando fizer sentido: POV, storytime de 20s, lista falada com contagem regressiva, reação a comentário, before/after verbal, edutainment.
+- CTA de baixa fricção: "comenta X", "salva esse", "manda pra quem precisa". NUNCA "link na bio" como CTA principal.`
 
     let prompt = ""
     if (action === 'analyze') {
@@ -123,9 +148,6 @@ Use EXATAMENTE este template Markdown para CADA uma das 3 ideias, separadas por 
 
 ## 💡 Ideia N — [Título magnético do post]
 
-### 🪝 Gancho (0-3s)
-> "[fala/texto literal do gancho, em primeira pessoa, pronto para gravar]"
-
 ### 📌 Resumo da ideia
 (1-2 linhas explicando o ângulo e por que funciona)
 
@@ -136,26 +158,26 @@ Use EXATAMENTE este template Markdown para CADA uma das 3 ideias, separadas por 
 - **Público-alvo:** ...
 - **Gatilho psicológico:** (curiosidade / contraste / autoridade / etc.)
 
-### 🎬 Estrutura sugerida
-1. **(0-3s) Gancho:** ...
-2. **(3-10s) Contexto/Dor:** ...
-3. **(10-25s) Virada/Método:** ...
-4. **(25-40s) Prova/Exemplo:** ...
-5. **(40-50s) CTA:** ...
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
 
-### 📢 CTA
-...
-
-### 💬 On-screen text (3-5 frases curtas)
-- ...
+### 💬 On-screen text
+- frase curta 1
+- frase curta 2
+- frase curta 3
 
 ---
 
 REGRAS:
 - Gere EXATAMENTE 3 ideias — nem mais, nem menos.
 - Não repita ângulos do calendário existente.
-- Cada gancho precisa ser específico (mencione número, palavra ou afirmação polarizadora) — nada genérico tipo "Você sabia que…".
+- Cada gancho precisa ser específico (número, palavra ou afirmação polarizadora) — nada de "Você sabia que…".
 - Sem introdução antes da Ideia 1.
+- Roteiro = SÓ tempo + fala literal. NUNCA descreva cenário, expressão facial, postura, gestos, B-roll, trilha ou cortes.
 
 CALENDÁRIO ATUAL DO ALUNO:
 ${calendarSummary}`
@@ -166,20 +188,16 @@ Use EXATAMENTE este formato:
 
 ## ✍️ Roteiro Reescrito
 
-### 🪝 Gancho (0-3s)
-> "[fala literal]"
-
-### 🎬 Desenvolvimento
-(parágrafos curtos com falas literais e indicações entre parênteses)
-
-### 📢 CTA
-...
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
 
 ### 💬 On-screen text
-- ...
-
-### 🎞️ Sugestões de corte
-- ...
+- frase curta 1
+- frase curta 2
 
 ---
 
@@ -188,6 +206,8 @@ Use EXATAMENTE este formato:
 - **Estrutura:** ...
 - **Linguagem:** ...
 - **CTA:** ...
+
+REGRAS: Só tempo + fala literal. PROIBIDO descrever cena, expressão, postura, gestos, B-roll, trilha ou cortes.
 
 ROTEIRO ORIGINAL:
 ${content}`
@@ -198,20 +218,18 @@ Use EXATAMENTE este formato:
 
 ## 🎬 Roteiro: ${content}
 
-### 🪝 Gancho (0-3s)
-> "[fala literal]"
-
-### 🎬 Desenvolvimento
-(parágrafos curtos, falas literais, indicações de B-roll entre parênteses)
-
-### 📢 CTA
-...
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
 
 ### 💬 On-screen text
-- ...
+- frase curta 1
+- frase curta 2
 
-### 🎞️ Sugestões de corte
-- ...
+REGRAS: Só tempo + fala literal. PROIBIDO descrever cena, expressão facial, postura, gestos, B-roll, trilha ou cortes.
 
 TEMA: ${content}
 
