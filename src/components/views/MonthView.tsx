@@ -47,7 +47,7 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
     <button
       onClick={onClick}
       className={`group relative flex-1 w-full rounded-xl p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
-        dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm"
+        dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm border-border/40"
       }`}
       style={{
         backgroundColor: "white",
