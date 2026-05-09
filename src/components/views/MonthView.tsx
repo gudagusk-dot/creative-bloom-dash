@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, format, isSameMonth, isToday, isSameDay
+  eachDayOfInterval, format, isSameMonth, isToday, isSameDay, isBefore, startOfDay, parseISO
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,8 @@ import {
   PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors,
 } from "@dnd-kit/core";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
-import { Instagram, Plus, CalendarX } from "lucide-react";
+import { ContentPost } from "@/data/content";
+import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { TikTokIcon } from "@/components/TikTokIcon";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
@@ -21,15 +21,15 @@ const dayNamesShort = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const NetworkIcon = ({ network }: { network: string }) => (
   <span className="inline-flex items-center gap-0.5">
-    {network.includes("Instagram") && <Instagram className="h-3 w-3 text-cat-destrave" />}
-    {network.includes("TikTok") && <TikTokIcon className="h-3 w-3 text-foreground" />}
+    {network.includes("Instagram") && <Instagram className="h-2.5 w-2.5 opacity-70" />}
+    {network.includes("TikTok") && <TikTokIcon className="h-2.5 w-2.5 opacity-70" />}
   </span>
 );
 
-const statusLabel: Record<string, string> = {
-  "A fazer": "A fazer",
-  "Em produção": "Produzindo",
-  "Publicado": "Publicado ✓",
+const statusIcons: Record<string, React.ReactNode> = {
+  "A fazer": <Plus className="h-2 w-2" />,
+  "Em produção": <Loader2 className="h-2 w-2 animate-spin" />,
+  "Publicado": <CheckCircle2 className="h-2 w-2" />,
 };
 
 const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: () => void; dragging?: boolean }) => {
