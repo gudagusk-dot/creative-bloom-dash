@@ -92,20 +92,30 @@ const StudentMetrics = () => {
 
   const fetchFollowers = async () => {
     if (!student?.instagram_handle && !student?.tiktok_handle) {
-      toast.error("Nenhuma rede social configurada para este aluno");
+      toast.error("Cadastre o @ do Instagram ou TikTok do aluno primeiro");
       return;
     }
     setRefreshingFollowers(true);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot");
+      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot", {
+        body: { student_id: student.id },
+      });
       if (error) throw error;
-      
-      const successCount = (data.results || []).filter((r: any) => r.status === 'success').length;
-      if (successCount > 0) {
-        toast.success(`${successCount} rede(s) atualizada(s)`);
+
+      const results = (data?.results || []) as Array<{ platform: string; status: string; followers?: number; message?: string }>;
+      const successes = results.filter(r => r.status === 'success');
+      const failures = results.filter(r => r.status !== 'success');
+
+      if (successes.length > 0) {
+        const summary = successes.map(r => `${r.platform}: ${(r.followers || 0).toLocaleString("pt-BR")}`).join(" · ");
+        toast.success(`Atualizado — ${summary}`);
         await loadAll(student.id);
-      } else {
-        toast.error("Nenhuma métrica pôde ser coletada");
+      }
+      failures.forEach(r => {
+        toast.warning(`${r.platform}: ${r.status === 'no_data' ? 'verifique o @ informado' : (r.message || 'falhou')}`);
+      });
+      if (successes.length === 0 && failures.length === 0) {
+        toast.info("Nenhuma rede social configurada");
       }
     } catch (e: any) {
       toast.error(e.message || "Erro ao buscar seguidores");
