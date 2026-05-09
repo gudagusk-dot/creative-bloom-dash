@@ -281,14 +281,14 @@ const StudentMetrics = () => {
                 <tbody>
                   {monthPosts.map(p => {
                     const m = metrics[p.id];
-                    const cat = categoryConfig[p.category];
+                    const catColor = getCategoryColor(p.category);
                     return (
                       <tr key={p.id} className="border-t border-border/40 hover:bg-secondary/30 transition-colors">
                         <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(p.date + "T12:00:00"), "dd/MM")}</td>
                         <td className="px-4 py-3 max-w-[280px] truncate">{p.title}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center gap-1.5 text-xs">
-                            <span className="w-2 h-2 rounded-full" style={{ background: cat?.color }} />
+                            <span className="w-2 h-2 rounded-full" style={{ background: catColor }} />
                             {p.category}
                           </span>
                         </td>
