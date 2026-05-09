@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { X, Sparkles } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
-import { Category, Format, SocialNetwork, categoryConfig } from "@/data/content";
+import { Category, Format, SocialNetwork } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
+import { NewCategoryPopover } from "./NewCategoryPopover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useTemplates } from "@/hooks/useTemplates";
@@ -14,16 +15,15 @@ interface NewPostDialogProps {
 }
 
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
-const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
-  const { addPost } = useContent();
+  const { addPost, categories, getCategoryColor } = useContent();
   const { templates } = useTemplates();
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
-  const [category, setCategory] = useState<Category>("Educativo");
+  const [category, setCategory] = useState<Category>("");
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
@@ -132,21 +132,26 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
 
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2 items-center">
+              {categories.length === 0 && (
+                <span className="text-xs text-muted-foreground italic">Nenhuma categoria criada ainda.</span>
+              )}
               {categories.map(c => (
                 <button
-                  key={c}
-                  onClick={() => setCategory(c)}
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategory(c.name)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    category === c
+                    category === c.name
                       ? "text-white ring-2 ring-offset-1 ring-primary/30"
                       : "bg-secondary text-muted-foreground hover:bg-muted"
                   }`}
-                  style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
+                  style={category === c.name ? { backgroundColor: c.color } : {}}
                 >
-                  {c}
+                  {c.name}
                 </button>
               ))}
+              <NewCategoryPopover onCreated={(name) => setCategory(name)} />
             </div>
           </div>
 
