@@ -141,7 +141,7 @@ const StudentMetrics = () => {
       setCoachResponse(data.text);
       if (action !== 'analyze' && action !== 'suggest') setCoachInput("");
     } catch (e: any) {
-      toast.error("Erro ao consultar o Coach de IA");
+      toast.error("Erro ao consultar o Brenda IA");
     } finally {
       setCoachLoading(false);
     }
@@ -549,7 +549,7 @@ const StudentMetrics = () => {
                 <Bot className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-display text-lg font-medium text-foreground">Content Coach de IA</h3>
+                <h3 className="font-display text-lg font-medium text-foreground">Brenda IA</h3>
                 <p className="text-xs text-muted-foreground">Analise seu desempenho e gere novas ideias estratégicas</p>
               </div>
             </div>
@@ -602,7 +602,7 @@ const StudentMetrics = () => {
             {coachResponse && (
               <div className="bg-background/80 backdrop-blur rounded-xl border border-primary/20 p-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Resposta do Coach</span>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Resposta da Brenda</span>
                   <button onClick={() => setCoachResponse("")} className="text-muted-foreground hover:text-foreground text-xs">Limpar</button>
                 </div>
                 <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">

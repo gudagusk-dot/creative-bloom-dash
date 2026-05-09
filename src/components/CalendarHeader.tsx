@@ -96,10 +96,10 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
           <>
             <button
               onClick={() => setCoachOpen(true)}
-              title="Coach IA"
+              title="Brenda IA"
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary/20 hover:to-accent/20 transition-colors border border-primary/20"
             >
-              <BrainCircuit className="h-3.5 w-3.5" /> Coach IA
+              <BrainCircuit className="h-3.5 w-3.5" /> Brenda IA
             </button>
             <button
               onClick={() => setTemplatesOpen(true)}
@@ -151,18 +151,18 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
       {isAdmin && <TemplatesDialog open={templatesOpen} onClose={() => setTemplatesOpen(false)} />}
       {isAdmin && <CoachDialog open={coachOpen} onClose={() => setCoachOpen(false)} studentName={studentName} />}
 
-      {/* Floating Coach IA button — always visible for admin */}
+      {/* Floating Brenda IA button — always visible for admin */}
       {isAdmin && !coachOpen && (
         <button
           onClick={() => setCoachOpen(true)}
-          title="Abrir Coach IA"
+          title="Abrir Brenda IA"
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 pl-4 pr-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-soft-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 group"
         >
           <span className="relative flex items-center justify-center">
             <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 opacity-75 animate-ping" />
             <BrainCircuit className="h-5 w-5 relative" />
           </span>
-          <span className="text-sm font-semibold tracking-tight">Coach IA</span>
+          <span className="text-sm font-semibold tracking-tight">Brenda IA</span>
         </button>
       )}
     </header>
