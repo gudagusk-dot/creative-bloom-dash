@@ -59,8 +59,6 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
     }
   }, [post]);
 
-  if (!post) return null;
-
   const markDirty = () => setDirty(true);
 
   const handleAutoSave = useCallback(async (newStatus?: PostStatus, newLink?: string, newNotes?: string) => {
@@ -97,6 +95,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       setDirty(false);
     }
   }, [post, ownerId, studentId, isAdmin, updatePost]);
+
+  if (!post) return null;
 
   const handleSave = async () => {
     setSaving(true);
