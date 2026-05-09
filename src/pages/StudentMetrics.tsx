@@ -2,15 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
-import { ContentPost, categoryConfig, Category } from "@/data/content";
-import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3 } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { useContent } from "@/context/ContentContext";
+import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, Instagram, Share, LineChart as LucideLineChart } from "lucide-react";
+import { format, startOfMonth, endOfMonth, subDays, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+  LineChart, Line, AreaChart, Area
 } from "recharts";
+import { TikTokIcon } from "@/components/TikTokIcon";
 
 interface PostMetric {
   post_id: string;
