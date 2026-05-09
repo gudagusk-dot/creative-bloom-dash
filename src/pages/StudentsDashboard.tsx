@@ -18,6 +18,7 @@ const StudentsDashboard = () => {
   const { stats } = useStudentsStats(students.map(s => s.id));
   const [newOpen, setNewOpen] = useState(false);
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
+  const [editStudent, setEditStudent] = useState<Student | null>(null);
 
   const handleDelete = async (s: Student) => {
     if (!confirm(`Excluir o calendário de ${s.name}? Todos os conteúdos serão removidos.`)) return;
