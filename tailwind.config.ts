@@ -75,6 +75,11 @@ export default {
           "bastidores-soft": "hsl(var(--cat-bastidores-soft))",
           "interacao-soft": "hsl(var(--cat-interacao-soft))",
         },
+        status: {
+          overdue: "hsl(var(--status-overdue))",
+          progress: "hsl(var(--status-progress))",
+          published: "hsl(var(--status-published))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

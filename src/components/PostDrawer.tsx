@@ -206,19 +206,26 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                   {(["A fazer", "Em produção", "Publicado"] as PostStatus[]).map(s => {
                     const isActive = status === s;
                     const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
-                    
+
                     let icon = <Circle className="h-5 w-5" />;
                     let activeClass = "bg-secondary text-muted-foreground border-transparent";
-                    
+                    // Hover preview color per status (red / yellow / green)
+                    let hoverClass = "";
+
                     if (s === "A fazer") {
                       icon = isOverdue ? <AlertCircle className="h-5 w-5" /> : <Circle className="h-5 w-5" />;
-                      if (isActive) activeClass = isOverdue ? "bg-status-overdue text-white border-status-overdue shadow-lg shadow-status-overdue/20" : "bg-muted text-foreground border-muted shadow-md";
+                      if (isActive) activeClass = isOverdue
+                        ? "bg-status-overdue text-white border-status-overdue shadow-lg shadow-status-overdue/30"
+                        : "bg-status-overdue text-white border-status-overdue shadow-lg shadow-status-overdue/30";
+                      hoverClass = "hover:bg-status-overdue/10 hover:border-status-overdue/50 hover:text-status-overdue";
                     } else if (s === "Em produção") {
                       icon = <Loader2 className={`h-5 w-5 ${isActive ? "animate-spin" : ""}`} />;
-                      if (isActive) activeClass = "bg-status-progress text-white border-status-progress shadow-lg shadow-status-progress/20";
+                      if (isActive) activeClass = "bg-status-progress text-white border-status-progress shadow-lg shadow-status-progress/30";
+                      hoverClass = "hover:bg-status-progress/10 hover:border-status-progress/50 hover:text-status-progress";
                     } else if (s === "Publicado") {
                       icon = <CheckCircle2 className="h-5 w-5" />;
-                      if (isActive) activeClass = "bg-status-published text-white border-status-published shadow-lg shadow-status-published/20";
+                      if (isActive) activeClass = "bg-status-published text-white border-status-published shadow-lg shadow-status-published/30";
+                      hoverClass = "hover:bg-status-published/10 hover:border-status-published/50 hover:text-status-published";
                     }
 
                     return (
@@ -229,16 +236,16 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                           setStatus(s);
                           handleAutoSave(s);
                         }}
-                        className={`relative overflow-hidden flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group ${
+                        className={`relative flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group cursor-pointer ${
                           isActive
                             ? `${activeClass} ring-2 ring-white/30`
-                            : "bg-card border-border/50 hover:border-border hover:bg-secondary/30"
+                            : `bg-card border-border/60 text-muted-foreground ${hoverClass}`
                         }`}
                       >
                         <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
                           {icon}
                         </div>
-                        <span className={`text-[11px] font-bold uppercase tracking-tight text-center ${isActive ? "opacity-100" : "opacity-60"}`}>
+                        <span className="text-[11px] font-bold uppercase tracking-tight text-center">
                           {s}
                         </span>
                       </button>
