@@ -39,7 +39,8 @@ export const StudentCard = ({ student, stats, onShare, onDelete, onEdit }: Props
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border/70 p-5 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 hover:border-primary/40 transition-all duration-300 ease-soft relative group flex flex-col h-full">
+    <div className="bg-card rounded-2xl border border-border/70 p-5 shadow-soft hover:shadow-soft-lg hover:-translate-y-1 hover:border-primary/50 hover:ring-1 hover:ring-primary/20 transition-all duration-300 ease-soft relative group flex flex-col h-full overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <Link to={`/calendario/${student.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
@@ -52,8 +53,8 @@ export const StudentCard = ({ student, stats, onShare, onDelete, onEdit }: Props
             )}
           </div>
           <div className="min-w-0">
-            <h3 className="font-display text-base font-medium text-foreground truncate tracking-tight">{student.name}</h3>
-            <p className="text-[11px] text-muted-foreground truncate">
+            <h3 className="font-display text-lg font-medium text-foreground truncate tracking-tight group-hover:text-primary transition-colors">{student.name}</h3>
+            <p className="text-xs font-medium text-muted-foreground truncate">
               {student.instagram_handle ? `@${student.instagram_handle}` : `/aluno/${student.slug}`}
             </p>
           </div>
