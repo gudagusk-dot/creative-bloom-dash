@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download, BrainCircuit } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarView } from "./CalendarGrid";
 import { TemplatesDialog } from "./TemplatesDialog";
+import { CoachDialog } from "./CoachDialog";
 import { exportCalendarPDF } from "@/lib/pdfExport";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Props {
@@ -18,6 +20,7 @@ interface Props {
 export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: Props) => {
   const { currentMonth, setCurrentMonth, posts, viewMode, getCategoryColor } = useContent();
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [coachOpen, setCoachOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const monthPosts = posts.filter(p => {
@@ -92,6 +95,13 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
         {isAdmin && (
           <>
             <button
+              onClick={() => setCoachOpen(true)}
+              title="Coach IA"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary/20 hover:to-accent/20 transition-colors border border-primary/20"
+            >
+              <BrainCircuit className="h-3.5 w-3.5" /> Coach IA
+            </button>
+            <button
               onClick={() => setTemplatesOpen(true)}
               title="Templates"
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-muted transition-colors"
@@ -102,7 +112,17 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
               onClick={async () => {
                 setExporting(true);
                 try {
-                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName, getCategoryColor });
+                  // Fetch metrics for posts in month (if any) so PDF includes performance page
+                  let metricsByPostId: Record<string, any> | undefined;
+                  const ids = monthPosts.map(p => p.id);
+                  if (ids.length) {
+                    const { data: m } = await supabase.from("post_metrics").select("*").in("post_id", ids);
+                    if (m && m.length) {
+                      metricsByPostId = {};
+                      m.forEach((row: any) => { metricsByPostId![row.post_id] = row; });
+                    }
+                  }
+                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName, getCategoryColor, metricsByPostId });
                   toast.success("PDF gerado!");
                 } catch (e) {
                   toast.error("Erro ao gerar PDF");
@@ -129,6 +149,7 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
       </div>
 
       {isAdmin && <TemplatesDialog open={templatesOpen} onClose={() => setTemplatesOpen(false)} />}
+      {isAdmin && <CoachDialog open={coachOpen} onClose={() => setCoachOpen(false)} studentName={studentName} />}
     </header>
   );
 };

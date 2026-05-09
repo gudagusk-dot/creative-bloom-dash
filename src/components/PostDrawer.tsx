@@ -229,8 +229,10 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                           setStatus(s);
                           handleAutoSave(s);
                         }}
-                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group ${
-                          isActive ? activeClass : "bg-card border-border/50 hover:border-border hover:bg-secondary/30"
+                        className={`relative overflow-hidden flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group ${
+                          isActive
+                            ? `${activeClass} ring-2 ring-white/30`
+                            : "bg-card border-border/50 hover:border-border hover:bg-secondary/30"
                         }`}
                       >
                         <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
@@ -239,13 +241,6 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                         <span className={`text-[11px] font-bold uppercase tracking-tight text-center ${isActive ? "opacity-100" : "opacity-60"}`}>
                           {s}
                         </span>
-                        {isActive && (
-                          <motion.div
-                            layoutId="status-active-glow"
-                            className="absolute inset-0 rounded-2xl ring-2 ring-white/20"
-                            initial={false}
-                          />
-                        )}
                       </button>
                     );
                   })}
@@ -382,27 +377,14 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {statuses.map(s => {
-                    const isActive = status === s;
-                    const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
-                    
-                    let activeClass = "bg-secondary text-muted-foreground";
-                    if (s === "A fazer") activeClass = isOverdue ? "bg-status-overdue text-white" : "bg-muted text-foreground";
-                    else if (s === "Em produção") activeClass = "bg-status-progress text-white";
-                    else if (s === "Publicado") activeClass = "bg-status-published text-white";
-
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => { setStatus(s); markDirty(); }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          isActive ? activeClass + " ring-2 ring-offset-1 ring-primary/30 shadow-sm" : "bg-secondary text-muted-foreground hover:bg-muted"
-                        }`}
-                      >{s}</button>
-                    );
-                  })}
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status atual</label>
+                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border">
+                  <span className={`w-2 h-2 rounded-full ${
+                    status === "Publicado" ? "bg-status-published" :
+                    status === "Em produção" ? "bg-status-progress" : "bg-muted-foreground"
+                  }`} />
+                  <span className="text-xs font-medium text-foreground">{status}</span>
+                  <span className="text-[10px] text-muted-foreground italic ml-1">(somente o aluno edita)</span>
                 </div>
               </div>
 
