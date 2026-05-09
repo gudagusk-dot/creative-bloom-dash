@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
 import { useContent } from "@/context/ContentContext";
 import { ContentPost } from "@/data/content";
-import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, Instagram, Share, LineChart as LucideLineChart, Sparkles } from "lucide-react";
+import { 
+  ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, 
+  TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, 
+  Instagram, Share, LineChart as LucideLineChart, Sparkles, FileDown, 
+  Send, BrainCircuit, Bot
+} from "lucide-react";
 import { format, startOfMonth, endOfMonth, subDays, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -15,6 +20,8 @@ import {
 } from "recharts";
 import { TikTokIcon } from "@/components/TikTokIcon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface PostMetric {
   post_id: string;
@@ -30,6 +37,7 @@ interface PostMetric {
 const StudentMetrics = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const { getBySlug } = useStudents();
   const { categories, getCategoryColor } = useContent();
   const [student, setStudent] = useState<Student | null>(null);
@@ -40,6 +48,10 @@ const StudentMetrics = () => {
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshingFollowers, setRefreshingFollowers] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [coachInput, setCoachInput] = useState("");
+  const [coachLoading, setCoachLoading] = useState(false);
+  const [coachResponse, setCoachResponse] = useState("");
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
 
   useEffect(() => {
@@ -238,6 +250,14 @@ const StudentMetrics = () => {
               onChange={e => { const [y, m] = e.target.value.split("-").map(Number); setMonth(new Date(y, m - 1, 1)); }}
               className="text-sm px-3 py-2 rounded-xl border border-border bg-background text-foreground"
             />
+            <button
+              onClick={exportToPDF}
+              disabled={exporting}
+              className="text-xs px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              {exporting ? "Gerando..." : "Exportar PDF"}
+            </button>
             <Link to={`/calendario/${slug}`} className="text-xs px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground flex items-center gap-1.5 transition-colors">
               <CalendarDays className="h-3.5 w-3.5" /> Calendário
             </Link>
@@ -253,7 +273,193 @@ const StudentMetrics = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div ref={dashboardRef} className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Follower Stats Section */}
+        {(instagramStats || tiktokStats) && (
+          <div className="grid md:grid-cols-2 gap-4">
+            {instagramStats && (
+              <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white">
+                      <Instagram className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-sm font-medium">Instagram</h3>
+                      <p className="text-[10px] text-muted-foreground">@{student.instagram_handle}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={fetchFollowers}
+                    disabled={refreshingFollowers}
+                    className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${refreshingFollowers ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Seguidores</p>
+                    <p className="text-lg font-bold">{instagramStats.current.toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Cresc. Mês</p>
+                    <p className={`text-lg font-bold ${instagramStats.monthlyChange >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      {instagramStats.monthlyChange > 0 ? "+" : ""}{instagramStats.monthlyChange.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Posts</p>
+                    <p className="text-lg font-bold">{instagramStats.posts}</p>
+                  </div>
+                </div>
+                <div className="h-[120px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={instagramStats.chartData}>
+                      <defs>
+                        <linearGradient id="colorIg" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#bc1888" stopOpacity={0.1}/>
+                          <stop offset="95%" stopColor="#bc1888" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Area type="monotone" dataKey="seguidores" stroke="#bc1888" fillOpacity={1} fill="url(#colorIg)" />
+                      <Tooltip />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {tiktokStats && (
+              <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white">
+                      <TikTokIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-sm font-medium">TikTok</h3>
+                      <p className="text-[10px] text-muted-foreground">@{student.tiktok_handle}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={fetchFollowers}
+                    disabled={refreshingFollowers}
+                    className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${refreshingFollowers ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Seguidores</p>
+                    <p className="text-lg font-bold">{tiktokStats.current.toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Cresc. Mês</p>
+                    <p className={`text-lg font-bold ${tiktokStats.monthlyChange >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      {tiktokStats.monthlyChange > 0 ? "+" : ""}{tiktokStats.monthlyChange.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary/30">
+                    <p className="text-[10px] text-muted-foreground uppercase">Vídeos</p>
+                    <p className="text-lg font-bold">{tiktokStats.posts}</p>
+                  </div>
+                </div>
+                <div className="h-[120px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={tiktokStats.chartData}>
+                      <defs>
+                        <linearGradient id="colorTt" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#000000" stopOpacity={0.1}/>
+                          <stop offset="95%" stopColor="#000000" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Area type="monotone" dataKey="seguidores" stroke="#000000" fillOpacity={1} fill="url(#colorTt)" />
+                      <Tooltip />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* AI Content Coach Section */}
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 p-6 shadow-soft relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <BrainCircuit className="w-32 h-32 text-primary" />
+          </div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-lg">
+                <Bot className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-display text-lg font-medium text-foreground">Content Coach de IA</h3>
+                <p className="text-xs text-muted-foreground">Analise seu desempenho e gere novas ideias estratégicas</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-3 mb-6">
+              <button 
+                onClick={() => handleAskCoach('analyze')}
+                disabled={coachLoading}
+                className="p-4 rounded-xl bg-background border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
+              >
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 mb-3 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-4 w-4" />
+                </div>
+                <h4 className="text-sm font-medium mb-1">Analisar Padrões</h4>
+                <p className="text-[10px] text-muted-foreground">O que funcionou melhor neste mês?</p>
+              </button>
+
+              <button 
+                onClick={() => handleAskCoach('suggest')}
+                disabled={coachLoading}
+                className="p-4 rounded-xl bg-background border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
+              >
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 mb-3 group-hover:scale-110 transition-transform">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <h4 className="text-sm font-medium mb-1">Sugerir Ideias</h4>
+                <p className="text-[10px] text-muted-foreground">3 novas ideias baseadas no seu histórico</p>
+              </button>
+
+              <div className="md:col-span-2 p-4 rounded-xl bg-background border border-border">
+                <h4 className="text-sm font-medium mb-3">Melhorar ou Criar Roteiro</h4>
+                <div className="flex gap-2">
+                  <input 
+                    value={coachInput}
+                    onChange={e => setCoachInput(e.target.value)}
+                    placeholder="Cole um roteiro ou um tema..."
+                    className="flex-1 text-xs bg-secondary/50 border-none rounded-lg px-3 focus:ring-1 focus:ring-primary"
+                  />
+                  <button 
+                    onClick={() => handleAskCoach(coachInput.length > 20 ? 'rewrite' : 'script')}
+                    disabled={coachLoading || !coachInput.trim()}
+                    className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {coachLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {coachResponse && (
+              <div className="bg-background/80 backdrop-blur rounded-xl border border-primary/20 p-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Resposta do Coach</span>
+                  <button onClick={() => setCoachResponse("")} className="text-muted-foreground hover:text-foreground text-xs">Limpar</button>
+                </div>
+                <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {coachResponse}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <KpiCard icon={<Eye className="h-4 w-4" />} label="Visualizações" value={kpis.views.toLocaleString("pt-BR")} />
