@@ -42,6 +42,29 @@ serve(async (req) => {
     console.log(`[snapshot] processing ${students?.length || 0} student(s)`)
     const results: any[] = []
 
+    const persistAvatar = async (studentId: string, picUrl: string | undefined | null) => {
+      if (!picUrl) return null
+      try {
+        const imgRes = await fetch(picUrl)
+        if (!imgRes.ok) { console.warn('[avatar] fetch fail', imgRes.status); return null }
+        const contentType = imgRes.headers.get('content-type') || 'image/jpeg'
+        const ext = contentType.includes('png') ? 'png' : 'jpg'
+        const bytes = new Uint8Array(await imgRes.arrayBuffer())
+        const path = `${studentId}.${ext}`
+        const { error: upErr } = await supabase.storage
+          .from('student-avatars')
+          .upload(path, bytes, { contentType, upsert: true, cacheControl: '3600' })
+        if (upErr) { console.error('[avatar] upload', upErr); return null }
+        const { data: pub } = supabase.storage.from('student-avatars').getPublicUrl(path)
+        const url = `${pub.publicUrl}?v=${Date.now()}`
+        await supabase.from('students').update({ avatar_url: url }).eq('id', studentId)
+        return url
+      } catch (e) {
+        console.error('[avatar] err', e)
+        return null
+      }
+    }
+
     for (const student of students || []) {
       // Instagram
       if (student.instagram_handle) {
