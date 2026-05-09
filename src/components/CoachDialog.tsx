@@ -135,13 +135,13 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm ${
+              <div className={`${m.role === "user" ? "max-w-[85%]" : "max-w-[95%] w-full"} px-3.5 py-2.5 rounded-2xl text-sm ${
                 m.role === "user"
                   ? "bg-primary text-primary-foreground rounded-br-sm"
                   : "bg-secondary text-foreground rounded-bl-sm"
               }`}>
                 {m.role === "assistant" ? (
-                  <div className="prose prose-sm max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-headings:mt-2 prose-headings:mb-1 prose-strong:text-foreground">
+                  <div className="prose prose-sm max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:mt-3 prose-headings:mb-1.5 prose-h2:text-[15px] prose-h2:font-semibold prose-h3:text-[13px] prose-h3:font-semibold prose-strong:text-foreground prose-hr:my-3 prose-hr:border-border">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 ) : (
