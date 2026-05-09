@@ -27,7 +27,7 @@ serve(async (req) => {
       prompt = `Crie um roteiro completo de Reels para este tema: \n\n${content}`
     }
 
-    const response = await fetch('https://api.lovable.ai/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
