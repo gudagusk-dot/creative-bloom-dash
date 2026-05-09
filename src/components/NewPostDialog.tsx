@@ -132,13 +132,52 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
+              <button
+                type="button"
+                onClick={() => setAiOpen(v => !v)}
+                className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                <Wand2 className="h-3 w-3" /> Gerar com IA
+              </button>
+            </div>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Título do post..."
-              className="w-full mt-1 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+              className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
             />
+            {aiOpen && (
+              <div className="mt-2 p-3 rounded-xl border border-primary/30 bg-primary/5 space-y-2 animate-fade-in">
+                <p className="text-[11px] text-muted-foreground">Descreva brevemente o tema. A IA usa o calendário do aluno como referência de estilo.</p>
+                <textarea
+                  value={aiPrompt}
+                  onChange={e => setAiPrompt(e.target.value)}
+                  placeholder="Ex: 5 erros que brasileiros cometem ao falar sobre família em inglês"
+                  rows={2}
+                  className="w-full p-2 rounded-lg border border-border bg-background text-foreground text-sm resize-none focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={generateWithAI}
+                    disabled={!aiPrompt.trim() || aiLoading}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:-translate-y-0.5 transition-all shadow-soft"
+                  >
+                    {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {aiLoading ? "Gerando…" : "Gerar título e roteiro"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAiOpen(false); setAiPrompt(""); }}
+                    className="px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3">
