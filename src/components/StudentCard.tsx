@@ -11,9 +11,10 @@ interface Props {
   stats?: StudentStats;
   onShare: (s: Student) => void;
   onDelete: (s: Student) => void;
+  onEdit: (s: Student) => void;
 }
 
-export const StudentCard = ({ student, stats, onShare, onDelete }: Props) => {
+export const StudentCard = ({ student, stats, onShare, onDelete, onEdit }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const monthPct = stats && stats.monthTotal > 0 ? Math.round((stats.monthPublished / stats.monthTotal) * 100) : 0;
   const daysSince = stats?.lastActivity
