@@ -50,7 +50,7 @@ export const WeekView = () => {
                   <p className="text-[11px] text-muted-foreground/60 italic">Sem conteúdo</p>
                 )}
                 {dayPosts.map(post => {
-                  const color = categoryConfig[post.category]?.color || "#999";
+                  const color = getCategoryColor(post.category);
                   return (
                     <button
                       key={post.id}
