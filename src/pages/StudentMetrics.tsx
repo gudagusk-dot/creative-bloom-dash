@@ -54,13 +54,16 @@ const StudentMetrics = () => {
 
   const loadAll = async (studentId: string) => {
     setLoading(true);
-    const { data: postsData } = await supabase
-      .from("content_posts")
-      .select("*")
-      .eq("student_id", studentId)
-      .eq("status", "Publicado");
-    const ps = (postsData || []) as any[];
+    // Parallel fetch for speed
+    const [postsRes, snapshotsRes] = await Promise.all([
+      supabase.from("content_posts").select("*").eq("student_id", studentId).eq("status", "Publicado"),
+      supabase.from("follower_snapshots").select("*").eq("student_id", studentId).order("captured_date", { ascending: true })
+    ]);
+
+    const ps = (postsRes.data || []) as any[];
     setPosts(ps as ContentPost[]);
+    setSnapshots(snapshotsRes.data || []);
+
     if (ps.length) {
       const { data: m } = await supabase
         .from("post_metrics")
@@ -72,6 +75,52 @@ const StudentMetrics = () => {
     }
     setLoading(false);
   };
+
+  const fetchFollowers = async () => {
+    if (!student?.instagram_handle) {
+      toast.error("Instagram não configurado para este aluno");
+      return;
+    }
+    setRefreshingFollowers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot");
+      if (error) throw error;
+      toast.success("Seguidores atualizados");
+      await loadAll(student.id);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao buscar seguidores");
+    } finally {
+      setRefreshingFollowers(false);
+    }
+  };
+
+  const followerStats = useMemo(() => {
+    if (snapshots.length === 0) return null;
+    const igSnapshots = snapshots.filter(s => s.platform === "Instagram");
+    if (igSnapshots.length === 0) return null;
+    
+    const latest = igSnapshots[igSnapshots.length - 1];
+    const prev = igSnapshots.length > 1 ? igSnapshots[igSnapshots.length - 2] : latest;
+    
+    // Month start snapshot
+    const monthStart = startOfMonth(month);
+    const firstOfMonthSnap = igSnapshots.find(s => {
+      const d = parseISO(s.captured_date);
+      return d >= monthStart;
+    }) || igSnapshots[0];
+
+    return {
+      current: latest.followers,
+      dailyChange: latest.followers - prev.followers,
+      monthlyChange: latest.followers - firstOfMonthSnap.followers,
+      posts: latest.posts_count,
+      follows: latest.follows,
+      chartData: igSnapshots.slice(-30).map(s => ({
+        date: format(parseISO(s.captured_date), "dd/MM"),
+        seguidores: s.followers
+      }))
+    };
+  }, [snapshots, month]);
 
   const monthPosts = useMemo(() => {
     const ms = startOfMonth(month).getTime();
