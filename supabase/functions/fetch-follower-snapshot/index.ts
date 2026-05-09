@@ -131,7 +131,13 @@ serve(async (req) => {
                 raw: profile,
               }, { onConflict: 'student_id, platform, captured_date' })
             if (upsertError) console.error("[snapshot][tt] upsert", upsertError)
-            results.push({ student: student.name, platform: 'tiktok', status: upsertError ? 'error' : 'success', followers })
+            // TikTok avatar fallback (only if student has no avatar yet)
+            let avatarUrl: string | null = null
+            if (!student.avatar_url && !student.instagram_handle) {
+              const ttPic = profile.avatarLarger || profile.avatarMedium || profile.avatar
+              avatarUrl = await persistAvatar(student.id, ttPic)
+            }
+            results.push({ student: student.name, platform: 'tiktok', status: upsertError ? 'error' : 'success', followers, avatar: avatarUrl ? 'updated' : 'skipped' })
           } else {
             results.push({ student: student.name, platform: 'tiktok', status: 'no_data' })
           }
