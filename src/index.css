@@ -1,5 +1,4 @@
-@import url('https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -26,7 +25,7 @@
     --secondary-foreground: 230 18% 13%;
 
     --muted: 36 14% 92%;
-    --muted-foreground: 230 10% 45%;
+    --muted-foreground: 230 12% 38%;
 
     --accent: 252 40% 95%;
     --accent-foreground: 252 38% 42%;
@@ -85,6 +84,10 @@
 
     /* Smooth transition curve */
     --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Neon effect tokens */
+    --neon-published: 142 70% 50%;
+    --shadow-neon: 0 0 15px -2px hsl(var(--neon-published) / 0.5), 0 0 6px -1px hsl(var(--neon-published) / 0.3);
   }
 
   .dark {
@@ -161,14 +164,14 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'General Sans', 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'ss01', 'ss02';
+    font-family: 'Geist', 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv01', 'cv11', 'ss01';
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Fraunces', 'General Sans', serif;
+    font-family: 'Fraunces', serif;
     font-optical-sizing: auto;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
   }
 }
 
@@ -207,6 +210,22 @@
     font-family: 'Fraunces', serif;
     font-optical-sizing: auto;
     letter-spacing: -0.025em;
+  }
+
+  .text-display-italic {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .glow-published {
+    box-shadow: var(--shadow-neon);
+    border-color: hsl(var(--neon-published) / 0.5) !important;
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   .ease-soft {

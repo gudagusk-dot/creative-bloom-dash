@@ -26,8 +26,9 @@ const StudentsDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-soft">
-      <header className="border-b border-border/60 bg-card/80 backdrop-blur sticky top-0 z-30">
+    <div className="min-h-screen w-full bg-background relative overflow-hidden">
+      <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-50" />
+      <header className="border-b border-border/60 bg-card/80 backdrop-blur sticky top-0 z-30 relative">
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 max-w-6xl mx-auto">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-soft">
@@ -69,9 +70,9 @@ const StudentsDashboard = () => {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em] mb-2">
               Olá{userName ? `, ${userName}` : ""}
             </p>
-            <h1 className="font-display text-3xl sm:text-4xl font-light text-foreground tracking-tight">
-              Seus clientes
-              <span className="ml-3 text-base font-sans font-medium text-muted-foreground bg-secondary/70 px-2.5 py-1 rounded-full align-middle">
+            <h1 className="font-display text-4xl sm:text-5xl font-light text-foreground tracking-tight flex items-center gap-4">
+              <span className="text-display-italic">Seus</span> clientes
+              <span className="text-sm font-sans font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full align-middle">
                 {students.length}
               </span>
             </h1>

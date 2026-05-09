@@ -55,7 +55,7 @@ export const WeekView = () => {
                     <button
                       key={post.id}
                       onClick={() => setSelectedPost(post)}
-                      className="text-left rounded-xl border p-2.5 hover:shadow-soft transition-all"
+                      className={`text-left rounded-xl border p-2.5 hover:shadow-soft transition-all ${post.status === "Publicado" ? "glow-published" : ""}`}
                       style={{ backgroundColor: color + "12", borderColor: color + "40" }}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
