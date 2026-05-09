@@ -130,6 +130,10 @@ const Login = () => {
               </form>
             </div>
           </div>
+          {/* Personal note */}
+          <p className="font-display font-light text-[13px] text-white text-center mt-3 tracking-wide lowercase">
+            feito com carinho para minha gatinha 💙 por gustavo
+          </p>
         </motion.div>
       </div>
 
