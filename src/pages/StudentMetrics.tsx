@@ -54,6 +54,7 @@ const StudentMetrics = () => {
   const [coachLoading, setCoachLoading] = useState(false);
   const [coachResponse, setCoachResponse] = useState("");
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
+  const [platformFilter, setPlatformFilter] = useState<"all" | "instagram" | "tiktok">("all");
 
   useEffect(() => {
     (async () => {
