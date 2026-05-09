@@ -9,14 +9,25 @@ export interface Student {
   name: string;
   slug: string;
   whatsapp: string | null;
+  instagram_handle: string | null;
+  tiktok_handle: string | null;
   created_at: string;
 }
 
 interface StudentsContextType {
   students: Student[];
   loading: boolean;
-  createStudent: (data: { name: string; whatsapp?: string; seed?: boolean }) => Promise<Student | null>;
-  updateStudent: (id: string, updates: Partial<Pick<Student, "name" | "slug" | "whatsapp">>) => Promise<{ error?: string }>;
+  createStudent: (data: {
+    name: string;
+    whatsapp?: string;
+    instagram_handle?: string;
+    tiktok_handle?: string;
+    seed?: boolean;
+  }) => Promise<Student | null>;
+  updateStudent: (
+    id: string,
+    updates: Partial<Pick<Student, "name" | "slug" | "whatsapp" | "instagram_handle" | "tiktok_handle">>,
+  ) => Promise<{ error?: string }>;
   deleteStudent: (id: string) => Promise<void>;
   getBySlug: (slug: string) => Promise<Student | null>;
   refresh: () => Promise<void>;
@@ -30,16 +41,20 @@ export const useStudents = () => {
   return ctx;
 };
 
+const sanitizeHandle = (raw?: string | null): string | null => {
+  if (!raw) return null;
+  let v = raw.trim();
+  // strip URL prefix
+  v = v.replace(/^https?:\/\/(www\.)?(instagram\.com|tiktok\.com)\//i, "");
+  v = v.replace(/^@+/, "").replace(/\/$/, "").trim();
+  return v.length ? v : null;
+};
+
 const ensureUniqueSlug = async (base: string, ignoreId?: string): Promise<string> => {
   let candidate = base;
   let i = 1;
-  // Try a few times; could collide with concurrent inserts
   while (true) {
-    const { data } = await supabase
-      .from("students")
-      .select("id")
-      .eq("slug", candidate)
-      .maybeSingle();
+    const { data } = await supabase.from("students").select("id").eq("slug", candidate).maybeSingle();
     if (!data || data.id === ignoreId) return candidate;
     i += 1;
     candidate = `${base}-${i}`;
@@ -67,25 +82,21 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, [userId]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   // realtime
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
       .channel(`students:${userId}`)
-      .on(
-        "postgres_changes",
+      .on("postgres_changes",
         { event: "*", schema: "public", table: "students", filter: `owner_id=eq.${userId}` },
-        () => refresh()
-      )
+        () => refresh())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId, refresh]);
 
-  const createStudent: StudentsContextType["createStudent"] = useCallback(async ({ name, whatsapp, seed }) => {
+  const createStudent: StudentsContextType["createStudent"] = useCallback(async ({ name, whatsapp, instagram_handle, tiktok_handle, seed }) => {
     if (!userId) return null;
     const trimmed = name.trim();
     if (!trimmed) return null;
@@ -97,6 +108,8 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
         name: trimmed,
         slug,
         whatsapp: whatsapp ? sanitizeWhatsapp(whatsapp) : null,
+        instagram_handle: sanitizeHandle(instagram_handle),
+        tiktok_handle: sanitizeHandle(tiktok_handle),
       })
       .select("*")
       .single();
@@ -104,7 +117,15 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
     const student = data as Student;
 
     if (seed) {
-      const { initialPosts } = await import("@/data/content");
+      const { initialPosts, categoryConfig } = await import("@/data/content");
+      // Seed categories ONLY when seeding posts.
+      const catRows = Object.entries(categoryConfig).map(([name, cfg], i) => ({
+        student_id: student.id,
+        name,
+        color: cfg.color,
+        order_index: i,
+      }));
+      await supabase.from("student_categories").insert(catRows);
       const rows = initialPosts.map((p) => ({
         user_id: userId,
         student_id: student.id,
@@ -119,6 +140,7 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
       }));
       await supabase.from("content_posts").insert(rows);
     }
+    // When seed=false: NO categories, NO posts. Calendar starts truly empty.
 
     await refresh();
     return student;
@@ -126,9 +148,9 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
 
   const updateStudent: StudentsContextType["updateStudent"] = useCallback(async (id, updates) => {
     const payload: any = { ...updates };
-    if (payload.whatsapp !== undefined) {
-      payload.whatsapp = payload.whatsapp ? sanitizeWhatsapp(payload.whatsapp) : null;
-    }
+    if (payload.whatsapp !== undefined) payload.whatsapp = payload.whatsapp ? sanitizeWhatsapp(payload.whatsapp) : null;
+    if (payload.instagram_handle !== undefined) payload.instagram_handle = sanitizeHandle(payload.instagram_handle);
+    if (payload.tiktok_handle !== undefined) payload.tiktok_handle = sanitizeHandle(payload.tiktok_handle);
     if (payload.slug) {
       const cleaned = slugify(payload.slug);
       const final = await ensureUniqueSlug(cleaned, id);
@@ -141,9 +163,11 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
   }, [refresh]);
 
   const deleteStudent = useCallback(async (id: string) => {
-    // delete posts and activity for this student first
     await supabase.from("content_posts").delete().eq("student_id", id);
     await supabase.from("post_activity").delete().eq("student_id", id);
+    await supabase.from("student_categories").delete().eq("student_id", id);
+    await supabase.from("follower_snapshots").delete().eq("student_id", id);
+    await supabase.from("post_metrics").delete().in("post_id", []); // best-effort; cascade by orphan
     await supabase.from("students").delete().eq("id", id);
     await refresh();
   }, [refresh]);
