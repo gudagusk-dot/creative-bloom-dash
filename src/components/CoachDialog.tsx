@@ -48,6 +48,9 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
   const [step, setStep] = useState<Step>("menu");
   const [briefingFormat, setBriefingFormat] = useState<FormatChoice | null>(null);
   const [briefingTheme, setBriefingTheme] = useState("");
+  const [scrapeKind, setScrapeKind] = useState<ScrapeKind | null>(null);
+  const [scrapeInput, setScrapeInput] = useState("");
+  const [scrapePlatform, setScrapePlatform] = useState<"instagram" | "tiktok">("instagram");
 
   if (!open) return null;
 
