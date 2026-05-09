@@ -1,106 +1,62 @@
-## Visão geral
+## Plano consolidado: redesign do Login + ajustes no painel do cliente
 
-Expandir o uso da Apify para transformar o app numa central de inteligência de conteúdo. Entrega em 3 frentes:
+### 1. Redesign da tela de Login
+Visual editorial moderno, alinhado às referências (Velorah / paleta verde + Fraunces italic).
 
-1. **Inspirar-se em um post** (Novo Conteúdo) — colar link → IA reescreve adaptado ao nicho do aluno.
-2. **Copiar conteúdo** (Brenda IA) — colar link → métricas reais + análise completa (copy/visual/social) + roteiro recriado.
-3. **Inteligência extra via 4 novos actors**: perfil, hashtag, comentários — disponíveis na Brenda IA como novos quick actions.
+- **Layout**: split em duas colunas no desktop, empilhado no mobile.
+  - **Esquerda (desktop)**: imagem cinematográfica em tela cheia (céu dourado/laranja ao entardecer) com overlay sutil e a tagline "Plano de Conteúdo®" em small caps + uma frase editorial em `Fraunces` light italic.
+  - **Direita**: formulário minimal centralizado, fundo neutro, com título grande em `Fraunces` italic ("Bem-vinda de volta"), inputs em `Geist`, botão primário sólido.
+- **Tipografia**: títulos em `Fraunces` light italic; labels, inputs e botões em `Geist`.
+- **ThemeToggle**: permanece no canto superior direito.
+- **Animação**: fade + slide (mantém lógica atual com `framer-motion` se já presente, senão CSS simples).
+- **Imagem hero**: gerar `src/assets/login-hero.jpg` (1024x1280, céu dourado cinematográfico).
+- **Lógica de auth**: sem alteração — mesmos handlers e chamadas existentes.
 
-Tudo reusa `APIFY_API_TOKEN` e `LOVABLE_API_KEY` já configurados.
+Arquivos: `src/pages/Login.tsx` (rewrite do layout), `src/assets/login-hero.jpg` (novo).
 
----
+### 2. Painel do cliente — remover filtros do topo
+Os chips de categorias (Educativo / Situações Reais / Autoridade / Destrave seu Inglês / Bastidores) e o filtro de redes (Instagram/TikTok) ficam em `TopBar.tsx` e poluem a visão do cliente.
 
-## 1. Edge function única: `apify-tools`
+Mudança: esconder o bloco inteiro de filtros (categorias + redes + botão de gerenciar) quando `viewMode === "student"`. Continua intacto para o ADM.
 
-Arquivo: `supabase/functions/apify-tools/index.ts`
+Arquivo: `src/components/TopBar.tsx`.
 
-Endpoint genérico que recebe `{ tool, input }` e roteia para o actor certo. Reduz boilerplate vs criar 1 function por actor.
+### 3. Saudação com data dinâmica
+Já está dinâmica em `StudentOverview.tsx` via `format(new Date(), "eeee, d 'de' MMMM", { locale: ptBR })`. Vou apenas garantir que `today` seja calculado a cada render (sem `useMemo` com deps vazias) para nunca cachear.
 
-Tools suportadas (com normalização de saída):
+Arquivo: `src/components/StudentOverview.tsx`.
 
-| tool | actor | output normalizado |
-|---|---|---|
-| `post` | `apify~instagram-scraper` / `clockworks~tiktok-scraper` | post completo (caption, hashtags, métricas, mídia, autor, música) |
-| `profile` | `apify~instagram-profile-scraper` / `clockworks~tiktok-profile-scraper` | bio, seguidores, top posts |
-| `hashtag` | `apify~instagram-hashtag-scraper` / `clockworks~tiktok-hashtag-scraper` | top posts da hashtag, volume, ângulos recorrentes |
-| `comments` | `apify~instagram-comment-scraper` / `clockworks~tiktok-comments-scraper` | top comentários, sentimento bruto, dores/objeções |
+### 4. Mobile: "Ver Calendário" em destaque no topo
+Hoje, no mobile, o card "Ver Calendário Completo" e o aviso de pendências aparecem **abaixo** das listas e ficam escondidos no fim da tela.
 
-Padrões:
-- Detecta plataforma a partir da URL/handle.
-- Validação Zod no body.
-- `resultsLimit` baixo por padrão (1 post / 20 comentários / 12 top posts) para custo.
-- Reusa o helper `runActor` do estilo de `fetch-post-metrics`.
-- CORS padrão; verify_jwt default.
+Mudança no `StudentOverview.tsx`:
+- Reordenação responsiva com classes `order-*` do Tailwind.
+- No mobile: `Ver Calendário` (destaque) → `Posts Pendentes` (se houver) → `Para hoje` → `Próximos 7 dias` → `Desempenho do mês`.
+- No desktop: mantém o grid atual de duas colunas com a lateral à direita.
 
----
-
-## 2. Edge function `ai-content-coach` — novas actions
-
-Adicionar ao switch atual:
-
-- **`inspire_from_post`** — entrada `{ scraped_post, posts_context }`. Saída: título magnético + roteiro pronto no template padrão da Brenda, **adaptado ao nicho do aluno** (não cópia literal). Foco em extrair o gancho/estrutura e reaplicar.
-- **`copy_content`** — entrada `{ scraped_post, posts_context }`. Saída em Markdown com seções:
-  - 📊 Métricas reais (likes, views, comments, shares, ER calculado)
-  - 🔍 Por que esse conteúdo funcionou
-  - ✍️ Análise de copy (gancho, estrutura, CTA, gatilhos)
-  - 🎨 Análise visual (formato, ritmo inferido de duração/legenda/hashtags)
-  - 🧲 Análise de social media (timing, hashtags, posicionamento)
-  - 🎬 Roteiro recriado adaptado ao nicho
-- **`analyze_profile`** — entrada `{ scraped_profile, posts_context }`. Saída: análise estratégica do perfil (concorrente/referência) + 3 ideias acionáveis para o aluno.
-- **`analyze_hashtag`** — entrada `{ scraped_hashtag, posts_context }`. Saída: ângulos vencedores na hashtag, padrões de gancho, 3 ideias adaptadas ao nicho.
-- **`analyze_comments`** — entrada `{ scraped_comments, posts_context }`. Saída: dores/objeções/linguagem do público + 3 ganchos prontos derivados dos comentários.
-
-System prompt da Brenda permanece; cada action tem template Markdown próprio seguindo as regras já existentes (roteiro = só tempo + fala literal).
-
----
-
-## 3. UI — Novo Conteúdo (`src/components/NewPostDialog.tsx`)
-
-Tabs no topo do diálogo:
-- **Do zero** (atual)
-- **Inspirar em um post** (nova)
-
-Aba nova:
-- Input de URL (TikTok/IG) + botão "Buscar e gerar".
-- Loading: "Analisando post…" → "Brenda escrevendo…".
-- Sucesso: preview compacto (thumbnail, autor, métricas) + título e roteiro são preenchidos automaticamente nos campos do form, que volta ao modo edição normal para o usuário ajustar e salvar.
-- Erros via `sonner`.
+Layout mobile resultante:
+```text
+┌─────────────────────────┐
+│ Saudação + data         │
+├─────────────────────────┤
+│ [ Ver Calendário → ]    │  ← destaque
+├─────────────────────────┤
+│ ⚠ Posts Pendentes       │  ← se houver
+├─────────────────────────┤
+│ Para hoje               │
+├─────────────────────────┤
+│ Próximos 7 dias         │
+├─────────────────────────┤
+│ Desempenho do mês       │
+└─────────────────────────┘
+```
 
 ---
 
-## 4. UI — Brenda IA (`src/components/CoachDialog.tsx`)
+### Arquivos afetados
+- `src/pages/Login.tsx` — redesign completo (mantém auth)
+- `src/assets/login-hero.jpg` — nova imagem hero
+- `src/components/TopBar.tsx` — esconder filtros no modo cliente
+- `src/components/StudentOverview.tsx` — data sempre fresca + reordenação mobile
 
-Adicionar novos `QUICK_ACTIONS` ao menu (mantendo os 3 atuais):
-
-- **Copiar conteúdo** — input: URL de post.
-- **Espionar perfil** — input: URL/handle de perfil.
-- **Radar de hashtag** — input: hashtag (ex.: `#inglesonline`).
-- **Decifrar comentários** — input: URL de post (puxa comentários).
-
-Para cada um:
-1. Novo `Step` com input dedicado (URL ou handle/hashtag).
-2. Chama `apify-tools` → loading "Analisando…" → chama `ai-content-coach` com a action correspondente.
-3. Renderiza no chat com `ReactMarkdown` (já existente).
-4. Quando aplicável, mostra cabeçalho com thumbnail/avatar e métricas reais antes do markdown da IA.
-
-Reorganização visual: agrupar quick actions em 2 seções no menu — **"Sobre o calendário"** (analisar/sugerir/melhorar) e **"Inteligência externa"** (copiar/espionar/radar/decifrar).
-
----
-
-## 5. Detalhes técnicos
-
-- Sem mudanças no schema do banco (resultados são one-shot, não persistidos).
-- Custos Apify controlados via `resultsLimit` baixo e timeout de 180s.
-- Erros do Apify (post privado, perfil inexistente, hashtag vazia) tratados com mensagens claras.
-- `supabase/config.toml`: nada a mudar.
-- Sem novas dependências npm.
-
----
-
-## Ordem de implementação sugerida
-
-1. `apify-tools` edge function com as 4 tools normalizadas.
-2. Novas 5 actions em `ai-content-coach`.
-3. UI Novo Conteúdo — aba "Inspirar em um post".
-4. UI Brenda IA — 4 novos quick actions + reorganização do menu.
-5. QA manual com 1 link real de cada plataforma para cada tool.
+Sem mudanças no backend.
