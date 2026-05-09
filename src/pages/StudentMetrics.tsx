@@ -141,12 +141,12 @@ const StudentMetrics = () => {
   };
 
   const categoryData = useMemo(() => {
-    return (Object.keys(categoryConfig) as Category[]).map(c => ({
-      name: c,
-      value: monthPosts.filter(p => p.category === c).length,
-      color: categoryConfig[c].color,
+    return categories.map(c => ({
+      name: c.name,
+      value: monthPosts.filter(p => p.category === c.name).length,
+      color: c.color,
     })).filter(d => d.value > 0);
-  }, [monthPosts]);
+  }, [monthPosts, categories]);
 
   const topPosts = useMemo(() => {
     return monthPosts
