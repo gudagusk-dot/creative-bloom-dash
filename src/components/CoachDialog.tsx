@@ -145,6 +145,7 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
     } finally {
       setLoading(false);
     }
+  };
 
   const submitBriefing = () => {
     if (!briefingFormat) return;
