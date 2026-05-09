@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, X, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/context/UserContext";
-import { categoryConfig } from "@/data/content";
+import { FALLBACK_CATEGORY_COLOR } from "@/data/content";
 
 interface PostHit {
   id: string;
