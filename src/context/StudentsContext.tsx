@@ -11,6 +11,7 @@ export interface Student {
   whatsapp: string | null;
   instagram_handle: string | null;
   tiktok_handle: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
