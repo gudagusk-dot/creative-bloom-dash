@@ -450,8 +450,8 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCate
   doc.text("CATEGORIAS", margin, legendY);
   let lx = margin;
   const ly = legendY + 14;
-  (Object.entries(categoryConfig) as [Category, any][]).forEach(([cat, cfg]) => {
-    const [r, g, b] = hexToRgb(cfg.color);
+  categoriesPresent.forEach((cat) => {
+    const [r, g, b] = hexToRgb(getCategoryColor(cat));
     if (lx + doc.getTextWidth(cat) + 30 > W - margin) return;
     doc.setFillColor(r, g, b);
     doc.circle(lx + 4, ly - 2, 3, "F");
