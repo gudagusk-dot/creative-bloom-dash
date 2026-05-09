@@ -186,32 +186,67 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
           {!isAdmin && studentTab === "conteudo" && (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded" style={{ backgroundColor: catColor }}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded shadow-sm" style={{ backgroundColor: catColor }}>
                   {postFormat}
                 </span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{network}</span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{category}</span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{date}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{network}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{category}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{date}</span>
               </div>
 
               <div>
-                <h3 className="text-base font-semibold text-foreground leading-tight">{title}</h3>
+                <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{title}</h3>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {statuses.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s); markDirty(); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        status === s ? statusColors[s] + " ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+              <div className="pt-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status do Conteúdo</label>
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                  {(["A fazer", "Em produção", "Publicado"] as PostStatus[]).map(s => {
+                    const isActive = status === s;
+                    const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
+                    
+                    let icon = <Circle className="h-5 w-5" />;
+                    let activeClass = "bg-secondary text-muted-foreground border-transparent";
+                    
+                    if (s === "A fazer") {
+                      icon = isOverdue ? <AlertCircle className="h-5 w-5" /> : <Circle className="h-5 w-5" />;
+                      if (isActive) activeClass = isOverdue ? "bg-status-overdue text-white border-status-overdue shadow-lg shadow-status-overdue/20" : "bg-muted text-foreground border-muted shadow-md";
+                    } else if (s === "Em produção") {
+                      icon = <Loader2 className={`h-5 w-5 ${isActive ? "animate-spin" : ""}`} />;
+                      if (isActive) activeClass = "bg-status-progress text-white border-status-progress shadow-lg shadow-status-progress/20";
+                    } else if (s === "Publicado") {
+                      icon = <CheckCircle2 className="h-5 w-5" />;
+                      if (isActive) activeClass = "bg-status-published text-white border-status-published shadow-lg shadow-status-published/20";
+                    }
+
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setStatus(s);
+                          handleAutoSave(s);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group ${
+                          isActive ? activeClass : "bg-card border-border/50 hover:border-border hover:bg-secondary/30"
+                        }`}
+                      >
+                        <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+                          {icon}
+                        </div>
+                        <span className={`text-[11px] font-bold uppercase tracking-tight text-center ${isActive ? "opacity-100" : "opacity-60"}`}>
+                          {s}
+                        </span>
+                        {isActive && (
+                          <motion.div
+                            layoutId="status-active-glow"
+                            className="absolute inset-0 rounded-2xl ring-2 ring-white/20"
+                            initial={false}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
