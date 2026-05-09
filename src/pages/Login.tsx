@@ -95,13 +95,13 @@ const Login = () => {
             style={{ background: "radial-gradient(closest-side, rgba(236,160,200,0.35), transparent 70%)" }}
           />
 
-          <div className="relative px-7 sm:px-10 pt-9 pb-8">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur border border-white/15 text-[10px] font-medium text-white/85 uppercase tracking-[0.18em] mb-6">
+          <div className="relative px-7 sm:px-10 pt-12 pb-12">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur border border-white/15 text-[10px] font-medium text-white/85 uppercase tracking-[0.18em] mb-9">
               <Sparkles className="h-3 w-3" /> Bem-vinda
             </div>
 
             <h1
-              className="text-display-italic text-white text-[34px] sm:text-[40px] leading-[1.05] tracking-tight"
+              className="text-display-italic text-white text-[34px] sm:text-[40px] leading-[1.15] tracking-tight"
               style={{ fontWeight: 300 }}
             >
               Cada conteúdo,
@@ -110,11 +110,11 @@ const Login = () => {
               <br />
               para contar.
             </h1>
-            <p className="mt-4 text-[13px] text-white/65 leading-relaxed max-w-[36ch] font-sans">
+            <p className="mt-7 text-[13px] text-white/65 leading-relaxed max-w-[36ch] font-sans">
               Um planejamento editorial pensado para criadoras que querem clareza, ritmo e presença.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-7 space-y-3">
+            <form onSubmit={handleSubmit} className="mt-10 space-y-3">
               <input
                 type="text"
                 value={name}
@@ -141,7 +141,7 @@ const Login = () => {
             </form>
 
             {/* Footer line */}
-            <div className="mt-7 pt-4 border-t border-white/10 flex items-center justify-end text-[10px] text-white/45 tracking-[0.22em] uppercase">
+            <div className="mt-10 pt-5 border-t border-white/10 flex items-center justify-end text-[10px] text-white/45 tracking-[0.22em] uppercase">
               <span className="flex items-center gap-2">
                 <span>conteúdo</span>
                 <span className="text-white/25">+</span>
