@@ -155,7 +155,7 @@ const renderBars = async (
   return canvas.toDataURL("image/png");
 };
 
-export const exportCalendarPDF = async ({ monthDate, posts, studentName }: ExportArgs) => {
+export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCategoryColor }: ExportArgs) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
