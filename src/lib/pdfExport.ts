@@ -5,12 +5,13 @@ import {
   format, isSameMonth, isSameDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ContentPost, categoryConfig, Category } from "@/data/content";
+import { ContentPost, Category } from "@/data/content";
 
 interface ExportArgs {
   monthDate: Date;
   posts: ContentPost[];
   studentName?: string;
+  getCategoryColor: (cat: string) => string;
 }
 
 const hexToRgb = (hex: string): [number, number, number] => {
