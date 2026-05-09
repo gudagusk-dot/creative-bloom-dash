@@ -6,7 +6,8 @@ import { Calendar, Clock, AlertCircle, CheckCircle2, ChevronRight, LayoutDashboa
 import { ContentPost } from "@/data/content";
 import { PostDrawer } from "./PostDrawer";
 
-export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void }) => {
+export const StudentOverview = ({ onShowCalendar, studentName }: { onShowCalendar: () => void; studentName?: string }) => {
+  const firstName = studentName ? studentName.split(" ")[0] : "";
   const { filteredPosts, getCategoryColor } = useContent();
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const today = new Date();
@@ -31,7 +32,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
     <div className="px-4 sm:px-6 pb-12 max-w-5xl mx-auto w-full animate-fade-in">
       <header className="mb-8">
         <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground tracking-tight">
-          Olá! <span className="text-display-italic">Hoje é</span> {format(today, "eeee, d 'de' MMMM", { locale: ptBR })}
+          Olá{firstName ? `, ${firstName}` : ""}! <span className="text-display-italic">Hoje é</span> {format(today, "eeee, d 'de' MMMM", { locale: ptBR })}
         </h2>
         <p className="text-muted-foreground mt-2 font-medium">Aqui está um resumo do seu planejamento de conteúdo.</p>
       </header>
