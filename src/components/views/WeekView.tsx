@@ -8,7 +8,7 @@ import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
 
 export const WeekView = () => {
-  const { currentMonth, setCurrentMonth, filteredPosts, viewMode } = useContent();
+  const { currentMonth, setCurrentMonth, filteredPosts, viewMode, getCategoryColor } = useContent();
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const isAdmin = viewMode === "admin";
