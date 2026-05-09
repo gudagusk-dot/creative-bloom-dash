@@ -3,7 +3,7 @@ import { startOfWeek, addDays, format, isSameDay, isToday, addWeeks, subWeeks } 
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
 
