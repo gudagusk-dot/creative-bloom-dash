@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { X, Trash2, Save, Pencil, Eye, ExternalLink } from "lucide-react";
-import { ContentPost, categoryConfig, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
+import { useState, useEffect, useCallback } from "react";
+import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle } from "lucide-react";
+import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
 import { MediaUploader } from "./MediaUploader";
 import { logActivity } from "@/lib/activity";
+import { motion, AnimatePresence } from "framer-motion";
+import { isBefore, startOfDay, parseISO } from "date-fns";
 
 interface PostDrawerProps {
   post: ContentPost | null;
@@ -12,18 +14,9 @@ interface PostDrawerProps {
 }
 
 const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
-const statusColors: Record<PostStatus, string> = {
-  "A fazer": "bg-muted text-muted-foreground",
-  "Em produção": "bg-cat-situacoes/20 text-cat-situacoes",
-  "Publicado": "bg-cat-autoridade/20 text-cat-autoridade",
-};
-
-const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
-const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
-const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode, ownerId, studentId } = useContent();
+  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor } = useContent();
   const isAdmin = viewMode === "admin";
 
   const [title, setTitle] = useState("");
