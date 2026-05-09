@@ -358,10 +358,34 @@ const StudentMetrics = () => {
       </div>
 
       <div ref={dashboardRef} className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Platform selector */}
+        {(instagramStats || tiktokStats) && (
+          <div className="flex items-center gap-2 p-1 bg-secondary/60 rounded-xl w-fit">
+            {([
+              ["all", "Todas", null],
+              ["instagram", "Instagram", Instagram],
+              ["tiktok", "TikTok", TikTokIcon],
+            ] as const).map(([key, label, Icon]) => (
+              <button
+                key={key}
+                onClick={() => setPlatformFilter(key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                  platformFilter === key
+                    ? "bg-card text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Follower Stats Section */}
         {(instagramStats || tiktokStats) && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {instagramStats && (
+          <div className={`grid gap-4 ${platformFilter === "all" ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
+            {instagramStats && (platformFilter === "all" || platformFilter === "instagram") && (
               <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
