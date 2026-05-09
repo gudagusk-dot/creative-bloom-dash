@@ -16,10 +16,11 @@ interface Props {
 }
 
 export const TopBar = ({ viewMode, student }: Props) => {
-  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId } = useContent();
+  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId, categories } = useContent();
   const { userName, logout } = useUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
 
   return (
     <div className="border-b border-border/60 bg-card/90 backdrop-blur sticky top-0 z-30">
