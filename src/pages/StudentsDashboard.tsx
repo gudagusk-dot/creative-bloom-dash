@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { StudentCard } from "@/components/StudentCard";
 import { NewStudentDialog } from "@/components/NewStudentDialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { EditStudentDialog } from "@/components/EditStudentDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
 
