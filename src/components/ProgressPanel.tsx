@@ -6,7 +6,7 @@ import { useContent } from "@/context/ContentContext";
 import { ActivityRow } from "@/lib/activity";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ContentPost, categoryConfig } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "./PostDrawer";
 
 interface Props {
