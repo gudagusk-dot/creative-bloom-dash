@@ -72,7 +72,7 @@ const StudentViewInner = ({ student }: { student: StudentLite }) => {
           </div>
 
           <TabsContent value="overview" className="mt-0 flex-1 pt-8 focus-visible:outline-none">
-            <StudentOverview onShowCalendar={() => setActiveTab("calendar")} />
+            <StudentOverview onShowCalendar={() => setActiveTab("calendar")} studentName={student.name} />
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-0 flex-1 focus-visible:outline-none">
