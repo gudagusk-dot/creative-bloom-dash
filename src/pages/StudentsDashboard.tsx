@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { StudentCard } from "@/components/StudentCard";
 import { NewStudentDialog } from "@/components/NewStudentDialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { EditStudentDialog } from "@/components/EditStudentDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
 
@@ -17,6 +18,7 @@ const StudentsDashboard = () => {
   const { stats } = useStudentsStats(students.map(s => s.id));
   const [newOpen, setNewOpen] = useState(false);
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
+  const [editStudent, setEditStudent] = useState<Student | null>(null);
 
   const handleDelete = async (s: Student) => {
     if (!confirm(`Excluir o calendário de ${s.name}? Todos os conteúdos serão removidos.`)) return;
@@ -133,7 +135,7 @@ const StudentsDashboard = () => {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
                 }}
               >
-                <StudentCard student={s} stats={stats[s.id]} onShare={setShareStudent} onDelete={handleDelete} />
+                <StudentCard student={s} stats={stats[s.id]} onShare={setShareStudent} onDelete={handleDelete} onEdit={setEditStudent} />
               </motion.div>
             ))}
           </motion.div>
@@ -143,6 +145,9 @@ const StudentsDashboard = () => {
       <NewStudentDialog open={newOpen} onClose={() => setNewOpen(false)} />
       {shareStudent && (
         <ShareDialog open={!!shareStudent} onClose={() => setShareStudent(null)} student={shareStudent} />
+      )}
+      {editStudent && (
+        <EditStudentDialog open={!!editStudent} onClose={() => setEditStudent(null)} student={editStudent} />
       )}
       <GlobalSearch />
     </div>

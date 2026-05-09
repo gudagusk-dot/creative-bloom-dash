@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, MessageCircle, Trash2, Share2, MoreVertical, Bell, Clock, BarChart3 } from "lucide-react";
+import { CalendarDays, MessageCircle, Trash2, Share2, MoreVertical, Bell, Clock, BarChart3, Pencil } from "lucide-react";
 import { Student } from "@/context/StudentsContext";
 import { StudentStats } from "@/hooks/useStudentsStats";
 import { formatDistanceToNow } from "date-fns";
@@ -11,9 +11,10 @@ interface Props {
   stats?: StudentStats;
   onShare: (s: Student) => void;
   onDelete: (s: Student) => void;
+  onEdit: (s: Student) => void;
 }
 
-export const StudentCard = ({ student, stats, onShare, onDelete }: Props) => {
+export const StudentCard = ({ student, stats, onShare, onDelete, onEdit }: Props) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const monthPct = stats && stats.monthTotal > 0 ? Math.round((stats.monthPublished / stats.monthTotal) * 100) : 0;
   const daysSince = stats?.lastActivity
@@ -48,6 +49,9 @@ export const StudentCard = ({ student, stats, onShare, onDelete }: Props) => {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-xl shadow-soft-lg z-20 py-1 animate-scale-in origin-top-right">
+                <button onClick={() => { setMenuOpen(false); onEdit(student); }} className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-secondary flex items-center gap-2 transition-colors">
+                  <Pencil className="h-3.5 w-3.5" /> Editar
+                </button>
                 <button onClick={() => { setMenuOpen(false); onShare(student); }} className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-secondary flex items-center gap-2 transition-colors">
                   <Share2 className="h-3.5 w-3.5" /> Compartilhar
                 </button>
