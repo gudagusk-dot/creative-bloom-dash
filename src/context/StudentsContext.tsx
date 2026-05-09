@@ -11,6 +11,7 @@ export interface Student {
   whatsapp: string | null;
   instagram_handle: string | null;
   tiktok_handle: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -141,6 +142,13 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
       await supabase.from("content_posts").insert(rows);
     }
     // When seed=false: NO categories, NO posts. Calendar starts truly empty.
+
+    // Fire-and-forget: fetch IG/TikTok avatar + initial follower snapshot
+    if (student.instagram_handle || student.tiktok_handle) {
+      supabase.functions.invoke('fetch-follower-snapshot', { body: { student_id: student.id } })
+        .then(() => refresh())
+        .catch((e) => console.warn('[students] avatar fetch failed', e));
+    }
 
     await refresh();
     return student;

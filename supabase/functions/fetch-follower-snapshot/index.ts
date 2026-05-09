@@ -34,13 +34,36 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    let query = supabase.from('students').select('id, name, instagram_handle, tiktok_handle')
+    let query = supabase.from('students').select('id, name, instagram_handle, tiktok_handle, avatar_url')
     if (onlyStudentId) query = query.eq('id', onlyStudentId)
     const { data: students, error: studentError } = await query
     if (studentError) throw studentError
 
     console.log(`[snapshot] processing ${students?.length || 0} student(s)`)
     const results: any[] = []
+
+    const persistAvatar = async (studentId: string, picUrl: string | undefined | null) => {
+      if (!picUrl) return null
+      try {
+        const imgRes = await fetch(picUrl)
+        if (!imgRes.ok) { console.warn('[avatar] fetch fail', imgRes.status); return null }
+        const contentType = imgRes.headers.get('content-type') || 'image/jpeg'
+        const ext = contentType.includes('png') ? 'png' : 'jpg'
+        const bytes = new Uint8Array(await imgRes.arrayBuffer())
+        const path = `${studentId}.${ext}`
+        const { error: upErr } = await supabase.storage
+          .from('student-avatars')
+          .upload(path, bytes, { contentType, upsert: true, cacheControl: '3600' })
+        if (upErr) { console.error('[avatar] upload', upErr); return null }
+        const { data: pub } = supabase.storage.from('student-avatars').getPublicUrl(path)
+        const url = `${pub.publicUrl}?v=${Date.now()}`
+        await supabase.from('students').update({ avatar_url: url }).eq('id', studentId)
+        return url
+      } catch (e) {
+        console.error('[avatar] err', e)
+        return null
+      }
+    }
 
     for (const student of students || []) {
       // Instagram
@@ -68,7 +91,10 @@ serve(async (req) => {
                 raw: profile,
               }, { onConflict: 'student_id, platform, captured_date' })
             if (upsertError) console.error("[snapshot][ig] upsert", upsertError)
-            results.push({ student: student.name, platform: 'instagram', status: upsertError ? 'error' : 'success', followers: profile.followersCount })
+            // Persist avatar from IG (preferred source)
+            const igPic = profile.profilePicUrlHD || profile.profilePicUrl
+            const avatarUrl = await persistAvatar(student.id, igPic)
+            results.push({ student: student.name, platform: 'instagram', status: upsertError ? 'error' : 'success', followers: profile.followersCount, avatar: avatarUrl ? 'updated' : 'skipped' })
           } else {
             results.push({ student: student.name, platform: 'instagram', status: 'no_data' })
           }
@@ -105,7 +131,13 @@ serve(async (req) => {
                 raw: profile,
               }, { onConflict: 'student_id, platform, captured_date' })
             if (upsertError) console.error("[snapshot][tt] upsert", upsertError)
-            results.push({ student: student.name, platform: 'tiktok', status: upsertError ? 'error' : 'success', followers })
+            // TikTok avatar fallback (only if student has no avatar yet)
+            let avatarUrl: string | null = null
+            if (!student.avatar_url && !student.instagram_handle) {
+              const ttPic = profile.avatarLarger || profile.avatarMedium || profile.avatar
+              avatarUrl = await persistAvatar(student.id, ttPic)
+            }
+            results.push({ student: student.name, platform: 'tiktok', status: upsertError ? 'error' : 'success', followers, avatar: avatarUrl ? 'updated' : 'skipped' })
           } else {
             results.push({ student: student.name, platform: 'tiktok', status: 'no_data' })
           }
