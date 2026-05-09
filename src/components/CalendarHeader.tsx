@@ -102,7 +102,7 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
               onClick={async () => {
                 setExporting(true);
                 try {
-                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName });
+                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName, getCategoryColor });
                   toast.success("PDF gerado!");
                 } catch (e) {
                   toast.error("Erro ao gerar PDF");
