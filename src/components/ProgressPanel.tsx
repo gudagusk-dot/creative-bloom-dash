@@ -97,7 +97,7 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
   };
 
   const PostListCard = ({ p }: { p: ContentPost }) => {
-    const color = categoryConfig[p.category]?.color || "#999";
+    const color = getCategoryColor(p.category);
     const overdue = p.status !== "Publicado" && p.date < today;
     return (
       <button
