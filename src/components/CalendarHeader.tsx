@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: Props) => {
-  const { currentMonth, setCurrentMonth, posts, viewMode } = useContent();
+  const { currentMonth, setCurrentMonth, posts, viewMode, getCategoryColor } = useContent();
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
