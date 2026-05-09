@@ -358,15 +358,15 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {categories.map(c => (
+                  {useContent().categories.map(c => (
                     <button
-                      key={c}
-                      onClick={() => { setCategory(c); markDirty(); }}
+                      key={c.id}
+                      onClick={() => { setCategory(c.name as Category); markDirty(); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        category === c ? "text-white ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
+                        category === c.name ? "text-white ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
                       }`}
-                      style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
-                    >{c}</button>
+                      style={category === c.name ? { backgroundColor: c.color } : {}}
+                    >{c.name}</button>
                   ))}
                 </div>
               </div>
@@ -374,15 +374,25 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {statuses.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s); markDirty(); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        status === s ? statusColors[s] + " ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
-                      }`}
-                    >{s}</button>
-                  ))}
+                  {statuses.map(s => {
+                    const isActive = status === s;
+                    const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
+                    
+                    let activeClass = "bg-secondary text-muted-foreground";
+                    if (s === "A fazer") activeClass = isOverdue ? "bg-status-overdue text-white" : "bg-muted text-foreground";
+                    else if (s === "Em produção") activeClass = "bg-status-progress text-white";
+                    else if (s === "Publicado") activeClass = "bg-status-published text-white";
+
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => { setStatus(s); markDirty(); }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          isActive ? activeClass + " ring-2 ring-offset-1 ring-primary/30 shadow-sm" : "bg-secondary text-muted-foreground hover:bg-muted"
+                        }`}
+                      >{s}</button>
+                    );
+                  })}
                 </div>
               </div>
 
