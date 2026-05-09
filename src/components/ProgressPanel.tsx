@@ -6,7 +6,7 @@ import { useContent } from "@/context/ContentContext";
 import { ActivityRow } from "@/lib/activity";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ContentPost, categoryConfig } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "./PostDrawer";
 
 interface Props {
@@ -20,7 +20,7 @@ type Tab = "pendentes" | "producao" | "publicados" | "midias" | "atividade";
 const isVideo = (u: string) => /\.(mp4|mov|webm)(\?|$)/i.test(u);
 
 export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
-  const { posts } = useContent();
+  const { posts, getCategoryColor } = useContent();
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
   const [openPost, setOpenPost] = useState<ContentPost | null>(null);
@@ -97,7 +97,7 @@ export const ProgressPanel = ({ open, onClose, studentId }: Props) => {
   };
 
   const PostListCard = ({ p }: { p: ContentPost }) => {
-    const color = categoryConfig[p.category]?.color || "#999";
+    const color = getCategoryColor(p.category);
     const overdue = p.status !== "Publicado" && p.date < today;
     return (
       <button

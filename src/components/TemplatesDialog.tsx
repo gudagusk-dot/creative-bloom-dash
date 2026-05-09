@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X, Trash2, Plus, FileText } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useTemplates } from "@/hooks/useTemplates";
-import { Category, Format, SocialNetwork, categoryConfig } from "@/data/content";
+import { Category, Format, SocialNetwork, FALLBACK_CATEGORY_COLOR } from "@/data/content";
 
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
 const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
@@ -70,7 +70,7 @@ export const TemplatesDialog = ({ open, onClose }: { open: boolean; onClose: () 
             ) : (
               <ul className="space-y-2">
                 {templates.map(t => {
-                  const color = categoryConfig[t.category]?.color || "#999";
+                  const color = FALLBACK_CATEGORY_COLOR;
                   return (
                     <li key={t.id} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-background">
                       <span className="w-1 self-stretch rounded-full" style={{ backgroundColor: color }} />

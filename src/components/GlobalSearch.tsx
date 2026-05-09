@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, X, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/context/UserContext";
-import { categoryConfig } from "@/data/content";
+import { FALLBACK_CATEGORY_COLOR } from "@/data/content";
 
 interface PostHit {
   id: string;
@@ -97,7 +97,7 @@ export const GlobalSearch = () => {
             <ul className="divide-y divide-border/60">
               {filtered.map(p => {
                 const s = students[p.student_id];
-                const color = (categoryConfig as any)[p.category]?.color || "#999";
+                const color = FALLBACK_CATEGORY_COLOR;
                 return (
                   <li key={p.id}>
                     <button
