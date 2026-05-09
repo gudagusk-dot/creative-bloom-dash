@@ -102,6 +102,15 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
     const trimmed = name.trim();
     if (!trimmed) return null;
     const slug = await ensureUniqueSlug(slugify(trimmed));
+    const ig = sanitizeHandle(instagram_handle);
+    const tk = sanitizeHandle(tiktok_handle);
+
+    // Instant avatar via unavatar.io proxy (resolves IG/TikTok profile picture in real-time).
+    // The Apify snapshot will later replace this with a high-res copy stored in our bucket.
+    let instantAvatar: string | null = null;
+    if (ig) instantAvatar = `https://unavatar.io/instagram/${ig}?fallback=false`;
+    else if (tk) instantAvatar = `https://unavatar.io/tiktok/${tk}?fallback=false`;
+
     const { data, error } = await supabase
       .from("students")
       .insert({
@@ -109,8 +118,9 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
         name: trimmed,
         slug,
         whatsapp: whatsapp ? sanitizeWhatsapp(whatsapp) : null,
-        instagram_handle: sanitizeHandle(instagram_handle),
-        tiktok_handle: sanitizeHandle(tiktok_handle),
+        instagram_handle: ig,
+        tiktok_handle: tk,
+        avatar_url: instantAvatar,
       })
       .select("*")
       .single();
@@ -143,8 +153,9 @@ export const StudentsProvider = ({ children }: { children: ReactNode }) => {
     }
     // When seed=false: NO categories, NO posts. Calendar starts truly empty.
 
-    // Fire-and-forget: fetch IG/TikTok avatar + initial follower snapshot
-    if (student.instagram_handle || student.tiktok_handle) {
+    // Fire-and-forget: high-res avatar + initial follower snapshot via Apify.
+    // The card already shows the unavatar.io photo instantly above.
+    if (ig || tk) {
       supabase.functions.invoke('fetch-follower-snapshot', { body: { student_id: student.id } })
         .then(() => refresh())
         .catch((e) => console.warn('[students] avatar fetch failed', e));
