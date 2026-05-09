@@ -318,11 +318,12 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCate
   });
 
   // Bars: by category
-  const catCounts = (Object.keys(categoryConfig) as Category[])
+  const categoriesPresent = Array.from(new Set(posts.map(p => p.category)));
+  const catCounts = categoriesPresent
     .map(c => ({
       label: c,
       value: posts.filter(p => p.category === c).length,
-      color: hexToRgb(categoryConfig[c].color),
+      color: hexToRgb(getCategoryColor(c)),
     }))
     .filter(d => d.value > 0)
     .sort((a, b) => b.value - a.value);
