@@ -97,8 +97,54 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
       }
       const plain = last.script.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       callBrenda("rewrite", plain, `Melhorar o roteiro de "${last.title}".`);
+    } else if (id === "copy_content" || id === "analyze_profile" || id === "analyze_hashtag" || id === "analyze_comments") {
+      setScrapeKind(id as ScrapeKind);
+      setScrapeInput("");
+      setScrapePlatform("instagram");
+      setStep("scrape");
     }
   };
+
+  const submitScrape = async () => {
+    if (!scrapeKind) return;
+    const cfg = SCRAPE_CONFIG[scrapeKind];
+    const value = scrapeInput.trim();
+    if (!value) return;
+
+    const userLabel = `${cfg.title}: ${value}${cfg.needsPlatform ? ` (${scrapePlatform})` : ""}`;
+    setMessages([{ role: "user", content: userLabel }]);
+    setStep("chat");
+    setLoading(true);
+    try {
+      // 1. Build apify input
+      let input: any = {};
+      if (cfg.tool === "post" || cfg.tool === "comments") input = { url: value };
+      else if (cfg.tool === "profile") {
+        if (/^https?:/i.test(value)) input = { url: value };
+        else input = { handle: value, platform: scrapePlatform };
+      } else if (cfg.tool === "hashtag") input = { hashtag: value, platform: scrapePlatform };
+
+      const { data: scrapeData, error: scrapeErr } = await supabase.functions.invoke("apify-tools", {
+        body: { tool: cfg.tool, input },
+      });
+      if (scrapeErr) throw scrapeErr;
+      if (scrapeData?.error) throw new Error(scrapeData.error);
+      const scraped = scrapeData?.data;
+      if (!scraped) throw new Error("Sem dados retornados");
+
+      // 2. Call Brenda IA
+      const { data: aiData, error: aiErr } = await supabase.functions.invoke("ai-content-coach", {
+        body: { action: scrapeKind, scraped, posts_context: buildPostsContext() },
+      });
+      if (aiErr) throw aiErr;
+      if (aiData?.error) throw new Error(aiData.error);
+      setMessages(prev => [...prev, { role: "assistant", content: aiData?.text || "Sem resposta." }]);
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao analisar");
+      setMessages(prev => [...prev, { role: "assistant", content: `⚠️ ${e?.message || "Erro ao gerar resposta."}` }]);
+    } finally {
+      setLoading(false);
+    }
 
   const submitBriefing = () => {
     if (!briefingFormat) return;
