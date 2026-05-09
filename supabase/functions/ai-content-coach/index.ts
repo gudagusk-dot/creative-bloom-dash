@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, content, context, posts_context, format, theme, model: modelOverride } = await req.json()
+    const { action, content, context, posts_context, format, theme, model: modelOverride, scraped } = await req.json()
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
 
     if (!LOVABLE_API_KEY) {
