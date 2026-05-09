@@ -4,6 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import heroImage from "@/assets/login-hero.jpg";
+import bgImage from "@/assets/login-bg.jpg";
+
+const GRAIN_SVG =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
 
 const Login = () => {
   const { login } = useUser();
@@ -26,156 +30,146 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-background grid lg:grid-cols-[1.05fr_1fr]">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center px-4 sm:px-8 py-10">
+      {/* Background sky */}
+      <img
+        src={bgImage}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Soft pink wash to unify */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(255,210,225,0.25) 0%, rgba(190,160,210,0.20) 60%, rgba(120,90,150,0.35) 100%)",
+        }}
+      />
+      {/* Global grain */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none opacity-[0.18] mix-blend-overlay"
+        style={{ backgroundImage: GRAIN_SVG }}
+      />
+
       {/* Theme toggle */}
       <div className="absolute top-5 right-5 z-30">
         <ThemeToggle />
       </div>
 
-      {/* Left — cinematic hero */}
-      <motion.aside
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        className="relative hidden lg:block overflow-hidden"
-      >
-        <img
-          src={heroImage}
-          alt="Céu cinematográfico ao entardecer"
-          width={1024}
-          height={1280}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {/* Gradient overlay for legibility */}
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.65) 100%)",
-          }}
-        />
-        {/* Editorial copy */}
-        <div className="relative z-10 h-full flex flex-col justify-between p-10 xl:p-14">
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-[10.5px] font-medium tracking-[0.32em] text-white/85 uppercase"
-            style={{ fontVariant: "small-caps" }}
-          >
-            Plano de Conteúdo<span className="align-super text-[8px] ml-0.5">®</span>
-          </motion.div>
+      {/* Top brand */}
+      <div className="absolute top-6 left-6 z-30">
+        <span
+          className="text-[10px] font-medium tracking-[0.34em] uppercase text-white/90 drop-shadow-[0_1px_8px_rgba(80,40,90,0.5)]"
+          style={{ fontVariant: "small-caps" }}
+        >
+          Plano de Conteúdo<span className="align-super text-[7px] ml-0.5">®</span>
+        </span>
+      </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-xl"
-          >
-            <p
-              className="text-display-italic text-white text-4xl xl:text-5xl leading-[1.1] tracking-tight"
-              style={{ fontWeight: 300 }}
-            >
-              Cada conteúdo,
-              <br />
-              uma <span className="not-italic font-light">história</span> para contar.
-            </p>
-            <p className="mt-5 text-sm text-white/70 max-w-md leading-relaxed font-sans">
-              Um planejamento editorial pensado para criadoras que querem clareza, ritmo e presença.
-            </p>
-          </motion.div>
-        </div>
-      </motion.aside>
-
-      {/* Right — form */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col justify-center px-6 sm:px-10 lg:px-16 py-12 relative"
+      {/* Main card */}
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-[440px] rounded-[28px] overflow-hidden shadow-[0_30px_80px_-20px_rgba(80,30,90,0.55)] ring-1 ring-white/10"
+        style={{ backgroundColor: "#1a1322" }}
       >
-        {/* Mobile mini-hero */}
-        <div className="lg:hidden relative h-44 -mx-6 sm:-mx-10 mb-10 overflow-hidden">
+        {/* Top: artwork */}
+        <div className="relative aspect-[4/5] w-full overflow-hidden">
           <img
             src={heroImage}
-            alt=""
+            alt="Campo de flores ao entardecer"
+            width={832}
+            height={1216}
             className="absolute inset-0 w-full h-full object-cover"
           />
+          {/* Bottom fade into card */}
           <div
             aria-hidden
-            className="absolute inset-0"
+            className="absolute inset-x-0 bottom-0 h-2/5"
             style={{
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)",
+                "linear-gradient(180deg, rgba(26,19,34,0) 0%, rgba(26,19,34,0.6) 60%, #1a1322 100%)",
             }}
           />
-          <div className="relative z-10 h-full flex items-end p-6">
+          {/* Top tagline */}
+          <div className="absolute top-5 left-6 right-6 flex items-center justify-between">
             <span
-              className="text-[10px] font-medium tracking-[0.3em] text-white uppercase"
-              style={{ fontVariant: "small-caps" }}
+              className="text-display-italic text-white/95 text-[15px] tracking-tight"
+              style={{ fontWeight: 400 }}
             >
-              Plano de Conteúdo<span className="align-super text-[7px] ml-0.5">®</span>
+              Trabalhe leve. Crie devagar.
             </span>
           </div>
+          {/* Grain on top of image */}
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-overlay"
+            style={{ backgroundImage: GRAIN_SVG }}
+          />
         </div>
 
-        <div className="w-full max-w-[400px] mx-auto">
-          <span className="block text-[10.5px] font-medium tracking-[0.28em] text-muted-foreground uppercase mb-5">
-            Bem-vinda
-          </span>
+        {/* Bottom: content */}
+        <div className="relative px-7 sm:px-9 pt-2 pb-7">
           <h1
-            className="text-display-italic text-foreground text-[44px] sm:text-[52px] leading-[1.02] tracking-tight"
+            className="text-display-italic text-white text-[34px] sm:text-[38px] leading-[1.05] tracking-tight"
             style={{ fontWeight: 300 }}
           >
-            Bem-vinda
+            Crie sua próxima
             <br />
-            de <span className="not-italic font-light">volta.</span>
+            <span className="not-italic font-light">história.</span>
           </h1>
-          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            Acesse seu calendário com seu nome.
+          <p className="mt-3 text-[13px] text-white/65 leading-relaxed font-sans max-w-[34ch]">
+            Um planejamento editorial pensado para criadoras que querem clareza, ritmo e presença.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-10 space-y-5">
-            <div>
-              <label className="block text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase mb-2">
-                Nome
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Seu nome"
-                autoFocus
-                className="w-full bg-transparent border-0 border-b border-border focus:border-foreground rounded-none px-0 py-3 text-base text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-0 transition-colors duration-300 font-sans"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Seu nome"
+              autoFocus
+              className="w-full bg-white/[0.06] border border-white/10 rounded-full px-5 py-3 text-[14px] text-white placeholder:text-white/40 focus:border-white/40 focus:bg-white/10 focus:outline-none focus:ring-0 transition-all duration-300 font-sans"
+            />
 
             {error && (
-              <p className="text-xs text-destructive">{error}</p>
+              <p className="text-xs text-rose-300/90 px-2">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="group w-full h-12 rounded-full bg-foreground text-background text-[13px] font-medium tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              className="group w-full h-12 rounded-full bg-white text-[#1a1322] text-[13px] font-medium tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/95 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-10px_rgba(255,200,220,0.6)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              <span>{loading ? "Entrando..." : "Continuar"}</span>
+              <span>{loading ? "Entrando..." : "Entrar no calendário"}</span>
               {!loading && (
                 <ArrowRight className="h-4 w-4 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
               )}
             </button>
           </form>
 
-          <p className="mt-12 text-[11px] text-muted-foreground/70 text-center tracking-wide">
-            feito com carinho para minha gatinha · por gustavo
-          </p>
+          {/* Footer line inside card */}
+          <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10.5px] text-white/45 tracking-[0.2em] uppercase">
+            <span>seu.nome</span>
+            <span className="flex items-center gap-2">
+              <span>conteúdo</span>
+              <span className="text-white/25">+</span>
+              <span>ritmo</span>
+              <span className="text-white/25">+</span>
+              <span>presença</span>
+            </span>
+          </div>
         </div>
+      </motion.div>
 
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/60 tracking-[0.2em] uppercase">
-          © {new Date().getFullYear()} · Plano de Conteúdo
-        </div>
-      </motion.section>
+      {/* Bottom signature */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-[10.5px] text-white/70 tracking-wide z-10 drop-shadow-[0_1px_6px_rgba(80,40,90,0.5)]">
+        feito com carinho para minha gatinha · por gustavo
+      </div>
     </div>
   );
 };
