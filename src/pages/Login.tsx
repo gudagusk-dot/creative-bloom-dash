@@ -76,6 +76,11 @@ const Login = () => {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-[420px]"
         >
+          {/* Personal note */}
+          <p className="font-display italic font-light text-[13px] text-white/70 text-center mb-4 tracking-wide lowercase">
+            feito com carinho para minha gatinha 💙 por gustavo
+          </p>
+
           {/* Glass card */}
           <div className="relative rounded-3xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-[0_20px_70px_-15px_rgba(0,0,0,0.4)] p-8 sm:p-10">
             {/* Inner highlight */}
