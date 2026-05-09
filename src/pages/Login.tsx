@@ -141,7 +141,7 @@ const Login = () => {
             </form>
 
             {/* Footer line */}
-            <div className="mt-10 pt-5 border-t border-white/10 flex items-center justify-end text-[10px] text-white/45 tracking-[0.22em] uppercase">
+            <div className="mt-10 pt-5 border-t border-white/10 flex items-center justify-center text-[10px] text-white/45 tracking-[0.22em] uppercase">
               <span className="flex items-center gap-2">
                 <span>conteúdo</span>
                 <span className="text-white/25">+</span>
