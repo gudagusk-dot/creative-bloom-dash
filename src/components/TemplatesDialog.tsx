@@ -70,7 +70,7 @@ export const TemplatesDialog = ({ open, onClose }: { open: boolean; onClose: () 
             ) : (
               <ul className="space-y-2">
                 {templates.map(t => {
-                  const color = categoryConfig[t.category]?.color || "#999";
+                  const color = FALLBACK_CATEGORY_COLOR;
                   return (
                     <li key={t.id} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-background">
                       <span className="w-1 self-stretch rounded-full" style={{ backgroundColor: color }} />
