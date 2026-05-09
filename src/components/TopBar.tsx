@@ -1,15 +1,14 @@
-import { CalendarDays, LogOut, Share2, Activity, ArrowLeft } from "lucide-react";
+import { CalendarDays, LogOut, Share2, Activity, ArrowLeft, Settings2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useContent } from "@/context/ContentContext";
 import { useUser } from "@/context/UserContext";
-import { categoryConfig, Category } from "@/data/content";
 import { useState } from "react";
 import { ShareDialog } from "./ShareDialog";
 import { ProgressPanel } from "./ProgressPanel";
 import { ThemeToggle } from "./ThemeToggle";
 import { Student } from "@/context/StudentsContext";
-
-const categories = Object.keys(categoryConfig) as Category[];
+import { NewCategoryPopover } from "./NewCategoryPopover";
+import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 
 interface Props {
   viewMode: "admin" | "student";
@@ -17,10 +16,11 @@ interface Props {
 }
 
 export const TopBar = ({ viewMode, student }: Props) => {
-  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId } = useContent();
+  const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId, categories } = useContent();
   const { userName, logout } = useUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
 
   return (
     <div className="border-b border-border/60 bg-card/90 backdrop-blur sticky top-0 z-30">
@@ -102,25 +102,40 @@ export const TopBar = ({ viewMode, student }: Props) => {
           ))}
         </div>
         <div className="w-px h-5 bg-border/60 mx-1" />
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {categories.length === 0 && viewMode === "admin" && (
+            <span className="text-[11px] text-muted-foreground italic">Sem categorias ainda</span>
+          )}
           {categories.map(cat => {
-            const active = selectedCategories.includes(cat);
+            const active = selectedCategories.includes(cat.name);
             return (
               <button
-                key={cat}
-                onClick={() => toggleCategory(cat)}
+                key={cat.id}
+                onClick={() => toggleCategory(cat.name)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200 ease-soft border flex items-center ${
                   active ? "border-transparent text-white shadow-soft" : "border-border/60 text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                 }`}
-                style={active ? { backgroundColor: categoryConfig[cat].color } : {}}
+                style={active ? { backgroundColor: cat.color } : {}}
               >
-                <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: categoryConfig[cat].color }} />
-                {cat}
+                <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: cat.color }} />
+                {cat.name}
               </button>
             );
           })}
+          {viewMode === "admin" && (
+            <button
+              onClick={() => setManageOpen(true)}
+              className="ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
+              title="Gerenciar categorias"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
+      {viewMode === "admin" && (
+        <ManageCategoriesDialog open={manageOpen} onClose={() => setManageOpen(false)} />
+      )}
       {viewMode === "admin" && student && (
         <>
           <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} student={student} />

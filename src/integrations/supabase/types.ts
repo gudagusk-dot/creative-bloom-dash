@@ -139,6 +139,48 @@ export type Database = {
         }
         Relationships: []
       }
+      follower_snapshots: {
+        Row: {
+          captured_at: string
+          captured_date: string
+          created_at: string
+          followers: number
+          follows: number
+          handle: string
+          id: string
+          platform: string
+          posts_count: number
+          raw: Json
+          student_id: string
+        }
+        Insert: {
+          captured_at?: string
+          captured_date?: string
+          created_at?: string
+          followers?: number
+          follows?: number
+          handle: string
+          id?: string
+          platform?: string
+          posts_count?: number
+          raw?: Json
+          student_id: string
+        }
+        Update: {
+          captured_at?: string
+          captured_date?: string
+          created_at?: string
+          followers?: number
+          follows?: number
+          handle?: string
+          id?: string
+          platform?: string
+          posts_count?: number
+          raw?: Json
+          student_id?: string
+        }
+        Relationships: []
+      }
       post_activity: {
         Row: {
           action: string
@@ -232,31 +274,67 @@ export type Database = {
         }
         Relationships: []
       }
+      student_categories: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          order_index?: number
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           created_at: string
           id: string
+          instagram_handle: string | null
           name: string
           owner_id: string
           slug: string
+          tiktok_handle: string | null
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          instagram_handle?: string | null
           name: string
           owner_id: string
           slug: string
+          tiktok_handle?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          instagram_handle?: string | null
           name?: string
           owner_id?: string
           slug?: string
+          tiktok_handle?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
