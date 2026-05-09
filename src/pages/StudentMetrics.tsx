@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
-import { useContent } from "@/context/ContentContext";
+import { ContentProvider, useContent } from "@/context/ContentContext";
+import { useUser } from "@/context/UserContext";
 import { ContentPost } from "@/data/content";
 import { 
   ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, 
