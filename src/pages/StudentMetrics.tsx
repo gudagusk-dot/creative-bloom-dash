@@ -165,7 +165,7 @@ const StudentMetrics = () => {
 
   const instagramStats = useMemo(() => {
     if (snapshots.length === 0) return null;
-    const igSnapshots = snapshots.filter(s => s.platform === "Instagram");
+    const igSnapshots = snapshots.filter(s => (s.platform || "").toLowerCase() === "instagram");
     if (igSnapshots.length === 0) return null;
     
     const latest = igSnapshots[igSnapshots.length - 1];
@@ -192,7 +192,7 @@ const StudentMetrics = () => {
 
   const tiktokStats = useMemo(() => {
     if (snapshots.length === 0) return null;
-    const ttSnapshots = snapshots.filter(s => s.platform === "TikTok");
+    const ttSnapshots = snapshots.filter(s => (s.platform || "").toLowerCase() === "tiktok");
     if (ttSnapshots.length === 0) return null;
     
     const latest = ttSnapshots[ttSnapshots.length - 1];
