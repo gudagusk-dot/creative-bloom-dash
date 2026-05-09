@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Wand2, Loader2 } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
@@ -7,6 +7,8 @@ import { NewCategoryPopover } from "./NewCategoryPopover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useTemplates } from "@/hooks/useTemplates";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface NewPostDialogProps {
   open: boolean;
@@ -18,7 +20,7 @@ const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Con
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
-  const { addPost, categories, getCategoryColor } = useContent();
+  const { addPost, categories, getCategoryColor, posts } = useContent();
   const { templates } = useTemplates();
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
@@ -27,6 +29,38 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const generateWithAI = async () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const posts_context = posts.slice(0, 20).map(p => ({
+        title: p.title, category: p.category, format: p.format, network: p.network, status: p.status, script: p.script,
+      }));
+      const { data, error } = await supabase.functions.invoke("ai-content-coach", {
+        body: { action: "script", content: aiPrompt.trim(), posts_context },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const text = (data?.text || "").trim();
+      // Extract first non-empty line as title; rest as script
+      const lines = text.split(/\n+/).filter((l: string) => l.trim());
+      const generatedTitle = lines[0]?.replace(/^[#*\-\s]+/, "").replace(/[*]+/g, "").slice(0, 120) || aiPrompt.trim();
+      const generatedScript = `<p>${text.replace(/\n/g, "</p><p>")}</p>`;
+      if (!title) setTitle(generatedTitle);
+      setScript(generatedScript);
+      setAiOpen(false);
+      setAiPrompt("");
+      toast.success("Roteiro gerado pela IA!");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao gerar com IA");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const applyTemplate = (id: string) => {
     const t = templates.find(x => x.id === id);
