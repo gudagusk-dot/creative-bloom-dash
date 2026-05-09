@@ -1,15 +1,14 @@
-import { CalendarDays, LogOut, Share2, Activity, ArrowLeft } from "lucide-react";
+import { CalendarDays, LogOut, Share2, Activity, ArrowLeft, Settings2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useContent } from "@/context/ContentContext";
 import { useUser } from "@/context/UserContext";
-import { categoryConfig, Category } from "@/data/content";
 import { useState } from "react";
 import { ShareDialog } from "./ShareDialog";
 import { ProgressPanel } from "./ProgressPanel";
 import { ThemeToggle } from "./ThemeToggle";
 import { Student } from "@/context/StudentsContext";
-
-const categories = Object.keys(categoryConfig) as Category[];
+import { NewCategoryPopover } from "./NewCategoryPopover";
+import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 
 interface Props {
   viewMode: "admin" | "student";
