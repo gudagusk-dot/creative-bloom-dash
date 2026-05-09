@@ -7,11 +7,15 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ContentPost, Category } from "@/data/content";
 
+interface PostMetric {
+  likes: number; views: number; comments: number; shares: number; engagement_rate: number;
+}
 interface ExportArgs {
   monthDate: Date;
   posts: ContentPost[];
   studentName?: string;
   getCategoryColor: (cat: string) => string;
+  metricsByPostId?: Record<string, PostMetric>;
 }
 
 const hexToRgb = (hex: string): [number, number, number] => {
@@ -155,7 +159,7 @@ const renderBars = async (
   return canvas.toDataURL("image/png");
 };
 
-export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCategoryColor }: ExportArgs) => {
+export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCategoryColor, metricsByPostId }: ExportArgs) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
