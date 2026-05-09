@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
-import { useContent } from "@/context/ContentContext";
+import { ContentProvider, useContent } from "@/context/ContentContext";
+import { useUser } from "@/context/UserContext";
 import { ContentPost } from "@/data/content";
 import { 
   ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, 
@@ -676,4 +677,29 @@ const EmptyChart = ({ text }: { text: string }) => (
   <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground">{text}</div>
 );
 
-export default StudentMetrics;
+const StudentMetricsWrapper = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const { getBySlug } = useStudents();
+  const { userId } = useUser();
+  const [student, setStudent] = useState<Student | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!slug) return;
+    getBySlug(slug).then((s) => {
+      if (!s) { navigate("/"); return; }
+      setStudent(s);
+    });
+  }, [slug]);
+
+  if (student === undefined) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!student || !userId) return null;
+
+  return (
+    <ContentProvider studentId={student.id} ownerId={userId} viewMode="admin">
+      <StudentMetrics />
+    </ContentProvider>
+  );
+};
+
+export default StudentMetricsWrapper;
