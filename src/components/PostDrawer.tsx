@@ -96,6 +96,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
     }
   }, [post, ownerId, studentId, isAdmin, updatePost]);
 
+  if (!post) return null;
+
   const handleSave = async () => {
     setSaving(true);
     if (isAdmin) {
