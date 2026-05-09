@@ -79,7 +79,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
 
         <div className="space-y-6 order-1 md:order-2 flex flex-col">
           {/* Stats card */}
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft order-3 md:order-1">
             <h3 className="font-display text-lg font-medium mb-4 flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4 text-primary" />
               Desempenho do Mês
@@ -109,7 +109,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
 
           {/* Overdue alert */}
           {overduePosts.length > 0 && (
-            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5">
+            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 order-2 md:order-2">
               <div className="flex items-center gap-2 text-destructive mb-3">
                 <AlertCircle className="h-5 w-5" />
                 <h4 className="font-semibold text-sm">Posts Pendentes</h4>
@@ -127,7 +127,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
           {/* Quick link */}
           <button 
             onClick={onShowCalendar}
-            className="w-full group bg-primary text-primary-foreground rounded-2xl p-6 shadow-soft-md hover:shadow-soft-lg transition-all flex items-center justify-between overflow-hidden relative"
+            className="w-full group bg-primary text-primary-foreground rounded-2xl p-6 shadow-soft-md hover:shadow-soft-lg transition-all flex items-center justify-between overflow-hidden relative order-1 md:order-3"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
             <div className="relative text-left">
