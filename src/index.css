@@ -161,12 +161,12 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'General Sans', 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'ss02';
   }
 
   h1, h2, h3, .font-display {
-    font-family: 'Fraunces', 'Inter', serif;
+    font-family: 'Fraunces', 'General Sans', serif;
     font-optical-sizing: auto;
     letter-spacing: -0.02em;
   }
