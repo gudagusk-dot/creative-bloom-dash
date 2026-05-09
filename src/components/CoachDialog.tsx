@@ -220,31 +220,67 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
 
         {/* Body */}
         {step === "menu" && (
-          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">Ações rápidas</p>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">📅 Sobre o calendário</p>
+            <div className="grid grid-cols-1 gap-2.5 mb-5">
+              {calendarActions.map(renderAction)}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">🛰️ Inteligência externa</p>
             <div className="grid grid-cols-1 gap-2.5">
-              {QUICK_ACTIONS.map(a => (
-                <button
-                  key={a.id}
-                  onClick={() => onQuickAction(a.id)}
-                  disabled={loading}
-                  className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-background hover:border-primary/40 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 group-hover:from-primary/25 group-hover:to-accent/25 transition-colors">
-                    <a.icon className="h-4.5 w-4.5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{a.label}</p>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">{a.hint}</p>
-                  </div>
-                </button>
-              ))}
+              {externalActions.map(renderAction)}
             </div>
             <p className="text-[11px] text-muted-foreground italic mt-5 text-center">
               {posts.length} post(s) carregados como contexto.
             </p>
           </div>
         )}
+
+        {step === "scrape" && scrapeKind && (
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">
+            <div className="rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 p-4 mb-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary mb-1">Inteligência externa</p>
+              <h3 className="font-display text-lg font-semibold text-foreground tracking-tight">{SCRAPE_CONFIG[scrapeKind].title}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{SCRAPE_CONFIG[scrapeKind].helper}</p>
+            </div>
+            {SCRAPE_CONFIG[scrapeKind].needsPlatform && (
+              <>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">Plataforma</p>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {(["instagram", "tiktok"] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setScrapePlatform(p)}
+                      className={`px-3 py-2.5 rounded-xl border text-sm font-medium capitalize transition-all ${
+                        scrapePlatform === p
+                          ? "border-primary bg-primary/10 ring-2 ring-primary/30 text-foreground"
+                          : "border-border bg-background hover:border-primary/40 text-muted-foreground"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">
+              {SCRAPE_CONFIG[scrapeKind].tool === "hashtag" ? "Hashtag" : SCRAPE_CONFIG[scrapeKind].tool === "profile" ? "Perfil (URL ou @)" : "Link do post"}
+            </p>
+            <input
+              value={scrapeInput}
+              onChange={e => setScrapeInput(e.target.value)}
+              placeholder={SCRAPE_CONFIG[scrapeKind].placeholder}
+              className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none mb-4"
+            />
+            <button
+              onClick={submitScrape}
+              disabled={!scrapeInput.trim() || loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              <Sparkles className="h-4 w-4" /> Analisar
+            </button>
+          </div>
+        )}
+
 
         {step === "briefing" && (
           <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-5 pb-4">
