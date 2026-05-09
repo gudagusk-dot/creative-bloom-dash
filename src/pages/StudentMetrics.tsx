@@ -438,7 +438,7 @@ const StudentMetrics = () => {
               </div>
             )}
 
-            {tiktokStats && (
+            {tiktokStats && (platformFilter === "all" || platformFilter === "tiktok") && (
               <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
