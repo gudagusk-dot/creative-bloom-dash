@@ -89,16 +89,22 @@ const StudentMetrics = () => {
   };
 
   const fetchFollowers = async () => {
-    if (!student?.instagram_handle) {
-      toast.error("Instagram não configurado para este aluno");
+    if (!student?.instagram_handle && !student?.tiktok_handle) {
+      toast.error("Nenhuma rede social configurada para este aluno");
       return;
     }
     setRefreshingFollowers(true);
     try {
       const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot");
       if (error) throw error;
-      toast.success("Seguidores atualizados");
-      await loadAll(student.id);
+      
+      const successCount = (data.results || []).filter((r: any) => r.status === 'success').length;
+      if (successCount > 0) {
+        toast.success(`${successCount} rede(s) atualizada(s)`);
+        await loadAll(student.id);
+      } else {
+        toast.error("Nenhuma métrica pôde ser coletada");
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao buscar seguidores");
     } finally {
@@ -106,7 +112,57 @@ const StudentMetrics = () => {
     }
   };
 
-  const followerStats = useMemo(() => {
+  const handleAskCoach = async (action: 'analyze' | 'suggest' | 'rewrite' | 'script') => {
+    if (coachLoading) return;
+    setCoachLoading(true);
+    try {
+      const contentContext = monthPosts.map(p => `- ${p.title} (${p.category})`).join('\n');
+      
+      const { data, error } = await supabase.functions.invoke("ai-content-coach", {
+        body: { 
+          action, 
+          content: action === 'analyze' || action === 'suggest' ? contentContext : coachInput,
+          context: contentContext
+        }
+      });
+      if (error) throw error;
+      setCoachResponse(data.text);
+      if (action !== 'analyze' && action !== 'suggest') setCoachInput("");
+    } catch (e: any) {
+      toast.error("Erro ao consultar o Coach de IA");
+    } finally {
+      setCoachLoading(false);
+    }
+  };
+
+  const exportToPDF = async () => {
+    if (!dashboardRef.current) return;
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 1200
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`metricas-${student?.slug || 'aluno'}-${format(month, "MM-yyyy")}.pdf`);
+      toast.success("PDF exportado com sucesso!");
+    } catch (e) {
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const instagramStats = useMemo(() => {
     if (snapshots.length === 0) return null;
     const igSnapshots = snapshots.filter(s => s.platform === "Instagram");
     if (igSnapshots.length === 0) return null;
@@ -114,7 +170,6 @@ const StudentMetrics = () => {
     const latest = igSnapshots[igSnapshots.length - 1];
     const prev = igSnapshots.length > 1 ? igSnapshots[igSnapshots.length - 2] : latest;
     
-    // Month start snapshot
     const monthStart = startOfMonth(month);
     const firstOfMonthSnap = igSnapshots.find(s => {
       const d = parseISO(s.captured_date);
@@ -128,6 +183,33 @@ const StudentMetrics = () => {
       posts: latest.posts_count,
       follows: latest.follows,
       chartData: igSnapshots.slice(-30).map(s => ({
+        date: format(parseISO(s.captured_date), "dd/MM"),
+        seguidores: s.followers
+      }))
+    };
+  }, [snapshots, month]);
+
+  const tiktokStats = useMemo(() => {
+    if (snapshots.length === 0) return null;
+    const ttSnapshots = snapshots.filter(s => s.platform === "TikTok");
+    if (ttSnapshots.length === 0) return null;
+    
+    const latest = ttSnapshots[ttSnapshots.length - 1];
+    const prev = ttSnapshots.length > 1 ? ttSnapshots[ttSnapshots.length - 2] : latest;
+    
+    const monthStart = startOfMonth(month);
+    const firstOfMonthSnap = ttSnapshots.find(s => {
+      const d = parseISO(s.captured_date);
+      return d >= monthStart;
+    }) || ttSnapshots[0];
+
+    return {
+      current: latest.followers,
+      dailyChange: latest.followers - prev.followers,
+      monthlyChange: latest.followers - firstOfMonthSnap.followers,
+      posts: latest.posts_count,
+      follows: latest.follows,
+      chartData: ttSnapshots.slice(-30).map(s => ({
         date: format(parseISO(s.captured_date), "dd/MM"),
         seguidores: s.followers
       }))
