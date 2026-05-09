@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3 } from "lucide-react";
+import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3, ArrowLeft } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
