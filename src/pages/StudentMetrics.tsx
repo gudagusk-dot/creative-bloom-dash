@@ -3,7 +3,8 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
 import { useContent } from "@/context/ContentContext";
-import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, Instagram, Share, LineChart as LucideLineChart } from "lucide-react";
+import { ContentPost } from "@/data/content";
+import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, Instagram, Share, LineChart as LucideLineChart, Sparkles } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subDays, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import {
   LineChart, Line, AreaChart, Area
 } from "recharts";
 import { TikTokIcon } from "@/components/TikTokIcon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PostMetric {
   post_id: string;
