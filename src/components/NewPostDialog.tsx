@@ -16,7 +16,7 @@ interface NewPostDialogProps {
   initialDate?: string; // YYYY-MM-DD
 }
 
-const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
+const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Live", "Conversão", "Produção", "Lembrete"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {

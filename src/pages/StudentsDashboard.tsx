@@ -70,7 +70,7 @@ const StudentsDashboard = () => {
               Olá{userName ? `, ${userName}` : ""}
             </p>
             <h1 className="font-display text-3xl sm:text-4xl font-light text-foreground tracking-tight">
-              Seus alunos
+              Seus clientes
               <span className="ml-3 text-base font-sans font-medium text-muted-foreground bg-secondary/70 px-2.5 py-1 rounded-full align-middle">
                 {students.length}
               </span>
