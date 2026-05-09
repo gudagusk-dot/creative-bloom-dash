@@ -32,6 +32,64 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [mode, setMode] = useState<"scratch" | "inspire">("scratch");
+  const [inspireUrl, setInspireUrl] = useState("");
+  const [inspireLoading, setInspireLoading] = useState(false);
+  const [inspirePreview, setInspirePreview] = useState<any>(null);
+
+  const inspireFromPost = async () => {
+    const url = inspireUrl.trim();
+    if (!url || inspireLoading) return;
+    if (!/instagram\.com|tiktok\.com/i.test(url)) {
+      toast.error("Cole um link válido do Instagram ou TikTok");
+      return;
+    }
+    setInspireLoading(true);
+    try {
+      // 1. Scrape post
+      const { data: scrapeData, error: scrapeErr } = await supabase.functions.invoke("apify-tools", {
+        body: { tool: "post", input: { url } },
+      });
+      if (scrapeErr) throw scrapeErr;
+      if (scrapeData?.error) throw new Error(scrapeData.error);
+      const scraped = scrapeData?.data;
+      if (!scraped) throw new Error("Não foi possível analisar o post");
+      setInspirePreview(scraped);
+
+      // Auto-set network to match
+      if (scraped.platform === "tiktok") setNetwork("TikTok");
+      else if (scraped.platform === "instagram") setNetwork("Instagram");
+
+      // 2. Ask Brenda IA to inspire
+      const posts_context = posts.slice(0, 20).map(p => ({
+        title: p.title, category: p.category, format: p.format, network: p.network, status: p.status, script: p.script,
+      }));
+      const { data: aiData, error: aiErr } = await supabase.functions.invoke("ai-content-coach", {
+        body: { action: "inspire_from_post", scraped, posts_context },
+      });
+      if (aiErr) throw aiErr;
+      if (aiData?.error) throw new Error(aiData.error);
+      const text = (aiData?.text || "").trim();
+
+      // Extract title from "### 📝 Título sugerido" line, fallback first non-empty
+      let extractedTitle = "";
+      const titleMatch = text.match(/###\s*📝\s*Título sugerido\s*\n+\s*\[?([^\]\n]+?)\]?\s*\n/i);
+      if (titleMatch) extractedTitle = titleMatch[1].trim();
+      if (!extractedTitle) {
+        const lines = text.split(/\n+/).filter((l: string) => l.trim() && !l.startsWith("#"));
+        extractedTitle = lines[0]?.replace(/^[\-*\s]+/, "").slice(0, 120) || "";
+      }
+
+      if (!title) setTitle(extractedTitle);
+      setScript(`<p>${text.replace(/\n/g, "</p><p>")}</p>`);
+      setMode("scratch");
+      toast.success("Inspiração gerada! Revise e salve.");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao analisar o post");
+    } finally {
+      setInspireLoading(false);
+    }
+  };
 
   const generateWithAI = async () => {
     if (!aiPrompt.trim() || aiLoading) return;
