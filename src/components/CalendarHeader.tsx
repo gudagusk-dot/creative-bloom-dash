@@ -7,6 +7,7 @@ import { CalendarView } from "./CalendarGrid";
 import { TemplatesDialog } from "./TemplatesDialog";
 import { CoachDialog } from "./CoachDialog";
 import { exportCalendarPDF } from "@/lib/pdfExport";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Props {
@@ -111,7 +112,17 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
               onClick={async () => {
                 setExporting(true);
                 try {
-                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName, getCategoryColor });
+                  // Fetch metrics for posts in month (if any) so PDF includes performance page
+                  let metricsByPostId: Record<string, any> | undefined;
+                  const ids = monthPosts.map(p => p.id);
+                  if (ids.length) {
+                    const { data: m } = await supabase.from("post_metrics").select("*").in("post_id", ids);
+                    if (m && m.length) {
+                      metricsByPostId = {};
+                      m.forEach((row: any) => { metricsByPostId![row.post_id] = row; });
+                    }
+                  }
+                  await exportCalendarPDF({ monthDate: currentMonth, posts: monthPosts, studentName, getCategoryColor, metricsByPostId });
                   toast.success("PDF gerado!");
                 } catch (e) {
                   toast.error("Erro ao gerar PDF");
