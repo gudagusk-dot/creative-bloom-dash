@@ -135,7 +135,7 @@ const StudentsDashboard = () => {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
                 }}
               >
-                <StudentCard student={s} stats={stats[s.id]} onShare={setShareStudent} onDelete={handleDelete} />
+                <StudentCard student={s} stats={stats[s.id]} onShare={setShareStudent} onDelete={handleDelete} onEdit={setEditStudent} />
               </motion.div>
             ))}
           </motion.div>
@@ -145,6 +145,9 @@ const StudentsDashboard = () => {
       <NewStudentDialog open={newOpen} onClose={() => setNewOpen(false)} />
       {shareStudent && (
         <ShareDialog open={!!shareStudent} onClose={() => setShareStudent(null)} student={shareStudent} />
+      )}
+      {editStudent && (
+        <EditStudentDialog open={!!editStudent} onClose={() => setEditStudent(null)} student={editStudent} />
       )}
       <GlobalSearch />
     </div>
