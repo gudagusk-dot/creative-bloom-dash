@@ -61,6 +61,41 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
   const markDirty = () => setDirty(true);
 
+  const handleAutoSave = useCallback(async (newStatus?: PostStatus, newLink?: string, newNotes?: string) => {
+    if (!post) return;
+    
+    const ownerForLog = ownerId || "";
+    const updates: Partial<ContentPost> = {};
+
+    if (newStatus !== undefined && newStatus !== post.status) {
+      updates.status = newStatus;
+      if (!isAdmin && ownerForLog) {
+        await logActivity(post.id, ownerForLog, studentId, "status_changed", { from: post.status, to: newStatus });
+      }
+    }
+
+    if (newLink !== undefined && newLink !== (post.published_url || "")) {
+      updates.published_url = newLink;
+      if (!isAdmin && ownerForLog && newLink.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newLink });
+      }
+    }
+
+    if (newNotes !== undefined && newNotes !== (post.student_notes || "")) {
+      updates.student_notes = newNotes;
+      if (!isAdmin && ownerForLog && newNotes.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "note_added", {});
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setSaving(true);
+      await updatePost(post.id, updates);
+      setSaving(false);
+      setDirty(false);
+    }
+  }, [post, ownerId, studentId, isAdmin, updatePost]);
+
   const handleSave = async () => {
     setSaving(true);
     if (isAdmin) {
@@ -68,18 +103,7 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      // Student updates: status, link, comment
-      const ownerForLog = ownerId || "";
-      if (status !== post.status && ownerForLog) {
-        await logActivity(post.id, ownerForLog, studentId, "status_changed", { from: post.status, to: status });
-      }
-      if (publishedUrl !== (post.published_url || "") && ownerForLog && publishedUrl.trim()) {
-        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: publishedUrl });
-      }
-      if (studentNotes !== (post.student_notes || "") && ownerForLog && studentNotes.trim()) {
-        await logActivity(post.id, ownerForLog, studentId, "note_added", {});
-      }
-      await updatePost(post.id, { status, media_urls: mediaUrls, published_url: publishedUrl, student_notes: studentNotes });
+      await handleAutoSave(status, publishedUrl, studentNotes);
     }
     setSaving(false);
     setDirty(false);
@@ -97,7 +121,7 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
     setDirty(false);
   };
 
-  const catColor = categoryConfig[category]?.color || "#999";
+  const catColor = getCategoryColor(category);
 
   return (
     <>
@@ -106,9 +130,16 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
       <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 animate-slide-in-right flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">
-            {isAdmin ? "Editar Conteúdo" : "Conteúdo"}
-          </h2>
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              {isAdmin ? "Editar Conteúdo" : "Conteúdo"}
+            </h2>
+            {saving && (
+              <span className="text-[10px] text-primary flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Salvando...
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive" title="Excluir">
