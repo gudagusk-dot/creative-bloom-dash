@@ -82,16 +82,25 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
       <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-[60] animate-fade-in" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 w-full sm:w-[560px] bg-card border-l border-border/60 shadow-soft-xl z-[61] animate-slide-in-right flex flex-col">
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/60">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                title="Voltar ao menu"
+                className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )}
+            <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft shrink-0">
               <BrainCircuit className="h-5 w-5 text-primary-foreground" />
             </div>
-            <div>
-              <h2 className="font-display text-base sm:text-lg font-medium text-foreground tracking-tight">Coach IA</h2>
-              <p className="text-[11px] text-muted-foreground">{studentName ? `Calendário de ${studentName}` : "Assistente de conteúdo"}</p>
+            <div className="min-w-0">
+              <h2 className="font-display text-base sm:text-lg font-medium text-foreground tracking-tight truncate">Coach IA</h2>
+              <p className="text-[11px] text-muted-foreground truncate">{studentName ? `Calendário de ${studentName}` : "Assistente de conteúdo"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground shrink-0">
             <X className="h-5 w-5" />
           </button>
         </div>
