@@ -5,6 +5,10 @@ import { TopBar } from "@/components/TopBar";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { KpiCards } from "@/components/KpiCards";
 import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
+import { StudentOverview } from "@/components/StudentOverview";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LayoutDashboard, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
+import StudentMetrics from "./StudentMetrics";
 import { supabase } from "@/integrations/supabase/client";
 
 interface StudentLite { id: string; owner_id: string; name: string; slug: string; }
@@ -46,13 +50,45 @@ const StudentView = () => {
 
 const StudentViewInner = ({ student }: { student: StudentLite }) => {
   const { view, setView } = useCalendarView();
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
     <ContentProvider studentId={student.id} ownerId={student.owner_id} viewMode="student">
-      <div className="min-h-screen w-full flex flex-col">
+      <div className="min-h-screen w-full flex flex-col bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-40" />
         <TopBar viewMode="student" student={student as any} />
-        <CalendarHeader view={view} onChangeView={setView} />
-        {view === "month" && <KpiCards />}
-        <CalendarGrid view={view} />
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col relative">
+          <div className="px-4 sm:px-6 py-2 border-b border-border/40 bg-card/40 backdrop-blur-sm sticky top-[57px] z-20">
+            <div className="max-w-5xl mx-auto flex justify-center sm:justify-start">
+              <TabsList className="bg-muted/50 p-1 h-auto gap-1">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                  <LayoutDashboard className="h-3.5 w-3.5" /> Visão Geral
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                  <CalendarIcon className="h-3.5 w-3.5" /> Calendário
+                </TabsTrigger>
+                <TabsTrigger value="metrics" className="data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                  <BarChart3 className="h-3.5 w-3.5" /> Métricas
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
+
+          <TabsContent value="overview" className="mt-0 flex-1 pt-8 focus-visible:outline-none">
+            <StudentOverview onShowCalendar={() => setActiveTab("calendar")} />
+          </TabsContent>
+
+          <TabsContent value="calendar" className="mt-0 flex-1 focus-visible:outline-none">
+            <CalendarHeader view={view} onChangeView={setView} />
+            {view === "month" && <KpiCards />}
+            <CalendarGrid view={view} />
+          </TabsContent>
+
+          <TabsContent value="metrics" className="mt-0 flex-1 focus-visible:outline-none pt-6">
+            <StudentMetrics />
+          </TabsContent>
+        </Tabs>
       </div>
     </ContentProvider>
   );

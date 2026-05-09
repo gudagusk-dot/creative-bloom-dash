@@ -30,7 +30,7 @@ export const ListView = () => {
             const d = new Date(post.date + "T12:00:00");
             return (
               <li key={post.id}>
-                <button onClick={() => setSelectedPost(post)} className="w-full text-left p-3 sm:p-4 hover:bg-secondary/40 transition-colors flex items-start gap-3">
+                <button onClick={() => setSelectedPost(post)} className={`w-full text-left p-3 sm:p-4 hover:bg-secondary/40 transition-colors flex items-start gap-3 ${post.status === "Publicado" ? "relative overflow-hidden before:absolute before:inset-0 before:ring-1 before:ring-inset before:ring-[hsl(var(--neon-published)/0.3)]" : ""}`}>
                   <div className="shrink-0 text-center w-12">
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{format(d, "EEE", { locale: ptBR })}</div>
                     <div className="font-display text-xl text-foreground">{format(d, "d")}</div>

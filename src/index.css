@@ -229,6 +229,6 @@
   }
 
   .ease-soft {
-...
+    transition-timing-function: var(--ease-out-soft);
   }
 }

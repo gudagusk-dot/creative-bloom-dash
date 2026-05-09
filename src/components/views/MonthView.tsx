@@ -48,7 +48,7 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
       onClick={onClick}
       className={`group relative flex-1 w-full rounded-xl p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
         dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm border-border/40"
-      }`}
+      } ${post.status === "Publicado" ? "glow-published" : ""}`}
       style={{
         backgroundColor: "white",
         borderLeftWidth: "4px",
