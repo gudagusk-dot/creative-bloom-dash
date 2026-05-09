@@ -5,12 +5,13 @@ import {
   format, isSameMonth, isSameDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ContentPost, categoryConfig, Category } from "@/data/content";
+import { ContentPost, Category } from "@/data/content";
 
 interface ExportArgs {
   monthDate: Date;
   posts: ContentPost[];
   studentName?: string;
+  getCategoryColor: (cat: string) => string;
 }
 
 const hexToRgb = (hex: string): [number, number, number] => {
@@ -154,7 +155,7 @@ const renderBars = async (
   return canvas.toDataURL("image/png");
 };
 
-export const exportCalendarPDF = async ({ monthDate, posts, studentName }: ExportArgs) => {
+export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCategoryColor }: ExportArgs) => {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -317,11 +318,12 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName }: Expor
   });
 
   // Bars: by category
-  const catCounts = (Object.keys(categoryConfig) as Category[])
+  const categoriesPresent = Array.from(new Set(posts.map(p => p.category)));
+  const catCounts = categoriesPresent
     .map(c => ({
       label: c,
       value: posts.filter(p => p.category === c).length,
-      color: hexToRgb(categoryConfig[c].color),
+      color: hexToRgb(getCategoryColor(c)),
     }))
     .filter(d => d.value > 0)
     .sort((a, b) => b.value - a.value);
@@ -415,8 +417,8 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName }: Expor
     const dayPosts = posts.filter(p => isSameDay(new Date(p.date + "T12:00:00"), day));
     let py = y + 28;
     dayPosts.slice(0, 3).forEach(p => {
-      const cat = categoryConfig[p.category as Category];
-      const [r, g, b] = hexToRgb(cat?.color || "#999999");
+      const colorHex = getCategoryColor(p.category);
+      const [r, g, b] = hexToRgb(colorHex || "#999999");
       // pill background
       doc.setFillColor(r, g, b);
       doc.setGState(new (doc as any).GState({ opacity: 0.15 }));
@@ -448,8 +450,8 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName }: Expor
   doc.text("CATEGORIAS", margin, legendY);
   let lx = margin;
   const ly = legendY + 14;
-  (Object.entries(categoryConfig) as [Category, any][]).forEach(([cat, cfg]) => {
-    const [r, g, b] = hexToRgb(cfg.color);
+  categoriesPresent.forEach((cat) => {
+    const [r, g, b] = hexToRgb(getCategoryColor(cat));
     if (lx + doc.getTextWidth(cat) + 30 > W - margin) return;
     doc.setFillColor(r, g, b);
     doc.circle(lx + 4, ly - 2, 3, "F");
@@ -500,10 +502,10 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName }: Expor
         data.cell.styles.fontStyle = "bold";
       }
       if (data.section === "body" && data.column.index === 2) {
-        const cat = data.cell.raw as Category;
-        const c = categoryConfig[cat];
-        if (c) {
-          data.cell.styles.textColor = hexToRgb(c.color);
+        const catName = data.cell.raw as string;
+        const color = getCategoryColor(catName);
+        if (color) {
+          data.cell.styles.textColor = hexToRgb(color);
           data.cell.styles.fontStyle = "bold";
         }
       }

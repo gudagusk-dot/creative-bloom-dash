@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, format, isSameMonth, isToday, isSameDay
+  eachDayOfInterval, format, isSameMonth, isToday, isSameDay, isBefore, startOfDay, parseISO
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,8 @@ import {
   PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors,
 } from "@dnd-kit/core";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
-import { Instagram, Plus, CalendarX } from "lucide-react";
+import { ContentPost } from "@/data/content";
+import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { TikTokIcon } from "@/components/TikTokIcon";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
@@ -21,37 +21,60 @@ const dayNamesShort = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const NetworkIcon = ({ network }: { network: string }) => (
   <span className="inline-flex items-center gap-0.5">
-    {network.includes("Instagram") && <Instagram className="h-3 w-3 text-cat-destrave" />}
-    {network.includes("TikTok") && <TikTokIcon className="h-3 w-3 text-foreground" />}
+    {network.includes("Instagram") && <Instagram className="h-2.5 w-2.5 opacity-70" />}
+    {network.includes("TikTok") && <TikTokIcon className="h-2.5 w-2.5 opacity-70" />}
   </span>
 );
 
-const statusLabel: Record<string, string> = {
-  "A fazer": "A fazer",
-  "Em produção": "Produzindo",
-  "Publicado": "Publicado ✓",
+const statusIcons: Record<string, React.ReactNode> = {
+  "A fazer": <Plus className="h-2 w-2" />,
+  "Em produção": <Loader2 className="h-2 w-2 animate-spin" />,
+  "Publicado": <CheckCircle2 className="h-2 w-2" />,
 };
 
 const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: () => void; dragging?: boolean }) => {
-  const catColor = categoryConfig[post.category]?.color || "#999";
+  const { getCategoryColor } = useContent();
+  const catColor = getCategoryColor(post.category);
+  
+  const isOverdue = post.status === "A fazer" && isBefore(parseISO(post.date), startOfDay(new Date()));
+  
+  let statusBg = "bg-status-todo";
+  if (post.status === "Publicado") statusBg = "bg-status-published";
+  else if (post.status === "Em produção") statusBg = "bg-status-progress";
+  else if (isOverdue) statusBg = "bg-status-overdue";
+
   return (
     <button
       onClick={onClick}
-      className={`flex-1 w-full rounded-xl p-1 sm:p-1.5 flex flex-col items-center justify-center text-center transition-all duration-200 ease-soft cursor-pointer border min-h-0 overflow-hidden ${dragging ? "opacity-50" : "hover:scale-[1.03]"}`}
+      className={`group relative flex-1 w-full rounded-xl p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
+        dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm border-border/40"
+      }`}
       style={{
-        backgroundColor: catColor + "1A",
-        borderColor: catColor + "40",
-        boxShadow: `0 1px 0 ${catColor}10`,
+        backgroundColor: "white",
+        borderLeftWidth: "4px",
+        borderLeftColor: catColor,
       }}
     >
-      <div className="flex items-center gap-1">
-        <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold text-white leading-none" style={{ backgroundColor: catColor }}>
-          {post.format}
-        </span>
-        <NetworkIcon network={post.network} />
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1">
+          <span className="px-1.5 py-0.5 rounded-md text-[8px] font-bold text-white uppercase tracking-tighter" style={{ backgroundColor: catColor }}>
+            {post.format}
+          </span>
+          <NetworkIcon network={post.network} />
+        </div>
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white ${statusBg}`}>
+          {isOverdue && post.status === "A fazer" ? <AlertCircle className="h-2.5 w-2.5 animate-pulse" /> : statusIcons[post.status]}
+        </div>
       </div>
-      <p className="hidden sm:block text-[11px] text-foreground leading-tight font-medium px-0.5 line-clamp-3 mt-0.5">{post.title}</p>
-      <span className="hidden sm:block text-[9px] text-muted-foreground mt-0.5">{statusLabel[post.status] || post.status}</span>
+      <p className="text-[10px] sm:text-[11px] text-foreground leading-tight font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+        {post.title}
+      </p>
+      <div className="flex items-center gap-1 mt-auto">
+        <span className={`w-1.5 h-1.5 rounded-full ${statusBg}`} />
+        <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+          {post.status}
+        </span>
+      </div>
     </button>
   );
 };
@@ -148,7 +171,7 @@ export const MonthView = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-7 gap-1.5 sm:gap-2 auto-rows-fr"
+            className="grid grid-cols-7 gap-1 sm:gap-1.5 auto-rows-fr"
             style={{ minHeight: "calc(100vh - 280px)" }}
           >
             {days.map(day => {

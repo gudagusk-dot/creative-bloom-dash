@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { X, Trash2, Save, Pencil, Eye, ExternalLink } from "lucide-react";
-import { ContentPost, categoryConfig, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
+import { useState, useEffect, useCallback } from "react";
+import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle } from "lucide-react";
+import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
 import { MediaUploader } from "./MediaUploader";
 import { logActivity } from "@/lib/activity";
+import { motion, AnimatePresence } from "framer-motion";
+import { isBefore, startOfDay, parseISO } from "date-fns";
 
 interface PostDrawerProps {
   post: ContentPost | null;
@@ -12,18 +14,11 @@ interface PostDrawerProps {
 }
 
 const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
-const statusColors: Record<PostStatus, string> = {
-  "A fazer": "bg-muted text-muted-foreground",
-  "Em produção": "bg-cat-situacoes/20 text-cat-situacoes",
-  "Publicado": "bg-cat-autoridade/20 text-cat-autoridade",
-};
-
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
-const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode, ownerId, studentId } = useContent();
+  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor } = useContent();
   const isAdmin = viewMode === "admin";
 
   const [title, setTitle] = useState("");
@@ -68,6 +63,41 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
   const markDirty = () => setDirty(true);
 
+  const handleAutoSave = useCallback(async (newStatus?: PostStatus, newLink?: string, newNotes?: string) => {
+    if (!post) return;
+    
+    const ownerForLog = ownerId || "";
+    const updates: Partial<ContentPost> = {};
+
+    if (newStatus !== undefined && newStatus !== post.status) {
+      updates.status = newStatus;
+      if (!isAdmin && ownerForLog) {
+        await logActivity(post.id, ownerForLog, studentId, "status_changed", { from: post.status, to: newStatus });
+      }
+    }
+
+    if (newLink !== undefined && newLink !== (post.published_url || "")) {
+      updates.published_url = newLink;
+      if (!isAdmin && ownerForLog && newLink.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newLink });
+      }
+    }
+
+    if (newNotes !== undefined && newNotes !== (post.student_notes || "")) {
+      updates.student_notes = newNotes;
+      if (!isAdmin && ownerForLog && newNotes.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "note_added", {});
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setSaving(true);
+      await updatePost(post.id, updates);
+      setSaving(false);
+      setDirty(false);
+    }
+  }, [post, ownerId, studentId, isAdmin, updatePost]);
+
   const handleSave = async () => {
     setSaving(true);
     if (isAdmin) {
@@ -75,18 +105,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      // Student updates: status, link, comment
-      const ownerForLog = ownerId || "";
-      if (status !== post.status && ownerForLog) {
-        await logActivity(post.id, ownerForLog, studentId, "status_changed", { from: post.status, to: status });
-      }
-      if (publishedUrl !== (post.published_url || "") && ownerForLog && publishedUrl.trim()) {
-        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: publishedUrl });
-      }
-      if (studentNotes !== (post.student_notes || "") && ownerForLog && studentNotes.trim()) {
-        await logActivity(post.id, ownerForLog, studentId, "note_added", {});
-      }
-      await updatePost(post.id, { status, media_urls: mediaUrls, published_url: publishedUrl, student_notes: studentNotes });
+      await handleAutoSave(status, publishedUrl, studentNotes);
     }
     setSaving(false);
     setDirty(false);
@@ -104,7 +123,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
     setDirty(false);
   };
 
-  const catColor = categoryConfig[category]?.color || "#999";
+  const catColor = getCategoryColor(category);
 
   return (
     <>
@@ -113,9 +132,16 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 animate-slide-in-right flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">
-            {isAdmin ? "Editar Conteúdo" : "Conteúdo"}
-          </h2>
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              {isAdmin ? "Editar Conteúdo" : "Conteúdo"}
+            </h2>
+            {saving && (
+              <span className="text-[10px] text-primary flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Salvando...
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive" title="Excluir">
@@ -162,32 +188,67 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
           {!isAdmin && studentTab === "conteudo" && (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded" style={{ backgroundColor: catColor }}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded shadow-sm" style={{ backgroundColor: catColor }}>
                   {postFormat}
                 </span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{network}</span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{category}</span>
-                <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded">{date}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{network}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{category}</span>
+                <span className="text-[11px] font-medium text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded">{date}</span>
               </div>
 
               <div>
-                <h3 className="text-base font-semibold text-foreground leading-tight">{title}</h3>
+                <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{title}</h3>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {statuses.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s); markDirty(); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        status === s ? statusColors[s] + " ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+              <div className="pt-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status do Conteúdo</label>
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                  {(["A fazer", "Em produção", "Publicado"] as PostStatus[]).map(s => {
+                    const isActive = status === s;
+                    const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
+                    
+                    let icon = <Circle className="h-5 w-5" />;
+                    let activeClass = "bg-secondary text-muted-foreground border-transparent";
+                    
+                    if (s === "A fazer") {
+                      icon = isOverdue ? <AlertCircle className="h-5 w-5" /> : <Circle className="h-5 w-5" />;
+                      if (isActive) activeClass = isOverdue ? "bg-status-overdue text-white border-status-overdue shadow-lg shadow-status-overdue/20" : "bg-muted text-foreground border-muted shadow-md";
+                    } else if (s === "Em produção") {
+                      icon = <Loader2 className={`h-5 w-5 ${isActive ? "animate-spin" : ""}`} />;
+                      if (isActive) activeClass = "bg-status-progress text-white border-status-progress shadow-lg shadow-status-progress/20";
+                    } else if (s === "Publicado") {
+                      icon = <CheckCircle2 className="h-5 w-5" />;
+                      if (isActive) activeClass = "bg-status-published text-white border-status-published shadow-lg shadow-status-published/20";
+                    }
+
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setStatus(s);
+                          handleAutoSave(s);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 group ${
+                          isActive ? activeClass : "bg-card border-border/50 hover:border-border hover:bg-secondary/30"
+                        }`}
+                      >
+                        <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+                          {icon}
+                        </div>
+                        <span className={`text-[11px] font-bold uppercase tracking-tight text-center ${isActive ? "opacity-100" : "opacity-60"}`}>
+                          {s}
+                        </span>
+                        {isActive && (
+                          <motion.div
+                            layoutId="status-active-glow"
+                            className="absolute inset-0 rounded-2xl ring-2 ring-white/20"
+                            initial={false}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -223,29 +284,37 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                 />
               </div>
 
-              <div>
+              <div className="pt-4">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
                 <input
                   type="url"
                   value={publishedUrl}
-                  onChange={e => { setPublishedUrl(e.target.value); markDirty(); }}
+                  onChange={e => {
+                    setPublishedUrl(e.target.value);
+                    markDirty();
+                  }}
+                  onBlur={() => handleAutoSave(undefined, publishedUrl)}
                   placeholder="https://instagram.com/p/..."
-                  className="w-full mt-2 p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
                 />
                 {publishedUrl && (
                   <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
-                    <ExternalLink className="h-3 w-3" /> Abrir
+                    <ExternalLink className="h-3 w-3" /> Abrir link
                   </a>
                 )}
               </div>
 
-              <div>
+              <div className="pt-4">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comentário / Anotação</label>
                 <textarea
                   value={studentNotes}
-                  onChange={e => { setStudentNotes(e.target.value); markDirty(); }}
+                  onChange={e => {
+                    setStudentNotes(e.target.value);
+                    markDirty();
+                  }}
+                  onBlur={() => handleAutoSave(undefined, undefined, studentNotes)}
                   placeholder="Deixe um recado para a professora..."
-                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-24 focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-32 focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
                 />
               </div>
             </>
@@ -299,15 +368,15 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoria</label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {categories.map(c => (
+                  {useContent().categories.map(c => (
                     <button
-                      key={c}
-                      onClick={() => { setCategory(c); markDirty(); }}
+                      key={c.id}
+                      onClick={() => { setCategory(c.name as Category); markDirty(); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        category === c ? "text-white ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
+                        category === c.name ? "text-white ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
                       }`}
-                      style={category === c ? { backgroundColor: categoryConfig[c].color } : {}}
-                    >{c}</button>
+                      style={category === c.name ? { backgroundColor: c.color } : {}}
+                    >{c.name}</button>
                   ))}
                 </div>
               </div>
@@ -315,15 +384,25 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {statuses.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s); markDirty(); }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        status === s ? statusColors[s] + " ring-2 ring-offset-1 ring-primary/30" : "bg-secondary text-muted-foreground hover:bg-muted"
-                      }`}
-                    >{s}</button>
-                  ))}
+                  {statuses.map(s => {
+                    const isActive = status === s;
+                    const isOverdue = s === "A fazer" && isBefore(parseISO(date), startOfDay(new Date()));
+                    
+                    let activeClass = "bg-secondary text-muted-foreground";
+                    if (s === "A fazer") activeClass = isOverdue ? "bg-status-overdue text-white" : "bg-muted text-foreground";
+                    else if (s === "Em produção") activeClass = "bg-status-progress text-white";
+                    else if (s === "Publicado") activeClass = "bg-status-published text-white";
+
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => { setStatus(s); markDirty(); }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          isActive ? activeClass + " ring-2 ring-offset-1 ring-primary/30 shadow-sm" : "bg-secondary text-muted-foreground hover:bg-muted"
+                        }`}
+                      >{s}</button>
+                    );
+                  })}
                 </div>
               </div>
 

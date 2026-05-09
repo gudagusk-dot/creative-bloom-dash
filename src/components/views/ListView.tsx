@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "@/components/PostDrawer";
 
 export const ListView = () => {
@@ -25,7 +25,8 @@ export const ListView = () => {
       ) : (
         <ul className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-card overflow-hidden">
           {monthPosts.map(post => {
-            const color = categoryConfig[post.category]?.color || "#999";
+            const { getCategoryColor } = useContent();
+            const color = getCategoryColor(post.category);
             const d = new Date(post.date + "T12:00:00");
             return (
               <li key={post.id}>

@@ -2,15 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudents, Student } from "@/context/StudentsContext";
-import { ContentPost, categoryConfig, Category } from "@/data/content";
-import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3 } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { useContent } from "@/context/ContentContext";
+import { ContentPost } from "@/data/content";
+import { ArrowLeft, RefreshCw, ExternalLink, Heart, Eye, MessageCircle, Share2, TrendingUp, CalendarDays, BarChart3, Users, ChevronRight, LayoutDashboard, Instagram, Share, LineChart as LucideLineChart, Sparkles } from "lucide-react";
+import { format, startOfMonth, endOfMonth, subDays, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+  LineChart, Line, AreaChart, Area
 } from "recharts";
+import { TikTokIcon } from "@/components/TikTokIcon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PostMetric {
   post_id: string;
@@ -27,12 +31,15 @@ const StudentMetrics = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { getBySlug } = useStudents();
+  const { categories, getCategoryColor } = useContent();
   const [student, setStudent] = useState<Student | null>(null);
   const [posts, setPosts] = useState<ContentPost[]>([]);
   const [metrics, setMetrics] = useState<Record<string, PostMetric>>({});
+  const [snapshots, setSnapshots] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
+  const [refreshingFollowers, setRefreshingFollowers] = useState(false);
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
 
   useEffect(() => {
@@ -47,13 +54,16 @@ const StudentMetrics = () => {
 
   const loadAll = async (studentId: string) => {
     setLoading(true);
-    const { data: postsData } = await supabase
-      .from("content_posts")
-      .select("*")
-      .eq("student_id", studentId)
-      .eq("status", "Publicado");
-    const ps = (postsData || []) as any[];
+    // Parallel fetch for speed
+    const [postsRes, snapshotsRes] = await Promise.all([
+      supabase.from("content_posts").select("*").eq("student_id", studentId).eq("status", "Publicado"),
+      supabase.from("follower_snapshots").select("*").eq("student_id", studentId).order("captured_date", { ascending: true })
+    ]);
+
+    const ps = (postsRes.data || []) as any[];
     setPosts(ps as ContentPost[]);
+    setSnapshots(snapshotsRes.data || []);
+
     if (ps.length) {
       const { data: m } = await supabase
         .from("post_metrics")
@@ -65,6 +75,52 @@ const StudentMetrics = () => {
     }
     setLoading(false);
   };
+
+  const fetchFollowers = async () => {
+    if (!student?.instagram_handle) {
+      toast.error("Instagram não configurado para este aluno");
+      return;
+    }
+    setRefreshingFollowers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot");
+      if (error) throw error;
+      toast.success("Seguidores atualizados");
+      await loadAll(student.id);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao buscar seguidores");
+    } finally {
+      setRefreshingFollowers(false);
+    }
+  };
+
+  const followerStats = useMemo(() => {
+    if (snapshots.length === 0) return null;
+    const igSnapshots = snapshots.filter(s => s.platform === "Instagram");
+    if (igSnapshots.length === 0) return null;
+    
+    const latest = igSnapshots[igSnapshots.length - 1];
+    const prev = igSnapshots.length > 1 ? igSnapshots[igSnapshots.length - 2] : latest;
+    
+    // Month start snapshot
+    const monthStart = startOfMonth(month);
+    const firstOfMonthSnap = igSnapshots.find(s => {
+      const d = parseISO(s.captured_date);
+      return d >= monthStart;
+    }) || igSnapshots[0];
+
+    return {
+      current: latest.followers,
+      dailyChange: latest.followers - prev.followers,
+      monthlyChange: latest.followers - firstOfMonthSnap.followers,
+      posts: latest.posts_count,
+      follows: latest.follows,
+      chartData: igSnapshots.slice(-30).map(s => ({
+        date: format(parseISO(s.captured_date), "dd/MM"),
+        seguidores: s.followers
+      }))
+    };
+  }, [snapshots, month]);
 
   const monthPosts = useMemo(() => {
     const ms = startOfMonth(month).getTime();
@@ -134,12 +190,12 @@ const StudentMetrics = () => {
   };
 
   const categoryData = useMemo(() => {
-    return (Object.keys(categoryConfig) as Category[]).map(c => ({
-      name: c,
-      value: monthPosts.filter(p => p.category === c).length,
-      color: categoryConfig[c].color,
+    return categories.map(c => ({
+      name: c.name,
+      value: monthPosts.filter(p => p.category === c.name).length,
+      color: c.color,
     })).filter(d => d.value > 0);
-  }, [monthPosts]);
+  }, [monthPosts, categories]);
 
   const topPosts = useMemo(() => {
     return monthPosts
@@ -274,14 +330,14 @@ const StudentMetrics = () => {
                 <tbody>
                   {monthPosts.map(p => {
                     const m = metrics[p.id];
-                    const cat = categoryConfig[p.category];
+                    const catColor = getCategoryColor(p.category);
                     return (
                       <tr key={p.id} className="border-t border-border/40 hover:bg-secondary/30 transition-colors">
                         <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(p.date + "T12:00:00"), "dd/MM")}</td>
                         <td className="px-4 py-3 max-w-[280px] truncate">{p.title}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center gap-1.5 text-xs">
-                            <span className="w-2 h-2 rounded-full" style={{ background: cat?.color }} />
+                            <span className="w-2 h-2 rounded-full" style={{ background: catColor }} />
                             {p.category}
                           </span>
                         </td>

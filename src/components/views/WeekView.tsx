@@ -3,12 +3,12 @@ import { startOfWeek, addDays, format, isSameDay, isToday, addWeeks, subWeeks } 
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
-import { categoryConfig, ContentPost } from "@/data/content";
+import { ContentPost } from "@/data/content";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
 
 export const WeekView = () => {
-  const { currentMonth, setCurrentMonth, filteredPosts, viewMode } = useContent();
+  const { currentMonth, setCurrentMonth, filteredPosts, viewMode, getCategoryColor } = useContent();
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const isAdmin = viewMode === "admin";
@@ -50,7 +50,7 @@ export const WeekView = () => {
                   <p className="text-[11px] text-muted-foreground/60 italic">Sem conteúdo</p>
                 )}
                 {dayPosts.map(post => {
-                  const color = categoryConfig[post.category]?.color || "#999";
+                  const color = getCategoryColor(post.category);
                   return (
                     <button
                       key={post.id}
