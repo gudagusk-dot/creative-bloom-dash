@@ -502,10 +502,10 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCate
         data.cell.styles.fontStyle = "bold";
       }
       if (data.section === "body" && data.column.index === 2) {
-        const cat = data.cell.raw as Category;
-        const c = categoryConfig[cat];
-        if (c) {
-          data.cell.styles.textColor = hexToRgb(c.color);
+        const catName = data.cell.raw as string;
+        const color = getCategoryColor(catName);
+        if (color) {
+          data.cell.styles.textColor = hexToRgb(color);
           data.cell.styles.fontStyle = "bold";
         }
       }
