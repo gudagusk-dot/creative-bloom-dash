@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { X, Sparkles } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
-import { Category, Format, SocialNetwork, categoryConfig } from "@/data/content";
+import { Category, Format, SocialNetwork } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
+import { NewCategoryPopover } from "./NewCategoryPopover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useTemplates } from "@/hooks/useTemplates";
@@ -14,16 +15,15 @@ interface NewPostDialogProps {
 }
 
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Conversão", "Produção", "Lembrete"];
-const categories: Category[] = ["Educativo", "Situações Reais", "Autoridade", "Destrave seu Inglês", "Bastidores", "Interação"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
-  const { addPost } = useContent();
+  const { addPost, categories, getCategoryColor } = useContent();
   const { templates } = useTemplates();
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
-  const [category, setCategory] = useState<Category>("Educativo");
+  const [category, setCategory] = useState<Category>("");
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
