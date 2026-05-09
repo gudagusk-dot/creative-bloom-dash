@@ -31,12 +31,15 @@ const StudentMetrics = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { getBySlug } = useStudents();
+  const { categories, getCategoryColor } = useContent();
   const [student, setStudent] = useState<Student | null>(null);
   const [posts, setPosts] = useState<ContentPost[]>([]);
   const [metrics, setMetrics] = useState<Record<string, PostMetric>>({});
+  const [snapshots, setSnapshots] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
+  const [refreshingFollowers, setRefreshingFollowers] = useState(false);
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; });
 
   useEffect(() => {
