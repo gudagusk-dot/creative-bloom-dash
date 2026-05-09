@@ -166,7 +166,28 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
     setStep("menu");
     setBriefingFormat(null);
     setBriefingTheme("");
+    setScrapeKind(null);
+    setScrapeInput("");
   };
+
+  const calendarActions = QUICK_ACTIONS.filter(a => a.group === "calendar");
+  const externalActions = QUICK_ACTIONS.filter(a => a.group === "external");
+  const renderAction = (a: typeof QUICK_ACTIONS[number]) => (
+    <button
+      key={a.id}
+      onClick={() => onQuickAction(a.id)}
+      disabled={loading}
+      className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-background hover:border-primary/40 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
+    >
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 group-hover:from-primary/25 group-hover:to-accent/25 transition-colors">
+        <a.icon className="h-4.5 w-4.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground">{a.label}</p>
+        <p className="text-[12px] text-muted-foreground mt-0.5">{a.hint}</p>
+      </div>
+    </button>
+  );
 
   return createPortal(
     <>
