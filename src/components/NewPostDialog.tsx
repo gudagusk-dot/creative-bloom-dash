@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, Wand2, Loader2 } from "lucide-react";
+import { X, Sparkles, Wand2, Loader2, Link2, FileText } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork } from "@/data/content";
 import { RichTextEditor } from "./RichTextEditor";
