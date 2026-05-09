@@ -29,19 +29,131 @@ serve(async (req) => {
       }).join("\n")
     }
 
-    const systemPrompt = `Você é um Social Media Strategist e Copywriter sênior, especialista em Instagram e TikTok para o nicho de ensino de inglês. Suas respostas devem ser concretas, em português do Brasil, com bullets, e sempre acionáveis. Quando sugerir ideias, traga: gancho, formato sugerido, categoria e CTA.`
+    const systemPrompt = `Você é um Social Media Strategist e Copywriter sênior, especialista em Instagram e TikTok para o nicho de ensino de inglês.
+
+REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS):
+- Responda SEMPRE em português do Brasil, em Markdown bem estruturado.
+- Use títulos com "##" para cada ideia/seção e "###" para subseções.
+- Separe CADA ideia com uma linha "---" (regra horizontal).
+- NUNCA misture ideias diferentes em um mesmo parágrafo.
+- Use listas com "-" e **negrito** para destacar campos.
+- Quando trouxer um roteiro, separe nitidamente em blocos: **Gancho**, **Desenvolvimento**, **CTA**, **On-screen text**, **Sugestões de corte**.
+- Seja conciso, acionável e evite enrolação.`
 
     let prompt = ""
     if (action === 'analyze') {
-      prompt = `Analise o calendário de conteúdo abaixo. Identifique padrões, temas recorrentes, o tom de voz, pontos fortes e lacunas. Sugira 3 ajustes táticos no fim.\n\nCALENDÁRIO:\n${calendarSummary}`
+      prompt = `Analise o calendário de conteúdo abaixo.
+
+Estruture a resposta EXATAMENTE neste formato Markdown:
+
+## 📊 Visão geral
+(2-3 linhas)
+
+## 🎯 Tom de voz
+- ...
+
+## 🔁 Temas recorrentes
+- ...
+
+## ✅ Pontos fortes
+- ...
+
+## ⚠️ Lacunas
+- ...
+
+## 🚀 3 ajustes táticos
+1. ...
+2. ...
+3. ...
+
+CALENDÁRIO:
+${calendarSummary}`
     } else if (action === 'suggest') {
-      prompt = `Com base no calendário abaixo, gere 5 novas ideias criativas e estratégicas de posts que conversem com o histórico do aluno mas tragam variedade. Para cada ideia: título, gancho, formato, categoria e CTA.\n\nCALENDÁRIO:\n${calendarSummary}`
+      prompt = `Com base no calendário abaixo, gere **5 novas ideias** de posts criativas e estratégicas, alinhadas ao estilo do aluno mas trazendo variedade.
+
+Para CADA ideia, use EXATAMENTE este template Markdown e separe as ideias com "---":
+
+## Ideia N — [Título do post]
+
+- **Gancho:** ...
+- **Formato:** (Reels / Carrossel / Story / etc.)
+- **Categoria:** ...
+- **Plataforma:** (Instagram / TikTok)
+- **Estrutura sugerida:**
+  1. ...
+  2. ...
+  3. ...
+- **CTA:** ...
+
+---
+
+Não misture ideias. Não adicione introdução longa antes da primeira ideia.
+
+CALENDÁRIO:
+${calendarSummary}`
     } else if (action === 'rewrite') {
-      prompt = `Reescreva o roteiro abaixo tornando-o mais persuasivo, com gancho forte, ritmo dinâmico e CTA claro. Mantenha o objetivo central.\n\nROTEIRO:\n${content}`
+      prompt = `Reescreva o roteiro abaixo tornando-o mais persuasivo, com gancho forte, ritmo dinâmico e CTA claro. Mantenha o objetivo central.
+
+Estruture a resposta EXATAMENTE assim:
+
+## ✍️ Roteiro reescrito
+
+### 🎣 Gancho (0-3s)
+...
+
+### 🎬 Desenvolvimento
+...
+
+### 📢 CTA
+...
+
+### 💬 On-screen text
+- ...
+
+### 🎞️ Sugestões de corte
+- ...
+
+---
+
+## 🔍 O que mudou e por quê
+- ...
+
+ROTEIRO ORIGINAL:
+${content}`
     } else if (action === 'script') {
-      prompt = `Crie um roteiro completo (gancho + desenvolvimento + CTA) para um Reels/TikTok sobre o tema abaixo. Inclua sugestões de corte e on-screen text.\n\nTEMA: ${content}\n\n${calendarSummary ? `CONTEXTO (estilo do aluno):\n${calendarSummary}` : ""}`
+      prompt = `Crie um roteiro completo para Reels/TikTok sobre o tema abaixo.
+
+Estruture EXATAMENTE assim:
+
+## 🎬 Roteiro: ${content}
+
+### 🎣 Gancho (0-3s)
+...
+
+### 🎬 Desenvolvimento
+...
+
+### 📢 CTA
+...
+
+### 💬 On-screen text
+- ...
+
+### 🎞️ Sugestões de corte
+- ...
+
+TEMA: ${content}
+
+${calendarSummary ? `CONTEXTO (estilo do aluno, somente referência):\n${calendarSummary}` : ""}`
     } else if (action === 'chat') {
-      prompt = `${content}\n\n---\nCONTEXTO (calendário do aluno, somente referência):\n${calendarSummary}`
+      prompt = `Pergunta do usuário:
+${content}
+
+Responda em Markdown bem estruturado, com títulos "##", listas e separadores "---" quando trouxer múltiplos itens. Não misture tópicos em um mesmo parágrafo.
+
+---
+CONTEXTO (calendário do aluno, somente referência):
+${calendarSummary}`
     } else {
       prompt = content || ""
     }
