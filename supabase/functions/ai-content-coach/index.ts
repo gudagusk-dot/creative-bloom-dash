@@ -52,11 +52,36 @@ REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS):
 - Use "##" para o título principal e "###" para subseções. NUNCA use "#" sozinho.
 - Comece com um título "##" claro identificando o que está sendo entregue.
 - Separe blocos/ideias com "\n\n---\n\n".
-- Use emojis funcionais como prefixo de cada subseção (📊 🎯 🔁 ✅ ⚠️ 🚀 🪝 🎬 📢 💬 🎞️ 📌 💡 🧲) — sempre o mesmo emoji para a mesma função.
+- Use emojis funcionais como prefixo de cada subseção (📊 🎯 🔁 ✅ ⚠️ 🚀 🎬 📢 💬 📌 💡 🧲) — sempre o mesmo emoji para a mesma função.
 - Campos importantes em **negrito** seguidos de dois pontos. Listas com "-" ou numeradas.
-- Roteiros DEVEM ter: **🪝 Gancho (0-3s)**, **🎬 Desenvolvimento**, **📢 CTA**, **💬 On-screen text**, **🎞️ Sugestões de corte**.
 - Sem introduções longas, sem "claro!", sem repetir a pergunta. Vá direto ao valor.
-- Seja específica para o NICHO DETECTADO — nada de conselhos genéricos.`
+- Seja específica para o NICHO DETECTADO — nada de conselhos genéricos.
+
+REGRAS DE ROTEIRO (CRÍTICAS — NUNCA QUEBRE):
+- Roteiro = APENAS marcação de tempo + fala literal + on-screen text. Nada mais.
+- PROIBIDO descrever: expressão facial, postura, gestos, figurino, cenário, enquadramento, ângulo de câmera, B-roll, "sugestões de corte", trilha sonora, transições, "olhando para a câmera", "com expressão de surpresa", "mostrar tela", indicações entre parênteses do tipo direção de cena.
+- Parênteses só são permitidos para marcar TEMPO no formato "(0–3s)", "(3–10s)" etc.
+- NUNCA inclua seção "🎞️ Sugestões de corte" nem "🎬 Desenvolvimento" como bloco separado — toda a fala vai dentro do roteiro cronometrado.
+- Estrutura padrão de roteiro:
+
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
+
+### 💬 On-screen text
+- frase curta 1
+- frase curta 2
+
+LINGUAGEM E FORMATO ATUAL (vídeo curto 2026):
+- Padrão: **Reels / TikTok / Shorts de 15–45s**. Carrossel só quando o briefing pedir explicitamente.
+- Ganchos de **0–2s** com pattern interrupt verbal: número específico, afirmação polarizadora, pergunta direta, contraste.
+- BANIDO em qualquer fala: "Você sabia que…", "Hoje eu vou te ensinar…", "Fala galera", "bora?", "se inscreve no canal", "deixa o like", "não esqueça de curtir".
+- Frases curtas (6–12 palavras), tom coloquial, ritmo rápido, zero jargão de marketing.
+- Use formatos atuais quando fizer sentido: POV, storytime de 20s, lista falada com contagem regressiva, reação a comentário, before/after verbal, edutainment.
+- CTA de baixa fricção: "comenta X", "salva esse", "manda pra quem precisa". NUNCA "link na bio" como CTA principal.`
 
     let prompt = ""
     if (action === 'analyze') {
