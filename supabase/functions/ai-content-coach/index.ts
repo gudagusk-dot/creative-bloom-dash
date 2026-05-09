@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, content, context, posts_context, model: modelOverride } = await req.json()
+    const { action, content, context, posts_context, format, theme, model: modelOverride } = await req.json()
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
 
     if (!LOVABLE_API_KEY) {
@@ -29,80 +29,142 @@ serve(async (req) => {
       }).join("\n")
     }
 
-    const systemPrompt = `Você é um Social Media Strategist e Copywriter sênior, especialista em Instagram e TikTok para o nicho de ensino de inglês.
+    const systemPrompt = `Você é a **Brenda IA** — estrategista sênior de social media e copywriter de elite, especializada em Instagram Reels, TikTok e carrosséis para o nicho de ENSINO DE INGLÊS.
+
+REPERTÓRIO QUE VOCÊ DOMINA (use como base mental, não cite as fontes):
+- Frameworks de copy: AIDA, PAS (Problema-Agitação-Solução), 4Ps (Promessa-Pintura-Prova-Push), BAB (Before-After-Bridge), FAB.
+- Hook frameworks: Hook Point (Brendan Kane), padrões de gancho do Alex Hormozi (curiosity gap, pattern interrupt, contrarian, "se X então Y", listicle, callout específico de público).
+- Gatilhos de Cialdini: prova social, autoridade, escassez, reciprocidade, compromisso, afinidade.
+- Estrutura de Reels/TikTok virais: 0-3s gancho visual+verbal, 3-15s payoff/desenvolvimento com micro-loops, 15-30s prova/exemplo, CTA com baixa fricção.
+- Carrossel que retém: capa polarizadora → contexto → dor → virada → método em passos → exemplo → CTA salvar/compartilhar.
+- Princípios de StoryBrand (Donald Miller), Made to Stick (heath), Building a StoryBrand, "Hooked" (Nir Eyal), 1-página de Russell Brunson, copy de Eugene Schwartz (níveis de consciência).
+- TikTok: trends, sounds, on-screen text grande, jump cuts, padrão de fala rápida, retention curves.
+- Para ensino de inglês: erros comuns, mitos, comparações PT-BR vs EN, expressões nativas, pronúncia, vida real, cultura, motivação, antes/depois de alunos.
 
 REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS):
-- Responda SEMPRE em português do Brasil, em Markdown bem estruturado.
-- Use títulos com "##" para cada ideia/seção e "###" para subseções.
-- Separe CADA ideia com uma linha "---" (regra horizontal).
-- NUNCA misture ideias diferentes em um mesmo parágrafo.
-- Use listas com "-" e **negrito** para destacar campos.
-- Quando trouxer um roteiro, separe nitidamente em blocos: **Gancho**, **Desenvolvimento**, **CTA**, **On-screen text**, **Sugestões de corte**.
-- Seja conciso, acionável e evite enrolação.`
+- Responda SEMPRE em **português do Brasil** em **Markdown rico**.
+- Use "##" para o título principal da resposta e "###" para cada bloco/ideia. NUNCA use "#" sozinho.
+- Comece SEMPRE com um título "##" claro identificando o que está sendo entregue.
+- Separe blocos/ideias com "\n\n---\n\n".
+- Use emojis funcionais como prefixo de cada subseção (📊 🎯 🔁 ✅ ⚠️ 🚀 🎣 🎬 📢 💬 🎞️ 📌 💡 🪝 🧲) — sempre o mesmo emoji para a mesma função.
+- Campos importantes em **negrito** seguidos de dois pontos. Listas com "-" ou numeradas.
+- Roteiros DEVEM ter os blocos: **🪝 Gancho (0-3s)**, **🎬 Desenvolvimento**, **📢 CTA**, **💬 On-screen text**, **🎞️ Sugestões de corte**.
+- Sem introduções longas, sem "claro!", sem repetir a pergunta. Vá direto ao valor.
+- Seja específica para o nicho de inglês — não dê conselhos genéricos.`
 
     let prompt = ""
     if (action === 'analyze') {
-      prompt = `Analise o calendário de conteúdo abaixo.
+      prompt = `Analise o calendário de conteúdo abaixo de forma estratégica e acionável.
 
-Estruture a resposta EXATAMENTE neste formato Markdown:
+Use EXATAMENTE este formato Markdown (mantenha os emojis):
 
-## 📊 Visão geral
-(2-3 linhas)
+## 📊 Análise do Calendário
 
-## 🎯 Tom de voz
+### 📈 Visão geral
+(2-3 linhas com diagnóstico real, não genérico)
+
+### 🎯 Tom de voz e posicionamento
 - ...
 
-## 🔁 Temas recorrentes
+### 🔁 Temas recorrentes
 - ...
 
-## ✅ Pontos fortes
+### ✅ Pontos fortes
 - ...
 
-## ⚠️ Lacunas
+### ⚠️ Lacunas e riscos
 - ...
 
-## 🚀 3 ajustes táticos
-1. ...
-2. ...
-3. ...
+### 🧲 Oportunidades de gancho não exploradas
+- ...
+
+---
+
+## 🚀 3 ajustes táticos prioritários
+
+### 1. [Título acionável]
+**O quê:** ...
+**Por quê:** ...
+**Como aplicar:** ...
+
+### 2. [Título acionável]
+**O quê:** ...
+**Por quê:** ...
+**Como aplicar:** ...
+
+### 3. [Título acionável]
+**O quê:** ...
+**Por quê:** ...
+**Como aplicar:** ...
 
 CALENDÁRIO:
 ${calendarSummary}`
     } else if (action === 'suggest') {
-      prompt = `Com base no calendário abaixo, gere **5 novas ideias** de posts criativas e estratégicas, alinhadas ao estilo do aluno mas trazendo variedade.
+      const fmtMap: Record<string, string> = {
+        video: "Reels / TikTok (vídeo curto vertical)",
+        carrossel: "Carrossel (Instagram, 6-10 slides)",
+        ambos: "Misto: alterne entre Reels/TikTok e Carrossel",
+      }
+      const formatLine = format && fmtMap[format] ? `FORMATO SOLICITADO: ${fmtMap[format]}` : "FORMATO: livre (escolha o melhor para cada ideia)"
+      const themeLine = theme ? `TEMA/OBJETIVO DO BRIEFING: ${theme}` : ""
 
-Para CADA ideia, use EXATAMENTE este template Markdown e separe as ideias com "---":
+      prompt = `Com base no calendário abaixo e no briefing, gere **exatamente 3 ideias** de posts — criativas, específicas para ensino de inglês, alinhadas ao estilo do aluno mas trazendo variedade e ganchos fortes.
 
-## Ideia N — [Título do post]
+${formatLine}
+${themeLine}
 
-- **Gancho:** ...
-- **Formato:** (Reels / Carrossel / Story / etc.)
+Use EXATAMENTE este template Markdown para CADA uma das 3 ideias, separadas por "---":
+
+## 💡 Ideia N — [Título magnético do post]
+
+### 🪝 Gancho (0-3s)
+> "[fala/texto literal do gancho, em primeira pessoa, pronto para gravar]"
+
+### 📌 Resumo da ideia
+(1-2 linhas explicando o ângulo e por que funciona)
+
+### 🎯 Detalhes
+- **Formato:** ...
+- **Plataforma:** ...
 - **Categoria:** ...
-- **Plataforma:** (Instagram / TikTok)
-- **Estrutura sugerida:**
-  1. ...
-  2. ...
-  3. ...
-- **CTA:** ...
+- **Público-alvo:** ...
+- **Gatilho psicológico:** (curiosidade / contraste / autoridade / etc.)
+
+### 🎬 Estrutura sugerida
+1. **(0-3s) Gancho:** ...
+2. **(3-10s) Contexto/Dor:** ...
+3. **(10-25s) Virada/Método:** ...
+4. **(25-40s) Prova/Exemplo:** ...
+5. **(40-50s) CTA:** ...
+
+### 📢 CTA
+...
+
+### 💬 On-screen text (3-5 frases curtas)
+- ...
 
 ---
 
-Não misture ideias. Não adicione introdução longa antes da primeira ideia.
+REGRAS:
+- Gere EXATAMENTE 3 ideias — nem mais, nem menos.
+- Não repita ângulos do calendário existente.
+- Cada gancho precisa ser específico (mencione número, palavra ou afirmação polarizadora) — nada genérico tipo "Você sabia que…".
+- Sem introdução antes da Ideia 1.
 
-CALENDÁRIO:
+CALENDÁRIO ATUAL DO ALUNO:
 ${calendarSummary}`
     } else if (action === 'rewrite') {
-      prompt = `Reescreva o roteiro abaixo tornando-o mais persuasivo, com gancho forte, ritmo dinâmico e CTA claro. Mantenha o objetivo central.
+      prompt = `Reescreva o roteiro abaixo aplicando copywriting de alto nível: gancho cirúrgico, ritmo, micro-loops, prova e CTA de baixa fricção. Mantenha o objetivo central.
 
-Estruture a resposta EXATAMENTE assim:
+Use EXATAMENTE este formato:
 
-## ✍️ Roteiro reescrito
+## ✍️ Roteiro Reescrito
 
-### 🎣 Gancho (0-3s)
-...
+### 🪝 Gancho (0-3s)
+> "[fala literal]"
 
 ### 🎬 Desenvolvimento
-...
+(parágrafos curtos com falas literais e indicações entre parênteses)
 
 ### 📢 CTA
 ...
@@ -116,22 +178,25 @@ Estruture a resposta EXATAMENTE assim:
 ---
 
 ## 🔍 O que mudou e por quê
-- ...
+- **Gancho:** ...
+- **Estrutura:** ...
+- **Linguagem:** ...
+- **CTA:** ...
 
 ROTEIRO ORIGINAL:
 ${content}`
     } else if (action === 'script') {
-      prompt = `Crie um roteiro completo para Reels/TikTok sobre o tema abaixo.
+      prompt = `Crie um roteiro completo de Reels/TikTok sobre o tema abaixo, aplicando copywriting persuasivo.
 
-Estruture EXATAMENTE assim:
+Use EXATAMENTE este formato:
 
 ## 🎬 Roteiro: ${content}
 
-### 🎣 Gancho (0-3s)
-...
+### 🪝 Gancho (0-3s)
+> "[fala literal]"
 
 ### 🎬 Desenvolvimento
-...
+(parágrafos curtos, falas literais, indicações de B-roll entre parênteses)
 
 ### 📢 CTA
 ...
@@ -149,7 +214,7 @@ ${calendarSummary ? `CONTEXTO (estilo do aluno, somente referência):\n${calenda
       prompt = `Pergunta do usuário:
 ${content}
 
-Responda em Markdown bem estruturado, com títulos "##", listas e separadores "---" quando trouxer múltiplos itens. Não misture tópicos em um mesmo parágrafo.
+Responda em Markdown bem estruturado seguindo as regras de formatação. Comece com um título "##", use "###" para subseções com emojis, e separe blocos com "---".
 
 ---
 CONTEXTO (calendário do aluno, somente referência):
@@ -180,7 +245,7 @@ ${calendarSummary}`
       if (response.status === 429) userMsg = "Limite de requisições atingido. Tente novamente em alguns segundos."
       else if (response.status === 402) userMsg = "Créditos do Lovable AI esgotados. Adicione créditos em Configurações > Workspace > Uso."
       else if (response.status === 401) userMsg = "Chave do Lovable AI inválida."
-      console.error("[ai-coach] gateway error", response.status, errText)
+      console.error("[brenda-ia] gateway error", response.status, errText)
       return new Response(JSON.stringify({ error: userMsg }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -193,7 +258,7 @@ ${calendarSummary}`
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error: any) {
-    console.error("[ai-coach] unhandled", error)
+    console.error("[brenda-ia] unhandled", error)
     return new Response(JSON.stringify({ error: error.message || "Erro inesperado" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
