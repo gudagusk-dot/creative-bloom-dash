@@ -114,7 +114,7 @@ ${calendarSummary}`
       const formatLine = format && fmtMap[format] ? `FORMATO SOLICITADO: ${fmtMap[format]}` : "FORMATO: livre (escolha o melhor para cada ideia)"
       const themeLine = theme ? `TEMA/OBJETIVO DO BRIEFING: ${theme}` : ""
 
-      prompt = `Com base no calendário abaixo e no briefing, gere **exatamente 3 ideias** de posts — criativas, específicas para ensino de inglês, alinhadas ao estilo do aluno mas trazendo variedade e ganchos fortes.
+      prompt = `Com base no calendário abaixo e no briefing, gere **exatamente 3 ideias** de posts — criativas, específicas para o NICHO detectado no calendário, alinhadas ao estilo do aluno mas trazendo variedade e ganchos fortes.
 
 ${formatLine}
 ${themeLine}
