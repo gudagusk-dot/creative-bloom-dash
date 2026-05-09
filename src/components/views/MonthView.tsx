@@ -39,22 +39,18 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
   const isOverdue = post.status === "A fazer" && isBefore(parseISO(post.date), startOfDay(new Date()));
   
   let statusBg = "bg-status-todo";
-  let statusColor = "text-white";
   if (post.status === "Publicado") statusBg = "bg-status-published";
   else if (post.status === "Em produção") statusBg = "bg-status-progress";
-  else if (isOverdue) {
-    statusBg = "bg-status-overdue";
-  }
+  else if (isOverdue) statusBg = "bg-status-overdue";
 
   return (
     <button
       onClick={onClick}
-      className={`group relative flex-1 w-full rounded-xl p-1.5 sm:p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
-        dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md"
+      className={`group relative flex-1 w-full rounded-xl p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
+        dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm"
       }`}
       style={{
         backgroundColor: "white",
-        borderColor: isActive ? catColor : "transparent",
         borderLeftWidth: "4px",
         borderLeftColor: catColor,
       }}
@@ -66,16 +62,16 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
           </span>
           <NetworkIcon network={post.network} />
         </div>
-        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-white ${statusBg}`}>
-          {isOverdue && post.status === "A fazer" ? <AlertCircle className="h-2 w-2 animate-pulse" /> : statusIcons[post.status]}
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white ${statusBg}`}>
+          {isOverdue && post.status === "A fazer" ? <AlertCircle className="h-2.5 w-2.5 animate-pulse" /> : statusIcons[post.status]}
         </div>
       </div>
       <p className="text-[10px] sm:text-[11px] text-foreground leading-tight font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
         {post.title}
       </p>
       <div className="flex items-center gap-1 mt-auto">
-        <span className={`w-1 h-1 rounded-full ${statusBg}`} />
-        <span className="text-[8px] sm:text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
+        <span className={`w-1.5 h-1.5 rounded-full ${statusBg}`} />
+        <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
           {post.status}
         </span>
       </div>
