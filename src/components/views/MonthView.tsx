@@ -171,7 +171,7 @@ export const MonthView = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-7 gap-1.5 sm:gap-2 auto-rows-fr"
+            className="grid grid-cols-7 gap-1 sm:gap-1.5 auto-rows-fr"
             style={{ minHeight: "calc(100vh - 280px)" }}
           >
             {days.map(day => {
