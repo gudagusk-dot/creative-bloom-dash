@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3, ArrowLeft, Video, LayoutGrid, Layers } from "lucide-react";
+import { X, Sparkles, Send, Loader2, BrainCircuit, Lightbulb, Wand2, BarChart3, ArrowLeft, Video, LayoutGrid, Layers, Copy, UserSearch, Hash, MessageSquareText } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,13 +13,18 @@ interface Props {
 }
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
-type Step = "menu" | "briefing" | "chat";
+type Step = "menu" | "briefing" | "chat" | "scrape";
 type FormatChoice = "video" | "carrossel" | "ambos";
+type ScrapeKind = "copy_content" | "analyze_profile" | "analyze_hashtag" | "analyze_comments";
 
 const QUICK_ACTIONS = [
-  { id: "analyze", label: "Analisar calendário", icon: BarChart3, hint: "Padrões, tom de voz, lacunas e ajustes táticos." },
-  { id: "suggest", label: "Sugerir 3 ideias", icon: Lightbulb, hint: "Briefing rápido + 3 ideias com gancho e estrutura." },
-  { id: "rewrite", label: "Melhorar último roteiro", icon: Wand2, hint: "Reescreve o post mais recente com copy de elite." },
+  { id: "analyze", label: "Analisar calendário", icon: BarChart3, hint: "Padrões, tom de voz, lacunas e ajustes táticos.", group: "calendar" as const },
+  { id: "suggest", label: "Sugerir 3 ideias", icon: Lightbulb, hint: "Briefing rápido + 3 ideias com gancho e estrutura.", group: "calendar" as const },
+  { id: "rewrite", label: "Melhorar último roteiro", icon: Wand2, hint: "Reescreve o post mais recente com copy de elite.", group: "calendar" as const },
+  { id: "copy_content", label: "Copiar conteúdo", icon: Copy, hint: "Cole um link: métricas reais + análise + roteiro recriado.", group: "external" as const },
+  { id: "analyze_profile", label: "Espionar perfil", icon: UserSearch, hint: "Diagnóstico de um perfil + 3 ideias adaptadas.", group: "external" as const },
+  { id: "analyze_hashtag", label: "Radar de hashtag", icon: Hash, hint: "Top posts da hashtag + ângulos vencedores.", group: "external" as const },
+  { id: "analyze_comments", label: "Decifrar comentários", icon: MessageSquareText, hint: "Dores e linguagem do público + ganchos prontos.", group: "external" as const },
 ] as const;
 
 const FORMAT_OPTIONS: { id: FormatChoice; label: string; hint: string; icon: typeof Video }[] = [
@@ -27,6 +32,13 @@ const FORMAT_OPTIONS: { id: FormatChoice; label: string; hint: string; icon: typ
   { id: "carrossel", label: "Carrossel (Instagram)", hint: "6-10 slides estáticos.", icon: LayoutGrid },
   { id: "ambos", label: "Misto", hint: "Brenda escolhe o melhor formato por ideia.", icon: Layers },
 ];
+
+const SCRAPE_CONFIG: Record<ScrapeKind, { tool: "post" | "profile" | "hashtag" | "comments"; title: string; placeholder: string; helper: string; needsPlatform?: boolean }> = {
+  copy_content: { tool: "post", title: "Copiar conteúdo", placeholder: "https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/...", helper: "Cole o link de um post viral. A Brenda puxa as métricas reais e analisa por que funcionou." },
+  analyze_profile: { tool: "profile", title: "Espionar perfil", placeholder: "https://www.instagram.com/usuario ou @usuario", helper: "Cole a URL ou o @ do perfil que você quer estudar." },
+  analyze_hashtag: { tool: "hashtag", title: "Radar de hashtag", placeholder: "inglesonline", helper: "Digite a hashtag (sem #). Escolha a plataforma.", needsPlatform: true },
+  analyze_comments: { tool: "comments", title: "Decifrar comentários", placeholder: "https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/...", helper: "Cole o link de um post: a Brenda extrai dores e linguagem do público dos comentários." },
+};
 
 export const CoachDialog = ({ open, onClose, studentName }: Props) => {
   const { posts } = useContent();
