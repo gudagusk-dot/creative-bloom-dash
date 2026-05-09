@@ -243,6 +243,252 @@ Responda em Markdown bem estruturado seguindo as regras de formatação. Comece 
 ---
 CONTEXTO (calendário do aluno, somente referência):
 ${calendarSummary}`
+    } else if (action === 'inspire_from_post') {
+      const s = scraped || {}
+      const m = s.metrics || {}
+      prompt = `Você recebeu um post de referência (validado por métricas reais). Use o **gancho, estrutura e gatilhos** desse post como inspiração, mas **adapte 100% ao nicho do aluno** detectado no calendário. NUNCA copie literalmente. Reescreva como se fosse do aluno.
+
+POST DE REFERÊNCIA:
+- Plataforma: ${s.platform || "?"}
+- Autor: @${s.author || "?"}
+- Legenda: "${(s.caption || "").slice(0, 800)}"
+- Hashtags: ${(s.hashtags || []).slice(0, 15).join(", ") || "—"}
+- Música: ${s.music || "—"}
+- Duração: ${s.duration || "—"}s
+- Métricas: ${m.views || 0} views · ${m.likes || 0} likes · ${m.comments || 0} comentários · ${m.shares || 0} shares
+
+Use EXATAMENTE este formato:
+
+## 💡 Inspirado em post viral
+
+### 🧲 Gancho identificado no original
+(1 frase explicando o ângulo que fez funcionar)
+
+### 🎯 Como adaptamos ao seu nicho
+(2-3 linhas)
+
+### 📝 Título sugerido
+[Título magnético em 1 linha — primeira linha em destaque, será usado como título do post]
+
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho adaptado]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
+
+### 💬 On-screen text
+- frase curta 1
+- frase curta 2
+
+REGRAS: Roteiro = só tempo + fala literal. PROIBIDO descrever cena, expressão, postura, gestos, B-roll, trilha ou cortes.
+
+CALENDÁRIO DO ALUNO (para detectar nicho e estilo):
+${calendarSummary}`
+    } else if (action === 'copy_content') {
+      const s = scraped || {}
+      const m = s.metrics || {}
+      const er = m.views > 0 ? (((m.likes || 0) + (m.comments || 0) + (m.shares || 0)) / m.views * 100).toFixed(2) : "—"
+      prompt = `Analise estrategicamente este post (validado por métricas reais) e recrie como roteiro adaptado ao nicho do aluno.
+
+POST:
+- Plataforma: ${s.platform}
+- Autor: @${s.author}
+- Legenda: "${(s.caption || "").slice(0, 1200)}"
+- Hashtags: ${(s.hashtags || []).slice(0, 20).join(", ") || "—"}
+- Música: ${s.music || "—"}
+- Duração: ${s.duration || "—"}s
+- Métricas: ${m.views || 0} views · ${m.likes || 0} likes · ${m.comments || 0} comentários · ${m.shares || 0} shares · ER ${er}%
+
+Use EXATAMENTE este formato Markdown:
+
+## 📊 Análise de Conteúdo Validado
+
+### 📈 Métricas reais
+- **Views:** ${m.views || 0}
+- **Likes:** ${m.likes || 0}
+- **Comentários:** ${m.comments || 0}
+- **Shares:** ${m.shares || 0}
+- **Engagement rate:** ${er}%
+
+### 🔍 Por que esse conteúdo funcionou
+(3-5 bullets táticos)
+
+---
+
+### ✍️ Análise de copy
+- **Gancho:** ...
+- **Estrutura:** ...
+- **Gatilho psicológico:** ...
+- **CTA:** ...
+
+### 🎨 Análise visual / formato
+- **Formato:** ...
+- **Ritmo (inferido):** ...
+- **Padrões visuais prováveis:** ...
+
+### 🧲 Análise de social media
+- **Hashtags:** ...
+- **Posicionamento do autor:** ...
+- **Por que viralizou na plataforma:** ...
+
+---
+
+## 🎬 Roteiro recriado para o seu nicho
+
+### 🎬 Roteiro
+(0–3s) [fala literal do gancho adaptado]
+(3–10s) [fala literal]
+(10–25s) [fala literal]
+(25–40s) [fala literal]
+(40–50s) [fala literal do CTA]
+
+### 💬 On-screen text
+- frase curta 1
+- frase curta 2
+
+REGRAS: Roteiro = só tempo + fala literal. PROIBIDO descrever cena, expressão, postura, gestos, B-roll, trilha ou cortes. NUNCA copie literalmente o post original — sempre adapte ao nicho do aluno.
+
+CALENDÁRIO DO ALUNO (para detectar nicho):
+${calendarSummary}`
+    } else if (action === 'analyze_profile') {
+      const s = scraped || {}
+      const top = (s.top_posts || []).slice(0, 10).map((p: any, i: number) =>
+        `${i + 1}. [${p.views || 0}v · ${p.likes || 0}❤ · ${p.comments || 0}💬] "${(p.caption || "").slice(0, 140)}"`
+      ).join("\n")
+      prompt = `Analise estrategicamente este perfil de referência/concorrente e tire 3 ideias acionáveis para o aluno.
+
+PERFIL:
+- Plataforma: ${s.platform}
+- @${s.handle} ${s.verified ? "✓" : ""}
+- Nome: ${s.full_name}
+- Bio: "${s.bio || "—"}"
+- Seguidores: ${s.followers} · Posts: ${s.posts_count}
+
+TOP POSTS RECENTES:
+${top || "—"}
+
+Use EXATAMENTE este formato:
+
+## 🕵️ Espionagem de Perfil — @${s.handle}
+
+### 📊 Diagnóstico estratégico
+- **Posicionamento:** ...
+- **Tom de voz:** ...
+- **Formatos dominantes:** ...
+- **Padrões de gancho recorrentes:** ...
+- **Gatilhos psicológicos mais usados:** ...
+
+### 🏆 O que está funcionando
+- ...
+
+### ⚠️ Gaps que o aluno pode explorar
+- ...
+
+---
+
+## 💡 3 ideias adaptadas ao seu nicho
+
+### 1. [Título]
+**Inspirado em:** ...
+**Ângulo adaptado:** ...
+
+### 2. [Título]
+**Inspirado em:** ...
+**Ângulo adaptado:** ...
+
+### 3. [Título]
+**Inspirado em:** ...
+**Ângulo adaptado:** ...
+
+CALENDÁRIO DO ALUNO (para adaptar ao nicho):
+${calendarSummary}`
+    } else if (action === 'analyze_hashtag') {
+      const s = scraped || {}
+      const top = (s.top_posts || []).slice(0, 12).map((p: any, i: number) =>
+        `${i + 1}. @${p.author} [${p.views || 0}v · ${p.likes || 0}❤] "${(p.caption || "").slice(0, 160)}"`
+      ).join("\n")
+      prompt = `Analise os top posts da hashtag #${s.hashtag} (${s.platform}) e mapeie ângulos vencedores.
+
+TOP POSTS:
+${top || "—"}
+
+Use EXATAMENTE este formato:
+
+## 🛰️ Radar de Hashtag — #${s.hashtag}
+
+### 🔁 Ângulos vencedores
+- ...
+
+### 🧲 Padrões de gancho recorrentes
+- ...
+
+### 🎯 Formatos dominantes
+- ...
+
+### ⚠️ Ângulos saturados (evite)
+- ...
+
+---
+
+## 💡 3 ideias adaptadas ao seu nicho
+
+### 1. [Título]
+**Ângulo:** ...
+**Por que funciona aqui:** ...
+
+### 2. [Título]
+**Ângulo:** ...
+**Por que funciona aqui:** ...
+
+### 3. [Título]
+**Ângulo:** ...
+**Por que funciona aqui:** ...
+
+CALENDÁRIO DO ALUNO (para adaptar):
+${calendarSummary}`
+    } else if (action === 'analyze_comments') {
+      const s = scraped || {}
+      const list = (s.comments || []).slice(0, 30).map((c: any, i: number) =>
+        `${i + 1}. [${c.likes || 0}❤] @${c.author}: ${(c.text || "").slice(0, 200)}`
+      ).join("\n")
+      prompt = `Analise os comentários abaixo (post real, ${s.platform}) e extraia dores, objeções, linguagem nativa do público e ganchos prontos.
+
+COMENTÁRIOS:
+${list || "—"}
+
+Use EXATAMENTE este formato:
+
+## 💬 Decifrando Comentários
+
+### 😣 Dores e objeções recorrentes
+- ...
+
+### 🗣️ Linguagem nativa do público
+(palavras/expressões exatas usadas — para reaproveitar em copy)
+- ...
+
+### ❓ Perguntas/dúvidas mais frequentes
+- ...
+
+### 🎯 Sentimento geral
+(1-2 linhas)
+
+---
+
+## 🧲 3 ganchos prontos derivados desses comentários
+
+### 1. [Gancho literal — uma frase de 6-12 palavras]
+**Por quê:** ...
+
+### 2. [Gancho literal]
+**Por quê:** ...
+
+### 3. [Gancho literal]
+**Por quê:** ...
+
+CALENDÁRIO DO ALUNO (para adaptar):
+${calendarSummary}`
     } else {
       prompt = content || ""
     }
