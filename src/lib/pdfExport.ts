@@ -417,8 +417,8 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCate
     const dayPosts = posts.filter(p => isSameDay(new Date(p.date + "T12:00:00"), day));
     let py = y + 28;
     dayPosts.slice(0, 3).forEach(p => {
-      const cat = categoryConfig[p.category as Category];
-      const [r, g, b] = hexToRgb(cat?.color || "#999999");
+      const colorHex = getCategoryColor(p.category);
+      const [r, g, b] = hexToRgb(colorHex || "#999999");
       // pill background
       doc.setFillColor(r, g, b);
       doc.setGState(new (doc as any).GState({ opacity: 0.15 }));
