@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    let query = supabase.from('students').select('id, name, instagram_handle, tiktok_handle')
+    let query = supabase.from('students').select('id, name, instagram_handle, tiktok_handle, avatar_url')
     if (onlyStudentId) query = query.eq('id', onlyStudentId)
     const { data: students, error: studentError } = await query
     if (studentError) throw studentError
