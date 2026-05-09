@@ -91,7 +91,10 @@ serve(async (req) => {
                 raw: profile,
               }, { onConflict: 'student_id, platform, captured_date' })
             if (upsertError) console.error("[snapshot][ig] upsert", upsertError)
-            results.push({ student: student.name, platform: 'instagram', status: upsertError ? 'error' : 'success', followers: profile.followersCount })
+            // Persist avatar from IG (preferred source)
+            const igPic = profile.profilePicUrlHD || profile.profilePicUrl
+            const avatarUrl = await persistAvatar(student.id, igPic)
+            results.push({ student: student.name, platform: 'instagram', status: upsertError ? 'error' : 'success', followers: profile.followersCount, avatar: avatarUrl ? 'updated' : 'skipped' })
           } else {
             results.push({ student: student.name, platform: 'instagram', status: 'no_data' })
           }
