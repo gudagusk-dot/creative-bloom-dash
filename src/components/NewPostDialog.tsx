@@ -163,6 +163,62 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {/* Mode tabs */}
+          <div className="flex gap-1 p-1 bg-secondary rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMode("scratch")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === "scratch" ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" /> Do zero
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("inspire")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                mode === "inspire" ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Link2 className="h-3.5 w-3.5" /> Inspirar em um post
+            </button>
+          </div>
+
+          {mode === "inspire" && (
+            <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 animate-fade-in">
+              <p className="text-[11px] text-muted-foreground">Cole o link de um post do Instagram ou TikTok. A Brenda IA analisa o gancho e reescreve adaptado ao seu nicho.</p>
+              <input
+                value={inspireUrl}
+                onChange={e => setInspireUrl(e.target.value)}
+                placeholder="https://www.instagram.com/reel/... ou https://www.tiktok.com/@.../video/..."
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={inspireFromPost}
+                disabled={!inspireUrl.trim() || inspireLoading}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gradient-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:-translate-y-0.5 transition-all shadow-soft"
+              >
+                {inspireLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {inspireLoading ? "Analisando post e gerando…" : "Buscar e gerar"}
+              </button>
+              {inspirePreview && (
+                <div className="flex gap-3 p-2 rounded-lg bg-card border border-border/60">
+                  {inspirePreview.media?.thumbnail && (
+                    <img src={inspirePreview.media.thumbnail} alt="" className="w-14 h-14 rounded-md object-cover" />
+                  )}
+                  <div className="flex-1 min-w-0 text-[11px]">
+                    <div className="font-medium text-foreground truncate">@{inspirePreview.author}</div>
+                    <div className="text-muted-foreground">
+                      {inspirePreview.metrics?.views || 0} views · {inspirePreview.metrics?.likes || 0} ❤ · {inspirePreview.metrics?.comments || 0} 💬
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {templates.length > 0 && (
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
