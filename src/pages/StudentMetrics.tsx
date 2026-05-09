@@ -92,20 +92,30 @@ const StudentMetrics = () => {
 
   const fetchFollowers = async () => {
     if (!student?.instagram_handle && !student?.tiktok_handle) {
-      toast.error("Nenhuma rede social configurada para este aluno");
+      toast.error("Cadastre o @ do Instagram ou TikTok do aluno primeiro");
       return;
     }
     setRefreshingFollowers(true);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot");
+      const { data, error } = await supabase.functions.invoke("fetch-follower-snapshot", {
+        body: { student_id: student.id },
+      });
       if (error) throw error;
-      
-      const successCount = (data.results || []).filter((r: any) => r.status === 'success').length;
-      if (successCount > 0) {
-        toast.success(`${successCount} rede(s) atualizada(s)`);
+
+      const results = (data?.results || []) as Array<{ platform: string; status: string; followers?: number; message?: string }>;
+      const successes = results.filter(r => r.status === 'success');
+      const failures = results.filter(r => r.status !== 'success');
+
+      if (successes.length > 0) {
+        const summary = successes.map(r => `${r.platform}: ${(r.followers || 0).toLocaleString("pt-BR")}`).join(" · ");
+        toast.success(`Atualizado — ${summary}`);
         await loadAll(student.id);
-      } else {
-        toast.error("Nenhuma métrica pôde ser coletada");
+      }
+      failures.forEach(r => {
+        toast.warning(`${r.platform}: ${r.status === 'no_data' ? 'verifique o @ informado' : (r.message || 'falhou')}`);
+      });
+      if (successes.length === 0 && failures.length === 0) {
+        toast.info("Nenhuma rede social configurada");
       }
     } catch (e: any) {
       toast.error(e.message || "Erro ao buscar seguidores");
@@ -223,9 +233,12 @@ const StudentMetrics = () => {
     const me = endOfMonth(month).getTime();
     return posts.filter(p => {
       const t = new Date(p.date + "T12:00:00").getTime();
-      return t >= ms && t <= me;
+      if (t < ms || t > me) return false;
+      if (platformFilter === "all") return true;
+      const net = (p.network || "").toLowerCase();
+      return net === platformFilter;
     });
-  }, [posts, month]);
+  }, [posts, month, platformFilter]);
 
   const kpis = useMemo(() => {
     const ms = monthPosts.map(p => metrics[p.id]).filter(Boolean) as PostMetric[];
@@ -358,32 +371,47 @@ const StudentMetrics = () => {
       </div>
 
       <div ref={dashboardRef} className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        {/* Platform selector */}
-        {(instagramStats || tiktokStats) && (
-          <div className="flex items-center gap-2 p-1 bg-secondary/60 rounded-xl w-fit">
-            {([
-              ["all", "Todas", null],
-              ["instagram", "Instagram", Instagram],
-              ["tiktok", "TikTok", TikTokIcon],
-            ] as const).map(([key, label, Icon]) => (
-              <button
-                key={key}
-                onClick={() => setPlatformFilter(key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
-                  platformFilter === key
-                    ? "bg-card text-foreground shadow-soft"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {Icon && <Icon className="h-3.5 w-3.5" />}
-                {label}
-              </button>
-            ))}
+        {/* Missing-handle warning */}
+        {!student.instagram_handle && !student.tiktok_handle && (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-200 flex items-start gap-3">
+            <Users className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium">Cadastre o @ do Instagram e/ou TikTok deste aluno.</p>
+              <p className="text-xs mt-0.5 opacity-80">Sem o @ não conseguimos coletar seguidores nem comparar a evolução diária/mensal. Edite o aluno na lista para preencher.</p>
+            </div>
+            <button
+              onClick={() => navigate("/")}
+              className="text-xs px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors flex-shrink-0"
+            >
+              Editar aluno
+            </button>
           </div>
         )}
 
+        {/* Platform selector — always visible */}
+        <div className="flex items-center gap-2 p-1 bg-secondary/60 rounded-xl w-fit">
+          {([
+            ["all", "Todas", null],
+            ["instagram", "Instagram", Instagram],
+            ["tiktok", "TikTok", TikTokIcon],
+          ] as const).map(([key, label, Icon]) => (
+            <button
+              key={key}
+              onClick={() => setPlatformFilter(key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                platformFilter === key
+                  ? "bg-card text-foreground shadow-soft"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {Icon && <Icon className="h-3.5 w-3.5" />}
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* Follower Stats Section */}
-        {(instagramStats || tiktokStats) && (
+        {(instagramStats || tiktokStats) ? (
           <div className={`grid gap-4 ${platformFilter === "all" ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
             {instagramStats && (platformFilter === "all" || platformFilter === "instagram") && (
               <div className="bg-card rounded-2xl border border-border/60 p-5 shadow-soft">
@@ -490,6 +518,22 @@ const StudentMetrics = () => {
                 </div>
               </div>
             )}
+          </div>
+        ) : (student.instagram_handle || student.tiktok_handle) && (
+          <div className="bg-card rounded-2xl border border-dashed border-border p-6 text-center">
+            <Users className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+            <p className="text-sm text-foreground font-medium">Coleta de seguidores agendada</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              A primeira leitura roda automaticamente nas próximas 24h. Para ver agora, clique abaixo.
+            </p>
+            <button
+              onClick={fetchFollowers}
+              disabled={refreshingFollowers}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshingFollowers ? "animate-spin" : ""}`} />
+              Coletar agora
+            </button>
           </div>
         )}
 

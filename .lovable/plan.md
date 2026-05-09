@@ -1,89 +1,59 @@
-## Problemas e melhorias a entregar
+## Diagnóstico
 
-### 1. Bug do botão de status que "fica branco"
-Em `PostDrawer.tsx` (view do aluno, ~linhas 224–249) os botões de status têm um `motion.div` com `absolute inset-0`, mas o `<button>` pai não é `position: relative`. O overlay se ancora no container do drawer e cobre toda a tela quando o status é trocado. Mesmo padrão (com efeito menor) na visão admin.
+**1. Netlify desatualizado (não é bug do código)**
+O preview do Lovable serve sempre o último commit. O Netlify só atualiza quando recebe um novo deploy do GitHub. Como as últimas correções (status do post, aba Entrega, etc.) já estão no Lovable funcionando, o que falta é o Netlify puxar o build novo.
 
-### 2. Status só para o aluno
-Hoje a seção de Status aparece também na aba do admin. O admin não deve editar o status — apenas o aluno marca "A fazer / Em produção / Publicado".
+Soluções possíveis:
+- **Opção A (recomendada):** publicar pelo próprio Lovable (botão Publish). O domínio `.lovable.app` é atualizado em segundos.
+- **Opção B:** garantir que o Netlify está conectado ao GitHub e disparar um "Trigger deploy → Clear cache and deploy site" no painel da Netlify.
+- **Opção C:** verificar se há um branch travado (Netlify pode estar fixado em `main` enquanto o Lovable comita em outro branch).
 
-### 3. IA Coach dentro de cada calendário (novo)
-O Coach IA hoje só existe na página de Métricas do aluno. O admin precisa de um Coach contextual **dentro do calendário daquele aluno** para:
-- Analisar roteiros já criados naquele calendário (entender padrões, tom de voz, temas).
-- Sugerir novos conteúdos baseados no histórico do aluno.
-- Reescrever / melhorar roteiros.
-- Atalho rápido **dentro do diálogo "Novo Conteúdo"** para gerar título/roteiro automaticamente a partir de um prompt curto, já preenchendo o formulário.
+Não há nada a "corrigir" no código para isso — os botões já estão certos no repositório.
 
-### 4. fetch-follower-snapshot não coleta
-A function lê `Deno.env.get('SERVICE_ROLE_KEY')` mas o secret correto é `SUPABASE_SERVICE_ROLE_KEY` — sem service role o upsert cai em RLS e falha silenciosamente. Além disso `platform` é gravado como `"Instagram"` / `"TikTok"` enquanto o front filtra por minúsculas.
+**2. Métricas de seguidores não estão funcionando — causa real**
+Encontrei dois problemas distintos:
 
-### 5. Gráfico diário de seguidores
-Falta um gráfico de evolução diária por plataforma em `StudentMetrics`.
+a) **Nenhum aluno tem `instagram_handle` ou `tiktok_handle` preenchido** (exceto um de teste com handles inválidos). Sem handle, a Apify não tem o que buscar. O aluno "gugu" (rota atual `/metricas/gugu`) está com os dois campos vazios.
 
-### 6. PDF sem comentários nem engajamento
-O PDF atual cobre calendário/status/categorias mas não desempenho. Faltam: likes, views, comentários, shares, taxa de engajamento e top posts.
+b) **Não existe coleta automática diária.** A função `fetch-follower-snapshot` só roda quando alguém clica no botão "Atualizar seguidores". Sem execução agendada, não há histórico diário/mensal para gerar gráficos de evolução.
+
+**3. Separação Instagram x TikTok nas métricas de POSTS**
+Hoje a aba "Métricas do ADM" só separa o card de seguidores por plataforma. Os cards de desempenho dos posts publicados (likes, views, comentários, shares) e o "Top 5 Posts" ainda misturam Instagram + TikTok. Precisa do mesmo filtro de plataforma aplicado a essa seção.
 
 ---
 
-## Plano de implementação
+## O que vou implementar
 
-### A. Fix do overlay branco no PostDrawer
-- Adicionar `relative overflow-hidden` ao `<button>` de cada pill de status.
-- Substituir o `motion.div absolute inset-0` por `ring-2 ring-white/30` direto na classe ativa (mantém o efeito visual sem o bug).
+### A. Cadastro obrigatório de handles
+- No diálogo "Novo aluno" e na edição do aluno, deixar bem claro que `@instagram` e `@tiktok` são obrigatórios para coletar métricas.
+- Mostrar um aviso amarelo no topo da página de Métricas quando o aluno estiver sem handle, com botão "Editar aluno" para preencher.
 
-### B. Remover Status da aba do admin
-- Remover o bloco "Status" do formulário admin do PostDrawer.
-- Manter um badge somente-leitura no topo mostrando o status atual.
+### B. Coleta automática diária de seguidores
+- Habilitar as extensões `pg_cron` e `pg_net` no Lovable Cloud.
+- Criar um job agendado que chama `fetch-follower-snapshot` todo dia às 03:00 UTC (00:00 horário de Brasília).
+- Resultado: a tabela `follower_snapshots` vai acumular um registro por dia/aluno/plataforma, alimentando os gráficos de evolução diária e mensal.
 
-### C. Coach IA dentro do calendário (admin)
-- Novo componente `CoachDialog.tsx`:
-  - Modal com chat simples (textarea + histórico) renderizando markdown.
-  - Recebe `posts` do contexto (`useContent`) e monta um resumo automático (categoria, título, roteiro, status) como contexto enviado ao backend.
-  - 4 ações rápidas: **Analisar calendário**, **Sugerir 3 ideias**, **Melhorar último roteiro**, **Pergunta livre**.
-- Botão **"Coach IA"** no `CalendarHeader` (admin), ícone Sparkles, abre o `CoachDialog`.
-- Em `NewPostDialog.tsx`, adicionar botão **"Gerar com IA ✨"** ao lado do título:
-  - Abre popover com input curto ("Sobre o que é esse post?").
-  - Chama `ai-content-coach` action `script` passando histórico do calendário + prompt.
-  - Resposta preenche automaticamente Título e Roteiro do formulário (admin pode editar).
+### C. Botão "Atualizar agora" mais robusto
+- Mostrar contagem detalhada (ex: "Instagram: 1.240 → 1.252 (+12)").
+- Tratar o caso `no_data` com mensagem amigável ("Verifique o handle do TikTok").
 
-### D. Endurecer ai-content-coach
-- Já está com URL correta. Adicionar:
-  - Tratamento de 401/402/429 retornando JSON com `error` legível.
-  - Aceitar `posts_context` (array resumido) além de `content` para reduzir tokens.
-  - Trocar modelo padrão para `google/gemini-2.5-flash` (resposta mais rápida; admin pode pedir Pro via flag).
-- Toasts no front quando vier `error` (créditos esgotados / rate limit).
+### D. Separar métricas dos POSTS por plataforma
+- O filtro de plataforma (`all | instagram | tiktok`) que hoje só afeta os cards de seguidores passa a filtrar também:
+  - KPIs de desempenho (Views, Likes, Comments, Shares, Engajamento)
+  - Tabela "Top 5 Posts"
+  - Gráficos de evolução de engajamento
+- Trocar o seletor para um `Tabs` com 3 abas: **Tudo / Instagram / TikTok** (mais visível que o toggle atual).
 
-### E. Corrigir fetch-follower-snapshot
-- Trocar `SERVICE_ROLE_KEY` → `SUPABASE_SERVICE_ROLE_KEY`.
-- Padronizar `platform` em minúsculas (`'instagram'`, `'tiktok'`).
-- Aceitar body opcional `{ student_id }` para refresh sob demanda de um único aluno.
-- Manter upsert por `(student_id, platform, captured_date)` — uma chamada/dia substitui o registro do dia, criando histórico diário.
-
-### F. Gráfico diário de seguidores
-- Em `StudentMetrics.tsx`, dentro das abas Instagram e TikTok, adicionar `LineChart` (Recharts) com X = `captured_date` e linha = `followers`. Mostrar Δ vs dia anterior em destaque.
-
-### G. PDF — página de Desempenho
-- Em `pdfExport.ts` aceitar `metricsByPostId` e `snapshots` como argumentos.
-- Nova página **"DESEMPENHO"** com:
-  - 4 KPIs grandes: Likes, Views, Comentários, Shares (somatórios do mês).
-  - KPI destacado: Taxa de engajamento média.
-  - Tabela top 5 posts por engajamento (Data, Título, Likes, Views, Comentários, Engajamento).
-  - Mini gráfico de evolução de seguidores no período.
-- Atualizar a chamada em `StudentMetrics` para passar essas props.
+### E. Bônus de UX
+- Quando não há snapshots ainda, mostrar mensagem "Coleta iniciada — os primeiros dados aparecem em até 24h" em vez de gráfico vazio.
 
 ---
 
-## Arquivos afetados
-- `src/components/PostDrawer.tsx` — fix do overlay e remoção do status no admin.
-- `src/components/CoachDialog.tsx` (novo) — chat do Coach IA contextual.
-- `src/components/CalendarHeader.tsx` — botão "Coach IA".
-- `src/components/NewPostDialog.tsx` — botão "Gerar com IA" preenchendo título/roteiro.
-- `supabase/functions/ai-content-coach/index.ts` — tratamento de erros + posts_context.
-- `supabase/functions/fetch-follower-snapshot/index.ts` — env var, platform, body opcional.
-- `src/pages/StudentMetrics.tsx` — gráfico diário + props extras pro PDF.
-- `src/lib/pdfExport.ts` — nova página de desempenho.
+## Detalhes técnicos
 
-## Validação
-- Testar `fetch-follower-snapshot` via invoke e checar `follower_snapshots` no banco.
-- Testar `ai-content-coach` com cada ação e validar tratamento de erro.
-- Confirmar visualmente o fix do botão de status (sem overlay branco) no admin e no aluno.
-- QA visual do PDF gerado (renderizar páginas como imagem antes de entregar).
+**Arquivos afetados:**
+- `src/pages/StudentMetrics.tsx` — refator do filtro de plataforma para abranger toda a página + estado vazio + aviso de handle
+- `src/components/NewStudentDialog.tsx` — destacar handles obrigatórios
+- Migração SQL — `pg_cron` + `pg_net` + job `cron.schedule('daily-follower-snapshot', '0 3 * * *', ...)` chamando a edge function via `net.http_post` com a service role key
+
+**Sobre a API:** a Apify que já está conectada cobre tanto seguidores quanto posts (Instagram + TikTok). Não precisa contratar nada novo. O que faltava era preencher os handles e agendar a execução.

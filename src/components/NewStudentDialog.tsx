@@ -75,6 +75,10 @@ export const NewStudentDialog = ({ open, onClose, onCreated }: Props) => {
             <p className="text-[11px] text-muted-foreground mt-1">Com DDI (55) e DDD.</p>
           </div>
 
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-200">
+            ⚠️ Preencha pelo menos um @ abaixo para coletar seguidores diariamente.
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -89,7 +93,7 @@ export const NewStudentDialog = ({ open, onClose, onCreated }: Props) => {
                   className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1">Para monitorar seguidores.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Necessário para métricas.</p>
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -104,7 +108,7 @@ export const NewStudentDialog = ({ open, onClose, onCreated }: Props) => {
                   className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1">Opcional.</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Necessário para métricas.</p>
             </div>
           </div>
 
