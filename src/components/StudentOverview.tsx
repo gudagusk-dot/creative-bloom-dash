@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { useContent } from "@/context/ContentContext";
-import { format, isToday, isSameDay, addDays, isBefore, startOfDay, parseISO } from "date-fns";
+import { format, isSameDay, addDays, isBefore, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, AlertCircle, CheckCircle2, ChevronRight, LayoutDashboard } from "lucide-react";
-import { motion } from "framer-motion";
 import { ContentPost } from "@/data/content";
+import { PostDrawer } from "./PostDrawer";
 
 export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void }) => {
   const { filteredPosts, getCategoryColor } = useContent();
+  const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const today = new Date();
-  
+
   const todayPosts = filteredPosts.filter(p => isSameDay(parseISO(p.date), today));
   const upcomingPosts = filteredPosts
     .filter(p => {
@@ -16,8 +18,8 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
       return isBefore(today, date) && isBefore(date, addDays(today, 7)) && !isSameDay(date, today);
     })
     .sort((a, b) => a.date.localeCompare(b.date));
-    
-  const overduePosts = filteredPosts.filter(p => 
+
+  const overduePosts = filteredPosts.filter(p =>
     p.status === "A fazer" && isBefore(parseISO(p.date), startOfDay(today))
   );
 
@@ -34,10 +36,12 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
         <p className="text-muted-foreground mt-2 font-medium">Aqui está um resumo do seu planejamento de conteúdo.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="md:col-span-2 space-y-8 order-2 md:order-1">
+      {/* Mobile = single flex column with explicit order; Desktop = 2/3 + 1/3 grid */}
+      <div className="flex flex-col gap-6 md:grid md:grid-cols-3 md:gap-6 mb-10">
+        {/* Left column wrapper — `contents` on mobile so its children flow into the parent flex */}
+        <div className="contents md:block md:col-span-2 md:space-y-8">
           {/* Today section */}
-          <section>
+          <section className="order-1 md:order-none">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Clock className="h-4 w-4 text-primary" />
@@ -47,7 +51,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
             {todayPosts.length > 0 ? (
               <div className="grid gap-3">
                 {todayPosts.map(post => (
-                  <PostSummaryCard key={post.id} post={post} color={getCategoryColor(post.category)} />
+                  <PostSummaryCard key={post.id} post={post} color={getCategoryColor(post.category)} onClick={() => setSelectedPost(post)} />
                 ))}
               </div>
             ) : (
@@ -58,7 +62,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
           </section>
 
           {/* Upcoming section */}
-          <section>
+          <section className="order-2 md:order-none">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-cat-educativo/10 flex items-center justify-center">
                 <Calendar className="h-4 w-4 text-cat-educativo" />
@@ -68,7 +72,7 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
             {upcomingPosts.length > 0 ? (
               <div className="grid gap-3">
                 {upcomingPosts.map(post => (
-                  <PostSummaryCard key={post.id} post={post} color={getCategoryColor(post.category)} showDate />
+                  <PostSummaryCard key={post.id} post={post} color={getCategoryColor(post.category)} showDate onClick={() => setSelectedPost(post)} />
                 ))}
               </div>
             ) : (
@@ -77,9 +81,23 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
           </section>
         </div>
 
-        <div className="space-y-6 order-1 md:order-2 flex flex-col">
+        {/* Right column wrapper */}
+        <div className="contents md:flex md:flex-col md:gap-6">
+          {/* Quick link — order 3 on mobile, comes first visually on desktop side */}
+          <button
+            onClick={onShowCalendar}
+            className="w-full group bg-primary text-primary-foreground rounded-2xl p-6 shadow-soft-md hover:shadow-soft-lg transition-all flex items-center justify-between overflow-hidden relative order-3 md:order-none"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+            <div className="relative text-left">
+              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Acesso completo</p>
+              <h3 className="font-display text-xl font-medium">Ver Calendário</h3>
+            </div>
+            <ChevronRight className="h-6 w-6 relative group-hover:translate-x-1 transition-transform" />
+          </button>
+
           {/* Stats card */}
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft order-3 md:order-1">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft order-4 md:order-none">
             <h3 className="font-display text-lg font-medium mb-4 flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4 text-primary" />
               Desempenho do Mês
@@ -109,13 +127,13 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
 
           {/* Overdue alert */}
           {overduePosts.length > 0 && (
-            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 order-2 md:order-2">
+            <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 order-5 md:order-none">
               <div className="flex items-center gap-2 text-destructive mb-3">
                 <AlertCircle className="h-5 w-5" />
                 <h4 className="font-semibold text-sm">Posts Pendentes</h4>
               </div>
               <p className="text-xs text-destructive/80 mb-4 font-medium">Você tem {overduePosts.length} post{overduePosts.length > 1 ? "s" : ""} que já deveria{overduePosts.length > 1 ? "m" : ""} ter sido publicado{overduePosts.length > 1 ? "s" : ""}.</p>
-              <button 
+              <button
                 onClick={onShowCalendar}
                 className="w-full py-2 bg-destructive text-destructive-foreground rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
               >
@@ -123,28 +141,21 @@ export const StudentOverview = ({ onShowCalendar }: { onShowCalendar: () => void
               </button>
             </div>
           )}
-
-          {/* Quick link */}
-          <button 
-            onClick={onShowCalendar}
-            className="w-full group bg-primary text-primary-foreground rounded-2xl p-6 shadow-soft-md hover:shadow-soft-lg transition-all flex items-center justify-between overflow-hidden relative order-1 md:order-3"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
-            <div className="relative text-left">
-              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Acesso completo</p>
-              <h3 className="font-display text-xl font-medium">Ver Calendário</h3>
-            </div>
-            <ChevronRight className="h-6 w-6 relative group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
       </div>
+
+      <PostDrawer post={selectedPost} onClose={() => setSelectedPost(null)} />
     </div>
   );
 };
 
-const PostSummaryCard = ({ post, color, showDate }: { post: ContentPost; color: string; showDate?: boolean }) => {
+const PostSummaryCard = ({ post, color, showDate, onClick }: { post: ContentPost; color: string; showDate?: boolean; onClick?: () => void }) => {
   return (
-    <div className="bg-card rounded-2xl border border-border/60 p-4 hover:shadow-soft transition-all flex items-center gap-4 group">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left bg-card rounded-2xl border border-border/60 p-4 hover:shadow-soft hover:border-primary/30 hover:-translate-y-0.5 transition-all flex items-center gap-4 group focus:outline-none focus:ring-2 focus:ring-primary/30"
+    >
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: color + "15" }}>
         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
       </div>
@@ -168,6 +179,6 @@ const PostSummaryCard = ({ post, color, showDate }: { post: ContentPost; color: 
           </div>
         )}
       </div>
-    </div>
+    </button>
   );
 };
