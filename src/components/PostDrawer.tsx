@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram } from "lucide-react";
 import { TikTokIcon } from "./TikTokIcon";
 import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
@@ -83,6 +84,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       updates.published_url = newLink;
       if (!isAdmin && ownerForLog && newLink.trim()) {
         await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newLink });
+        supabase.functions.invoke("fetch-post-metrics", { body: { post_id: post.id } }).catch(console.error);
       }
     }
     
@@ -90,6 +92,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       updates.instagram_published_url = newInstagramLink;
       if (!isAdmin && ownerForLog && newInstagramLink.trim()) {
         await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newInstagramLink, platform: "Instagram" });
+        supabase.functions.invoke("fetch-post-metrics", { body: { post_id: post.id } }).catch(console.error);
       }
     }
 
@@ -97,6 +100,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       updates.tiktok_published_url = newTiktokLink;
       if (!isAdmin && ownerForLog && newTiktokLink.trim()) {
         await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newTiktokLink, platform: "TikTok" });
+        supabase.functions.invoke("fetch-post-metrics", { body: { post_id: post.id } }).catch(console.error);
       }
     }
 
