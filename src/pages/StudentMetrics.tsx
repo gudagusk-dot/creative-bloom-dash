@@ -136,13 +136,12 @@ const StudentMetrics = () => {
       const { data, error } = await supabase.functions.invoke("ai-content-coach", {
         body: { 
           action, 
-          content: action === 'analyze' || action === 'suggest' ? contentContext : coachInput,
+          content: contentContext,
           context: contentContext
         }
       });
       if (error) throw error;
       setCoachResponse(data.text);
-      if (action !== 'analyze' && action !== 'suggest') setCoachInput("");
     } catch (e: any) {
       toast.error("Erro ao consultar o Brenda IA");
     } finally {
