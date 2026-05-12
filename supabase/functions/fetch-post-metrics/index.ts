@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: posts, error: pErr } = await supabase
       .from("content_posts")
-      .select("id, published_url, title")
+      .select("id, published_url, instagram_published_url, tiktok_published_url, title")
       .in("id", postIds);
     if (pErr) {
       console.error("[db] select error", pErr);
@@ -109,36 +109,47 @@ Deno.serve(async (req) => {
     const results: Array<{ post_id: string; ok: boolean; error?: string; metrics?: any }> = [];
 
     for (const p of posts ?? []) {
-      if (!p.published_url) {
+      const urls = [
+        { url: p.instagram_published_url, type: "instagram" },
+        { url: p.tiktok_published_url, type: "tiktok" },
+        { url: p.published_url, type: null } // Legacy fallback
+      ].filter(item => item.url);
+
+      if (urls.length === 0) {
         results.push({ post_id: p.id, ok: false, error: "Sem link publicado" });
         continue;
       }
-      try {
-        const m = await scrape(p.published_url);
-        const engagement = m.views > 0 ? ((m.likes + m.comments + m.shares) / m.views) * 100 : 0;
-        const { error: upErr } = await supabase
-          .from("post_metrics")
-          .upsert({
-            post_id: p.id,
-            platform: m.platform,
-            likes: m.likes,
-            views: m.views,
-            comments: m.comments,
-            shares: m.shares,
-            engagement_rate: Number(engagement.toFixed(2)),
-            raw: m.raw,
-            fetched_at: new Date().toISOString(),
-          }, { onConflict: "post_id" });
-        if (upErr) {
-          console.error("[db] upsert error", upErr);
-          throw upErr;
+
+      for (const item of urls) {
+        try {
+          const m = await scrape(item.url!);
+          const engagement = m.views > 0 ? ((m.likes + m.comments + m.shares) / m.views) * 100 : 0;
+          
+          const { error: upErr } = await supabase
+            .from("post_metrics")
+            .upsert({
+              post_id: p.id,
+              platform: m.platform,
+              likes: m.likes,
+              views: m.views,
+              comments: m.comments,
+              shares: m.shares,
+              engagement_rate: Number(engagement.toFixed(2)),
+              raw: m.raw,
+              fetched_at: new Date().toISOString(),
+            }, { onConflict: "post_id,platform" });
+
+          if (upErr) {
+            console.error("[db] upsert error", upErr);
+            throw upErr;
+          }
+          console.log(`[ok] post=${p.id} platform=${m.platform} likes=${m.likes} views=${m.views}`);
+          results.push({ post_id: p.id, ok: true, metrics: m });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[fail] post=${p.id} url=${item.url} ${msg}`);
+          results.push({ post_id: p.id, ok: false, error: msg });
         }
-        console.log(`[ok] post=${p.id} likes=${m.likes} views=${m.views}`);
-        results.push({ post_id: p.id, ok: true, metrics: m });
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        console.error(`[fail] post=${p.id} ${msg}`);
-        results.push({ post_id: p.id, ok: false, error: msg });
       }
     }
 
