@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle } from "lucide-react";
+import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram } from "lucide-react";
+import { TikTokIcon } from "./TikTokIcon";
 import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
 import { useContent } from "@/context/ContentContext";
 import { RichTextEditor } from "./RichTextEditor";
@@ -31,6 +32,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
   const [notes, setNotes] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [publishedUrl, setPublishedUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [tiktokUrl, setTiktokUrl] = useState("");
   const [studentNotes, setStudentNotes] = useState("");
   const [editingScript, setEditingScript] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,6 +54,8 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       setNotes(post.notes);
       setMediaUrls(post.media_urls || []);
       setPublishedUrl(post.published_url || "");
+      setInstagramUrl(post.instagram_published_url || "");
+      setTiktokUrl(post.tiktok_published_url || "");
       setStudentNotes(post.student_notes || "");
       setDirty(false);
       setEditingScript(false);
@@ -61,7 +66,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
   const markDirty = () => setDirty(true);
 
-  const handleAutoSave = useCallback(async (newStatus?: PostStatus, newLink?: string, newNotes?: string) => {
+  const handleAutoSave = useCallback(async (newStatus?: PostStatus, newLink?: string, newNotes?: string, newInstagramLink?: string, newTiktokLink?: string) => {
     if (!post) return;
     
     const ownerForLog = ownerId || "";
@@ -78,6 +83,20 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
       updates.published_url = newLink;
       if (!isAdmin && ownerForLog && newLink.trim()) {
         await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newLink });
+      }
+    }
+    
+    if (newInstagramLink !== undefined && newInstagramLink !== (post.instagram_published_url || "")) {
+      updates.instagram_published_url = newInstagramLink;
+      if (!isAdmin && ownerForLog && newInstagramLink.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newInstagramLink, platform: "Instagram" });
+      }
+    }
+
+    if (newTiktokLink !== undefined && newTiktokLink !== (post.tiktok_published_url || "")) {
+      updates.tiktok_published_url = newTiktokLink;
+      if (!isAdmin && ownerForLog && newTiktokLink.trim()) {
+        await logActivity(post.id, ownerForLog, studentId, "link_added", { url: newTiktokLink, platform: "TikTok" });
       }
     }
 
@@ -105,7 +124,7 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         title, format: postFormat, category, network, date, status, script, notes, media_urls: mediaUrls,
       });
     } else {
-      await handleAutoSave(status, publishedUrl, studentNotes);
+      await handleAutoSave(status, publishedUrl, studentNotes, instagramUrl, tiktokUrl);
     }
     setSaving(false);
     setDirty(false);
@@ -286,24 +305,50 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                 />
               </div>
 
-              <div className="pt-4">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
-                <input
-                  type="url"
-                  value={publishedUrl}
-                  onChange={e => {
-                    setPublishedUrl(e.target.value);
-                    markDirty();
-                  }}
-                  onBlur={() => handleAutoSave(undefined, publishedUrl)}
-                  placeholder="https://instagram.com/p/..."
-                  className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
-                />
-                {publishedUrl && (
-                  <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
-                    <ExternalLink className="h-3 w-3" /> Abrir link
-                  </a>
-                )}
+              <div className="pt-4 grid grid-cols-1 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Instagram className="h-3.5 w-3.5" /> Link do post (Instagram)
+                  </label>
+                  <input
+                    type="url"
+                    value={instagramUrl}
+                    onChange={e => {
+                      setInstagramUrl(e.target.value);
+                      markDirty();
+                    }}
+                    onBlur={() => handleAutoSave(undefined, undefined, undefined, instagramUrl)}
+                    placeholder="https://instagram.com/p/..."
+                    className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
+                  />
+                  {instagramUrl && (
+                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
+                      <ExternalLink className="h-3 w-3" /> Abrir Instagram
+                    </a>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <TikTokIcon className="h-3.5 w-3.5" /> Link do post (TikTok)
+                  </label>
+                  <input
+                    type="url"
+                    value={tiktokUrl}
+                    onChange={e => {
+                      setTiktokUrl(e.target.value);
+                      markDirty();
+                    }}
+                    onBlur={() => handleAutoSave(undefined, undefined, undefined, undefined, tiktokUrl)}
+                    placeholder="https://tiktok.com/@user/video/..."
+                    className="w-full mt-2 p-3 rounded-lg border border-border bg-background text-foreground text-sm focus:ring-2 focus:ring-primary/30 focus:outline-none transition-shadow"
+                  />
+                  {tiktokUrl && (
+                    <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline">
+                      <ExternalLink className="h-3 w-3" /> Abrir TikTok
+                    </a>
+                  )}
+                </div>
               </div>
 
               <div className="pt-4">
@@ -447,15 +492,32 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
 
           {isAdmin && adminTab === "entrega" && (
             <>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link do post publicado</label>
-                {publishedUrl ? (
-                  <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0" /> {publishedUrl}
-                  </a>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic mt-2">Aluno ainda não enviou o link.</p>
-                )}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Instagram className="h-3.5 w-3.5" /> Link do post (Instagram)
+                  </label>
+                  {instagramUrl ? (
+                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" /> {instagramUrl}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic mt-2">Aluno ainda não enviou o link do Instagram.</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <TikTokIcon className="h-3.5 w-3.5" /> Link do post (TikTok)
+                  </label>
+                  {tiktokUrl ? (
+                    <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all">
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0" /> {tiktokUrl}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic mt-2">Aluno ainda não enviou o link do TikTok.</p>
+                  )}
+                </div>
               </div>
 
               <div>
