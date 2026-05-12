@@ -127,7 +127,7 @@ const StudentMetrics = () => {
     }
   };
 
-  const handleAskCoach = async (action: 'analyze' | 'suggest' | 'rewrite' | 'script') => {
+  const handleAskCoach = async (action: 'analyze' | 'suggest_improvements' | 'performance_analysis') => {
     if (coachLoading) return;
     setCoachLoading(true);
     try {
@@ -568,11 +568,11 @@ const StudentMetrics = () => {
               </div>
               <div>
                 <h3 className="font-display text-lg font-medium text-foreground">Brenda IA</h3>
-                <p className="text-xs text-muted-foreground">Analise seu desempenho e gere novas ideias estratégicas</p>
+                <p className="text-xs text-muted-foreground">Analise seu desempenho e receba sugestões estratégicas</p>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-3 mb-6">
+            <div className="grid md:grid-cols-3 gap-3 mb-6">
               <button 
                 onClick={() => handleAskCoach('analyze')}
                 disabled={coachLoading}
@@ -586,35 +586,28 @@ const StudentMetrics = () => {
               </button>
 
               <button 
-                onClick={() => handleAskCoach('suggest')}
+                onClick={() => handleAskCoach('suggest_improvements')}
                 disabled={coachLoading}
                 className="p-4 rounded-xl bg-background border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
               >
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 mb-3 group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-3 group-hover:scale-110 transition-transform">
                   <Sparkles className="h-4 w-4" />
                 </div>
-                <h4 className="text-sm font-medium mb-1">Sugerir Ideias</h4>
-                <p className="text-[10px] text-muted-foreground">3 novas ideias baseadas no seu histórico</p>
+                <h4 className="text-sm font-medium mb-1">Melhorar Perfil</h4>
+                <p className="text-[10px] text-muted-foreground">Sugestões de melhorias baseadas nos dados</p>
               </button>
 
-              <div className="md:col-span-2 p-4 rounded-xl bg-background border border-border">
-                <h4 className="text-sm font-medium mb-3">Melhorar ou Criar Roteiro</h4>
-                <div className="flex gap-2">
-                  <input 
-                    value={coachInput}
-                    onChange={e => setCoachInput(e.target.value)}
-                    placeholder="Cole um roteiro ou um tema..."
-                    className="flex-1 text-xs bg-secondary/50 border-none rounded-lg px-3 focus:ring-1 focus:ring-primary"
-                  />
-                  <button 
-                    onClick={() => handleAskCoach(coachInput.length > 20 ? 'rewrite' : 'script')}
-                    disabled={coachLoading || !coachInput.trim()}
-                    className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
-                  >
-                    {coachLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </button>
+              <button 
+                onClick={() => handleAskCoach('performance_analysis')}
+                disabled={coachLoading}
+                className="p-4 rounded-xl bg-background border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left group disabled:opacity-50"
+              >
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500 mb-3 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="h-4 w-4" />
                 </div>
-              </div>
+                <h4 className="text-sm font-medium mb-1">Análise de Performance</h4>
+                <p className="text-[10px] text-muted-foreground">O que performou bem e por quê?</p>
+              </button>
             </div>
 
             {coachResponse && (
