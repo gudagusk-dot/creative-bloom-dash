@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, content, context, posts_context, format, theme, model: modelOverride, scraped } = await req.json()
+    const { action, content, context, posts_context, format, theme, model: modelOverride, scraped, platform_filter } = await req.json()
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
 
     if (!LOVABLE_API_KEY) {
@@ -25,8 +25,11 @@ serve(async (req) => {
     if (Array.isArray(posts_context) && posts_context.length) {
       calendarSummary = posts_context.slice(0, 30).map((p: any, i: number) => {
         const script = (p.script || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240)
-        return `${i + 1}. [${p.category || "—"}] ${p.title} (${p.format} · ${p.network} · ${p.status})${script ? `\n   Roteiro: ${script}` : ""}`
-      }).join("\n")
+        const metricsStr = (p.metrics || []).map((m: any) => 
+          `${m.platform}: ${m.views}v, ${m.likes}c, ${m.comments}com, ${m.engagement_rate}% eng`
+        ).join(" | ")
+        return `${i + 1}. [${p.category || "—"}] ${p.title} (${p.format} · ${p.network} · ${p.status})${metricsStr ? `\nMétricas: ${metricsStr}` : ""}${script ? `\nRoteiro: ${script}` : ""}`
+      }).join("\n\n")
     }
 
     const systemPrompt = `Você é a **Brenda IA** — estrategista sênior de social media e copywriter de elite, fluente em qualquer nicho.
