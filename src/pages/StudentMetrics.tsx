@@ -132,13 +132,31 @@ const StudentMetrics = () => {
     if (coachLoading) return;
     setCoachLoading(true);
     try {
-      const contentContext = monthPosts.map(p => `- ${p.title} (${p.category})`).join('\n');
+      const postsContext = monthPosts.map(p => {
+        const pMetrics = metrics[p.id] || [];
+        return {
+          title: p.title,
+          category: p.category,
+          format: p.format,
+          network: p.network,
+          status: p.status,
+          script: p.script,
+          metrics: pMetrics.map(m => ({
+            platform: m.platform,
+            likes: m.likes,
+            views: m.views,
+            comments: m.comments,
+            shares: m.shares,
+            engagement_rate: m.engagement_rate
+          }))
+        };
+      });
       
       const { data, error } = await supabase.functions.invoke("ai-content-coach", {
         body: { 
           action, 
-          content: contentContext,
-          context: contentContext
+          posts_context: postsContext,
+          platform_filter: platformFilter
         }
       });
       if (error) throw error;
