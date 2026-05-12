@@ -20,6 +20,7 @@ import {
   LineChart, Line, AreaChart, Area
 } from "recharts";
 import { TikTokIcon } from "@/components/TikTokIcon";
+import ReactMarkdown from "react-markdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -609,14 +610,31 @@ const StudentMetrics = () => {
               </button>
             </div>
 
-            {coachResponse && (
+            {coachLoading && (
+              <div className="bg-background/80 backdrop-blur rounded-xl border border-primary/20 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary animate-pulse" />
+                    </div>
+                    <div className="absolute -inset-1 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">Brenda IA está trabalhando...</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Analisando seu calendário e gerando insights estratégicos</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {coachResponse && !coachLoading && (
               <div className="bg-background/80 backdrop-blur rounded-xl border border-primary/20 p-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Resposta da Brenda</span>
                   <button onClick={() => setCoachResponse("")} className="text-muted-foreground hover:text-foreground text-xs">Limpar</button>
                 </div>
-                <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                  {coachResponse}
+                <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-display prose-headings:font-medium prose-h2:text-lg prose-h2:mt-0 prose-h2:mb-3 prose-h3:text-sm prose-h3:mt-4 prose-h3:mb-2 prose-h3:text-primary prose-p:text-sm prose-p:leading-relaxed prose-p:my-2 prose-ul:my-2 prose-ul:pl-4 prose-li:text-sm prose-li:my-1 prose-strong:text-foreground prose-strong:font-semibold prose-hr:my-4 prose-hr:border-border">
+                  <ReactMarkdown>{coachResponse}</ReactMarkdown>
                 </div>
               </div>
             )}
