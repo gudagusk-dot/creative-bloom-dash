@@ -17,6 +17,8 @@ export interface ContentPost {
   script: string; // roteiro - rich text HTML
   media_urls?: string[];
   published_url?: string;
+  instagram_published_url?: string;
+  tiktok_published_url?: string;
   student_notes?: string;
 }
 

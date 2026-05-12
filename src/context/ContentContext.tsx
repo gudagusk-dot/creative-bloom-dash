@@ -54,6 +54,8 @@ const mapRow = (p: any): ContentPost => ({
   script: p.script,
   media_urls: p.media_urls || [],
   published_url: p.published_url || "",
+  instagram_published_url: p.instagram_published_url || "",
+  tiktok_published_url: p.tiktok_published_url || "",
   student_notes: p.student_notes || "",
 });
 
