@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram } from "lucide-react";
 import { TikTokIcon } from "./TikTokIcon";
 import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
