@@ -705,8 +705,23 @@ const StudentMetrics = () => {
                 </thead>
                 <tbody>
                   {monthPosts.map(p => {
-                    const m = metrics[p.id];
+                    const pMetrics = (metrics[p.id] || []).filter(m => platformFilter === "all" || m.platform.toLowerCase() === platformFilter);
+                    const hasMetrics = pMetrics.length > 0;
+                    
+                    const agg = pMetrics.reduce((acc, curr) => ({
+                      views: acc.views + curr.views,
+                      likes: acc.likes + curr.likes,
+                      comments: acc.comments + curr.comments,
+                      engagement_rate: acc.engagement_rate + (curr.engagement_rate || 0)
+                    }), { views: 0, likes: 0, comments: 0, engagement_rate: 0 });
+                    
+                    if (hasMetrics && platformFilter === "all") {
+                      agg.engagement_rate = agg.engagement_rate / pMetrics.length;
+                    }
+
                     const catColor = getCategoryColor(p.category);
+                    const mainLink = p.instagram_published_url || p.tiktok_published_url || p.published_url;
+
                     return (
                       <tr key={p.id} className="border-t border-border/40 hover:bg-secondary/30 transition-colors">
                         <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(p.date + "T12:00:00"), "dd/MM")}</td>
@@ -717,22 +732,32 @@ const StudentMetrics = () => {
                             {p.category}
                           </span>
                         </td>
-                        <td className="px-3 py-3 text-right tabular-nums text-xs">{m ? m.views.toLocaleString("pt-BR") : "—"}</td>
-                        <td className="px-3 py-3 text-right tabular-nums text-xs">{m ? m.likes.toLocaleString("pt-BR") : "—"}</td>
-                        <td className="px-3 py-3 text-right tabular-nums text-xs">{m ? m.comments.toLocaleString("pt-BR") : "—"}</td>
-                        <td className="px-3 py-3 text-right tabular-nums text-xs font-medium">{m ? `${m.engagement_rate.toFixed(1)}%` : "—"}</td>
+                        <td className="px-3 py-3 text-right tabular-nums text-xs">{hasMetrics ? agg.views.toLocaleString("pt-BR") : "—"}</td>
+                        <td className="px-3 py-3 text-right tabular-nums text-xs">{hasMetrics ? agg.likes.toLocaleString("pt-BR") : "—"}</td>
+                        <td className="px-3 py-3 text-right tabular-nums text-xs">{hasMetrics ? agg.comments.toLocaleString("pt-BR") : "—"}</td>
+                        <td className="px-3 py-3 text-right tabular-nums text-xs font-medium">{hasMetrics ? `${agg.engagement_rate.toFixed(1)}%` : "—"}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            {p.published_url && (
+                            {p.instagram_published_url && (
+                              <a href={p.instagram_published_url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Abrir Instagram">
+                                <Instagram className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                            {p.tiktok_published_url && (
+                              <a href={p.tiktok_published_url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Abrir TikTok">
+                                <TikTokIcon className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                            {!p.instagram_published_url && !p.tiktok_published_url && p.published_url && (
                               <a href={p.published_url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Abrir post">
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </a>
                             )}
                             <button
                               onClick={() => fetchOne(p.id)}
-                              disabled={!p.published_url || refreshingId === p.id}
+                              disabled={!mainLink || refreshingId === p.id}
                               className="p-1.5 rounded-lg hover:bg-secondary text-primary disabled:opacity-30 transition-colors"
-                              title={p.published_url ? "Atualizar métricas" : "Adicione o link no calendário"}
+                              title={mainLink ? "Atualizar métricas" : "Adicione o link no calendário"}
                             >
                               <RefreshCw className={`h-3.5 w-3.5 ${refreshingId === p.id ? "animate-spin" : ""}`} />
                             </button>
