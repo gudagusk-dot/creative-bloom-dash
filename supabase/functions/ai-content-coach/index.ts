@@ -162,31 +162,41 @@ Use EXATAMENTE este formato Markdown:
 CALENDÁRIO ATUAL DO ALUNO:
 ${calendarSummary}`
     } else if (action === 'performance_analysis') {
-      prompt = `Realize uma análise detalhada dos conteúdos publicados no calendário abaixo, identificando o que performou bem e por quê.
+      prompt = `Realize uma análise detalhada dos conteúdos publicados no calendário abaixo. 
+      IMPORTANTE: Separe a análise de desempenho por rede social (Instagram e TikTok).
 
-Use EXATAMENTE este formato Markdown:
+      Use EXATAMENTE este formato Markdown:
 
-## 📊 Análise de Performance de Conteúdo
+      ## 📊 Análise de Performance por Rede Social
 
-### 🏆 Conteúdos de Alta Performance
-- **O quê:** ...
-- **Por que funcionou:** ...
+      ### 📸 Instagram
+      - **Resumo de Performance:** ...
+      - **Conteúdos de Destaque:** ...
+      - **O que funcionou:** ...
 
-### 🔁 Padrões Identificados
-(Analise ganchos, temas ou formatos que se repetem com sucesso)
-- ...
+      ### 📱 TikTok
+      - **Resumo de Performance:** ...
+      - **Conteúdos de Destaque:** ...
+      - **O que funcionou:** ...
 
-### 📉 O que pode ser evitado ou ajustado
-- ...
+      ---
 
----
+      ## 🏆 Top Conteúdos Geral
+      - **O quê:** ...
+      - **Por que funcionou:** ...
 
-## 💡 Próximos Passos
-(Sugira como replicar os sucessos em novos conteúdos)
-- ...
+      ## 🔁 Padrões Identificados
+      (Analise ganchos, temas ou formatos que se repetem com sucesso nas diferentes redes)
+      - ...
 
-CALENDÁRIO ATUAL DO ALUNO:
-${calendarSummary}`
+      ---
+
+      ## 💡 Próximos Passos (Estratégia Cross-Media)
+      (Sugira como replicar os sucessos e adaptar conteúdos de uma rede para a outra)
+      - ...
+
+      CALENDÁRIO E MÉTRICAS DO ALUNO:
+      ${calendarSummary}`
     } else if (action === 'rewrite') {
       prompt = `Reescreva o roteiro abaixo aplicando copywriting de alto nível: gancho cirúrgico, ritmo, micro-loops, prova e CTA de baixa fricção. Mantenha o objetivo central.
 
