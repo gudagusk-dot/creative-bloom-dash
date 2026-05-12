@@ -43,7 +43,7 @@ const StudentMetrics = () => {
   const { categories, getCategoryColor } = useContent();
   const [student, setStudent] = useState<Student | null>(null);
   const [posts, setPosts] = useState<ContentPost[]>([]);
-  const [metrics, setMetrics] = useState<Record<string, PostMetric>>({});
+  const [metrics, setMetrics] = useState<Record<string, PostMetric[]>>({});
   const [snapshots, setSnapshots] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
@@ -83,8 +83,11 @@ const StudentMetrics = () => {
         .from("post_metrics")
         .select("*")
         .in("post_id", ps.map(p => p.id));
-      const map: Record<string, PostMetric> = {};
-      (m || []).forEach((row: any) => { map[row.post_id] = row; });
+      const map: Record<string, PostMetric[]> = {};
+      (m || []).forEach((row: any) => { 
+        if (!map[row.post_id]) map[row.post_id] = [];
+        map[row.post_id].push(row as PostMetric); 
+      });
       setMetrics(map);
     }
     setLoading(false);
@@ -241,7 +244,10 @@ const StudentMetrics = () => {
   }, [posts, month, platformFilter]);
 
   const kpis = useMemo(() => {
-    const ms = monthPosts.map(p => metrics[p.id]).filter(Boolean) as PostMetric[];
+    const ms = monthPosts.flatMap(p => metrics[p.id] || []).filter(m => {
+      if (platformFilter === "all") return true;
+      return m.platform.toLowerCase() === platformFilter;
+    });
     const sum = (k: keyof PostMetric) => ms.reduce((a, b) => a + (Number(b[k]) || 0), 0);
     const avgEng = ms.length ? ms.reduce((a, b) => a + b.engagement_rate, 0) / ms.length : 0;
     return {
@@ -277,7 +283,7 @@ const StudentMetrics = () => {
   };
 
   const fetchAll = async () => {
-    const withLinks = monthPosts.filter(p => p.published_url);
+    const withLinks = monthPosts.filter(p => p.instagram_published_url || p.tiktok_published_url || p.published_url);
     if (!withLinks.length) {
       toast.info("Nenhum post com link publicado neste mês");
       return;
@@ -308,7 +314,19 @@ const StudentMetrics = () => {
 
   const topPosts = useMemo(() => {
     return monthPosts
-      .map(p => ({ ...p, m: metrics[p.id] }))
+      .map(p => {
+        const pMetrics = (metrics[p.id] || []).filter(m => platformFilter === "all" || m.platform.toLowerCase() === platformFilter);
+        if (pMetrics.length === 0) return { ...p, m: null };
+        
+        // Aggregate if multiple platforms and platformFilter is "all"
+        const agg = pMetrics.reduce((acc, curr) => ({
+          views: acc.views + curr.views,
+          likes: acc.likes + curr.likes,
+          comments: acc.comments + curr.comments,
+        }), { views: 0, likes: 0, comments: 0 });
+        
+        return { ...p, m: agg };
+      })
       .filter(p => p.m)
       .sort((a, b) => (b.m!.views + b.m!.likes) - (a.m!.views + a.m!.likes))
       .slice(0, 5)
