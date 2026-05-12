@@ -42,6 +42,7 @@ export type Database = {
           date: string
           format: string
           id: string
+          instagram_published_url: string | null
           media_urls: string[]
           network: string
           notes: string
@@ -50,6 +51,7 @@ export type Database = {
           status: string
           student_id: string | null
           student_notes: string
+          tiktok_published_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -60,6 +62,7 @@ export type Database = {
           date: string
           format: string
           id?: string
+          instagram_published_url?: string | null
           media_urls?: string[]
           network: string
           notes?: string
@@ -68,6 +71,7 @@ export type Database = {
           status?: string
           student_id?: string | null
           student_notes?: string
+          tiktok_published_url?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -78,6 +82,7 @@ export type Database = {
           date?: string
           format?: string
           id?: string
+          instagram_published_url?: string | null
           media_urls?: string[]
           network?: string
           notes?: string
@@ -86,6 +91,7 @@ export type Database = {
           status?: string
           student_id?: string | null
           student_notes?: string
+          tiktok_published_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string
