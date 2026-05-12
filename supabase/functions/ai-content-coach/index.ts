@@ -130,54 +130,57 @@ Use EXATAMENTE este formato Markdown (mantenha os emojis):
 
 CALENDÁRIO:
 ${calendarSummary}`
-    } else if (action === 'suggest') {
-      const fmtMap: Record<string, string> = {
-        video: "Reels / TikTok (vídeo curto vertical)",
-        carrossel: "Carrossel (Instagram, 6-10 slides)",
-        ambos: "Misto: alterne entre Reels/TikTok e Carrossel",
-      }
-      const formatLine = format && fmtMap[format] ? `FORMATO SOLICITADO: ${fmtMap[format]}` : "FORMATO: livre (escolha o melhor para cada ideia)"
-      const themeLine = theme ? `TEMA/OBJETIVO DO BRIEFING: ${theme}` : ""
+    } else if (action === 'suggest_improvements') {
+      prompt = `Com base no calendário abaixo, forneça sugestões de melhorias estratégicas para o perfil do aluno.
+      
+Use EXATAMENTE este formato Markdown:
 
-      prompt = `Com base no calendário abaixo e no briefing, gere **exatamente 3 ideias** de posts — criativas, específicas para o NICHO detectado no calendário, alinhadas ao estilo do aluno mas trazendo variedade e ganchos fortes.
+## 🚀 Sugestões de Melhoria de Perfil
 
-${formatLine}
-${themeLine}
+### 🕵️ Diagnóstico de Posicionamento
+- ...
 
-Use EXATAMENTE este template Markdown para CADA uma das 3 ideias, separadas por "---":
+### 🎨 Melhorias Visuais e de Formato
+- ...
 
-## 💡 Ideia N — [Título magnético do post]
+### ✍️ Otimização de Bio e Linha Editorial
+- ...
 
-### 📌 Resumo da ideia
-(1-2 linhas explicando o ângulo e por que funciona)
-
-### 🎯 Detalhes
-- **Formato:** ...
-- **Plataforma:** ...
-- **Categoria:** ...
-- **Público-alvo:** ...
-- **Gatilho psicológico:** (curiosidade / contraste / autoridade / etc.)
-
-### 🎬 Roteiro
-(0–3s) [fala literal do gancho]
-(3–10s) [fala literal]
-(10–25s) [fala literal]
-(25–40s) [fala literal]
-(40–50s) [fala literal do CTA]
-
-### 💬 On-screen text
-- frase curta 1
-- frase curta 2
-- frase curta 3
+### 📈 Ajustes Estratégicos Baseados em Performance
+- ...
 
 ---
 
-REGRAS:
-- Gere EXATAMENTE 3 ideias — nem mais, nem menos.
-- Não repita ângulos do calendário existente.
-- Cada gancho precisa ser específico (número, palavra ou afirmação polarizadora) — nada de "Você sabia que…".
-- Sem introdução antes da Ideia 1.
-- Roteiro = SÓ tempo + fala literal. NUNCA descreva cenário, expressão facial, postura, gestos, B-roll, trilha ou cortes.
+## ✅ 3 Ações Imediatas
+1. **...**
+2. **...**
+3. **...**
+
+CALENDÁRIO ATUAL DO ALUNO:
+${calendarSummary}`
+    } else if (action === 'performance_analysis') {
+      prompt = `Realize uma análise detalhada dos conteúdos publicados no calendário abaixo, identificando o que performou bem e por quê.
+
+Use EXATAMENTE este formato Markdown:
+
+## 📊 Análise de Performance de Conteúdo
+
+### 🏆 Conteúdos de Alta Performance
+- **O quê:** ...
+- **Por que funcionou:** ...
+
+### 🔁 Padrões Identificados
+(Analise ganchos, temas ou formatos que se repetem com sucesso)
+- ...
+
+### 📉 O que pode ser evitado ou ajustado
+- ...
+
+---
+
+## 💡 Próximos Passos
+(Sugira como replicar os sucessos em novos conteúdos)
+- ...
 
 CALENDÁRIO ATUAL DO ALUNO:
 ${calendarSummary}`
