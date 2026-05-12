@@ -517,68 +517,85 @@ export const exportCalendarPDF = async ({ monthDate, posts, studentName, getCate
     didDrawPage: () => drawPageFooter(doc, generated, W, H, margin, doc.getNumberOfPages()),
   });
 
-  // ========== PAGE 6 (optional): PERFORMANCE ==========
+  // ========== PAGE 6 (optional): PERFORMANCE - separated by network ==========
   if (metricsByPostId && Object.keys(metricsByPostId).length > 0) {
-    doc.addPage();
-    drawSectionHeader(doc, "DESEMPENHO", monthLabel, W, margin);
+    const allTracked = posts.map(p => ({ post: p, m: metricsByPostId[p.id] })).filter(x => x.m);
 
-    const tracked = posts.map(p => ({ post: p, m: metricsByPostId[p.id] })).filter(x => x.m);
-    const sumK = (k: keyof PostMetric) => tracked.reduce((a, b) => a + (Number(b.m[k]) || 0), 0);
-    const totalLikes = sumK("likes"), totalViews = sumK("views"), totalComments = sumK("comments"), totalShares = sumK("shares");
-    const avgEng = tracked.length ? tracked.reduce((a, b) => a + (b.m.engagement_rate || 0), 0) / tracked.length : 0;
-
-    const perfKpis = [
-      { label: "VISUALIZAÇÕES", value: totalViews.toLocaleString("pt-BR"), color: BRAND.primary },
-      { label: "CURTIDAS", value: totalLikes.toLocaleString("pt-BR"), color: BRAND.accent },
-      { label: "COMENTÁRIOS", value: totalComments.toLocaleString("pt-BR"), color: BRAND.mid },
-      { label: "COMPARTILHAMENTOS", value: totalShares.toLocaleString("pt-BR"), color: BRAND.ok },
+    const networks: Array<{ key: string; label: string; accent: number[] }> = [
+      { key: "Instagram", label: "INSTAGRAM", accent: BRAND.accent },
+      { key: "TikTok", label: "TIKTOK", accent: BRAND.ink },
     ];
-    const pkpiTop = 130, pkpiW = (W - margin * 2 - 16) / 2, pkpiH = 80;
-    perfKpis.forEach((k, i) => {
-      const x = margin + (i % 2) * (pkpiW + 16);
-      const y = pkpiTop + Math.floor(i / 2) * (pkpiH + 14);
-      doc.setFillColor(255, 255, 255); doc.setDrawColor(BRAND.line[0], BRAND.line[1], BRAND.line[2]); doc.setLineWidth(0.8);
-      doc.roundedRect(x, y, pkpiW, pkpiH, 12, 12, "FD");
-      doc.setFillColor(k.color[0], k.color[1], k.color[2]); doc.roundedRect(x, y, 5, pkpiH, 2, 2, "F");
-      doc.setTextColor(BRAND.muted[0], BRAND.muted[1], BRAND.muted[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-      doc.text(k.label, x + 18, y + 24, { charSpace: 1 });
-      doc.setTextColor(BRAND.ink[0], BRAND.ink[1], BRAND.ink[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(28);
-      doc.text(k.value, x + 18, y + 60);
-    });
 
-    const engY = pkpiTop + 2 * (pkpiH + 14) + 6;
-    doc.setFillColor(BRAND.bg[0], BRAND.bg[1], BRAND.bg[2]);
-    doc.roundedRect(margin, engY, W - margin * 2, 70, 12, 12, "F");
-    doc.setTextColor(BRAND.primary[0], BRAND.primary[1], BRAND.primary[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-    doc.text("TAXA DE ENGAJAMENTO MÉDIA", margin + 18, engY + 24);
-    doc.setTextColor(BRAND.ink[0], BRAND.ink[1], BRAND.ink[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(34);
-    doc.text(`${avgEng.toFixed(2)}%`, margin + 18, engY + 56);
-    doc.setTextColor(BRAND.muted[0], BRAND.muted[1], BRAND.muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-    doc.text(`${tracked.length} de ${posts.length} posts com métricas coletadas`, W - margin - 18, engY + 56, { align: "right" });
+    networks.forEach((net, idx) => {
+      const tracked = allTracked.filter(({ post }) =>
+        post.network === net.key || post.network === "TikTok + Instagram"
+      );
+      const totalForNet = posts.filter(p => p.network === net.key || p.network === "TikTok + Instagram").length;
+      if (tracked.length === 0 && totalForNet === 0) return;
 
-    // Top 5 posts by engagement
-    const top = [...tracked].sort((a, b) => (b.m.engagement_rate || 0) - (a.m.engagement_rate || 0)).slice(0, 5);
-    if (top.length) {
-      autoTable(doc, {
-        startY: engY + 90,
-        head: [["Data", "Título", "Curtidas", "Views", "Coment.", "Eng. %"]],
-        body: top.map(({ post, m }) => [
-          format(new Date(post.date + "T12:00:00"), "dd/MM"),
-          post.title,
-          (m.likes || 0).toLocaleString("pt-BR"),
-          (m.views || 0).toLocaleString("pt-BR"),
-          (m.comments || 0).toLocaleString("pt-BR"),
-          `${(m.engagement_rate || 0).toFixed(2)}%`,
-        ]),
-        styles: { font: "helvetica", fontSize: 9, cellPadding: 6, textColor: BRAND.ink, lineColor: BRAND.line },
-        headStyles: { fillColor: BRAND.primary, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
-        alternateRowStyles: { fillColor: [250, 250, 252] },
-        columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: "auto" }, 2: { cellWidth: 60, halign: "right" }, 3: { cellWidth: 60, halign: "right" }, 4: { cellWidth: 55, halign: "right" }, 5: { cellWidth: 55, halign: "right", fontStyle: "bold" } },
-        margin: { left: margin, right: margin, bottom: 60 },
+      doc.addPage();
+      drawSectionHeader(doc, `DESEMPENHO · ${net.label}`, monthLabel, W, margin);
+
+      const sumK = (k: keyof PostMetric) => tracked.reduce((a, b) => a + (Number(b.m[k]) || 0), 0);
+      const totalLikes = sumK("likes"), totalViews = sumK("views"), totalComments = sumK("comments"), totalShares = sumK("shares");
+      const avgEng = tracked.length ? tracked.reduce((a, b) => a + (b.m.engagement_rate || 0), 0) / tracked.length : 0;
+
+      const perfKpis = [
+        { label: "VISUALIZAÇÕES", value: totalViews.toLocaleString("pt-BR"), color: BRAND.primary },
+        { label: "CURTIDAS", value: totalLikes.toLocaleString("pt-BR"), color: net.accent },
+        { label: "COMENTÁRIOS", value: totalComments.toLocaleString("pt-BR"), color: BRAND.mid },
+        { label: "COMPARTILHAMENTOS", value: totalShares.toLocaleString("pt-BR"), color: BRAND.ok },
+      ];
+      const pkpiTop = 130, pkpiW = (W - margin * 2 - 16) / 2, pkpiH = 80;
+      perfKpis.forEach((k, i) => {
+        const x = margin + (i % 2) * (pkpiW + 16);
+        const y = pkpiTop + Math.floor(i / 2) * (pkpiH + 14);
+        doc.setFillColor(255, 255, 255); doc.setDrawColor(BRAND.line[0], BRAND.line[1], BRAND.line[2]); doc.setLineWidth(0.8);
+        doc.roundedRect(x, y, pkpiW, pkpiH, 12, 12, "FD");
+        doc.setFillColor(k.color[0], k.color[1], k.color[2]); doc.roundedRect(x, y, 5, pkpiH, 2, 2, "F");
+        doc.setTextColor(BRAND.muted[0], BRAND.muted[1], BRAND.muted[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+        doc.text(k.label, x + 18, y + 24, { charSpace: 1 });
+        doc.setTextColor(BRAND.ink[0], BRAND.ink[1], BRAND.ink[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(28);
+        doc.text(k.value, x + 18, y + 60);
       });
-    }
 
-    drawPageFooter(doc, generated, W, H, margin, doc.getNumberOfPages());
+      const engY = pkpiTop + 2 * (pkpiH + 14) + 6;
+      doc.setFillColor(BRAND.bg[0], BRAND.bg[1], BRAND.bg[2]);
+      doc.roundedRect(margin, engY, W - margin * 2, 70, 12, 12, "F");
+      doc.setTextColor(BRAND.primary[0], BRAND.primary[1], BRAND.primary[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+      doc.text("TAXA DE ENGAJAMENTO MÉDIA", margin + 18, engY + 24);
+      doc.setTextColor(BRAND.ink[0], BRAND.ink[1], BRAND.ink[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(34);
+      doc.text(`${avgEng.toFixed(2)}%`, margin + 18, engY + 56);
+      doc.setTextColor(BRAND.muted[0], BRAND.muted[1], BRAND.muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+      doc.text(`${tracked.length} de ${totalForNet} posts com métricas coletadas`, W - margin - 18, engY + 56, { align: "right" });
+
+      const top = [...tracked].sort((a, b) => (b.m.engagement_rate || 0) - (a.m.engagement_rate || 0)).slice(0, 5);
+      if (top.length) {
+        autoTable(doc, {
+          startY: engY + 90,
+          head: [["Data", "Título", "Curtidas", "Views", "Coment.", "Eng. %"]],
+          body: top.map(({ post, m }) => [
+            format(new Date(post.date + "T12:00:00"), "dd/MM"),
+            post.title,
+            (m.likes || 0).toLocaleString("pt-BR"),
+            (m.views || 0).toLocaleString("pt-BR"),
+            (m.comments || 0).toLocaleString("pt-BR"),
+            `${(m.engagement_rate || 0).toFixed(2)}%`,
+          ]),
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 6, textColor: BRAND.ink, lineColor: BRAND.line },
+          headStyles: { fillColor: BRAND.primary, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+          alternateRowStyles: { fillColor: [250, 250, 252] },
+          columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: "auto" }, 2: { cellWidth: 60, halign: "right" }, 3: { cellWidth: 60, halign: "right" }, 4: { cellWidth: 55, halign: "right" }, 5: { cellWidth: 55, halign: "right", fontStyle: "bold" } },
+          margin: { left: margin, right: margin, bottom: 60 },
+        });
+      } else {
+        doc.setTextColor(BRAND.muted[0], BRAND.muted[1], BRAND.muted[2]);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+        doc.text("Nenhuma métrica coletada para esta rede social.", margin, engY + 110);
+      }
+
+      drawPageFooter(doc, generated, W, H, margin, doc.getNumberOfPages());
+    });
   }
 
   const fileName = `relatorio-${(studentName || "conteudo").toLowerCase().replace(/\s+/g, "-")}-${format(monthDate, "yyyy-MM")}.pdf`;
