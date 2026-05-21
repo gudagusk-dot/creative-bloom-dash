@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download, BrainCircuit } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download, BrainCircuit, Globe, EyeOff, Check, Loader2 } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -18,10 +18,14 @@ interface Props {
 }
 
 export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: Props) => {
-  const { currentMonth, setCurrentMonth, posts, viewMode, getCategoryColor } = useContent();
+  const { currentMonth, setCurrentMonth, posts, viewMode, getCategoryColor, studentId } = useContent();
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const { students, updateStudent } = (viewMode === "admin") ? (require("@/context/StudentsContext").useStudents()) : { students: [], updateStudent: async () => ({}) };
+  const currentStudent = students.find((s: any) => s.id === studentId);
+  const isCalendarPublished = currentStudent?.calendar_published !== false;
 
   const monthPosts = posts.filter(p => {
     const d = new Date(p.date);
@@ -135,6 +139,48 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
               <Download className="h-3.5 w-3.5" /> {exporting ? "Gerando…" : "PDF"}
             </button>
           </>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={async () => {
+              if (!studentId || publishing) return;
+              setPublishing(true);
+              try {
+                // 1. Mark all posts as published
+                const { error: postError } = await supabase
+                  .from("content_posts")
+                  .update({ published: true })
+                  .eq("student_id", studentId);
+                
+                if (postError) throw postError;
+
+                // 2. Mark calendar as published
+                await updateStudent(studentId, { calendar_published: true } as any);
+                
+                toast.success("Calendário publicado para o aluno!");
+              } catch (e) {
+                toast.error("Erro ao publicar calendário");
+              } finally {
+                setPublishing(false);
+              }
+            }}
+            disabled={publishing}
+            className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium shadow-soft transition-all ease-soft ${
+              isCalendarPublished 
+                ? "bg-secondary text-secondary-foreground opacity-70" 
+                : "bg-primary/10 text-primary hover:bg-primary/20"
+            }`}
+          >
+            {publishing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isCalendarPublished ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Globe className="h-4 w-4" />
+            )}
+            {isCalendarPublished ? "Publicado" : "Publicar p/ Aluno"}
+          </button>
         )}
 
         {isAdmin && onNewPost && (

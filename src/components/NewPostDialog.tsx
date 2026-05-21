@@ -143,7 +143,7 @@ export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps
       status: "A fazer",
       notes,
       script,
-    });
+    } as any);
     onClose();
     // Reset
     setTitle("");
