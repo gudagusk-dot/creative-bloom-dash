@@ -288,24 +288,3 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
     </div>
   );
 };
-
-      {isAdmin && <TemplatesDialog open={templatesOpen} onClose={() => setTemplatesOpen(false)} />}
-      {isAdmin && <CoachDialog open={coachOpen} onClose={() => setCoachOpen(false)} studentName={studentName} />}
-
-      {/* Floating Brenda IA button — always visible for admin */}
-      {isAdmin && !coachOpen && (
-        <button
-          onClick={() => setCoachOpen(true)}
-          title="Abrir Brenda IA"
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 pl-4 pr-5 py-3.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-soft-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 group"
-        >
-          <span className="relative flex items-center justify-center">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 opacity-75 animate-ping" />
-            <BrainCircuit className="h-5 w-5 relative" />
-          </span>
-          <span className="text-sm font-semibold tracking-tight">Brenda IA</span>
-        </button>
-      )}
-    </header>
-  );
-};
