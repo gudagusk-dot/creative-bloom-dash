@@ -46,6 +46,7 @@ export type Database = {
           media_urls: string[]
           network: string
           notes: string
+          published: boolean | null
           published_url: string
           script: string
           status: string
@@ -66,6 +67,7 @@ export type Database = {
           media_urls?: string[]
           network: string
           notes?: string
+          published?: boolean | null
           published_url?: string
           script?: string
           status?: string
@@ -86,6 +88,7 @@ export type Database = {
           media_urls?: string[]
           network?: string
           notes?: string
+          published?: boolean | null
           published_url?: string
           script?: string
           status?: string
@@ -313,6 +316,7 @@ export type Database = {
       students: {
         Row: {
           avatar_url: string | null
+          calendar_published: boolean | null
           created_at: string
           id: string
           instagram_handle: string | null
@@ -325,6 +329,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          calendar_published?: boolean | null
           created_at?: string
           id?: string
           instagram_handle?: string | null
@@ -337,6 +342,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          calendar_published?: boolean | null
           created_at?: string
           id?: string
           instagram_handle?: string | null
