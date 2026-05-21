@@ -335,37 +335,53 @@ export const CoachDialog = ({ open, onClose, studentName }: Props) => {
         )}
 
         {step === "chat" && (
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+            {messages.length === 0 && loading && (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                  <BrainCircuit className="h-8 w-8 text-primary animate-bounce" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-foreground">Brenda está trabalhando...</h3>
+                  <p className="text-sm text-muted-foreground max-w-[240px] mx-auto">Analisando seu calendário e gerando as melhores estratégias de elite.</p>
+                </div>
+              </div>
+            )}
+            
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
                 <div className={`${m.role === "user" ? "max-w-[85%]" : "max-w-[97%] w-full"} px-4 py-3 rounded-2xl text-sm ${
                   m.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-secondary/60 text-foreground rounded-bl-sm border border-border/60"
+                    ? "bg-primary text-primary-foreground rounded-br-sm shadow-sm"
+                    : "bg-secondary/40 text-foreground rounded-bl-sm border border-border/60 shadow-sm"
                 }`}>
                   {m.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none
                       prose-headings:font-display prose-headings:tracking-tight prose-headings:text-foreground
-                      prose-h2:text-[18px] prose-h2:font-bold prose-h2:mt-2 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border
-                      prose-h3:text-[15px] prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-1.5
-                      prose-p:my-1.5 prose-p:leading-relaxed
-                      prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5
-                      prose-strong:text-foreground prose-strong:font-semibold
-                      prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r-md prose-blockquote:not-italic prose-blockquote:text-foreground prose-blockquote:my-2
-                      prose-hr:my-5 prose-hr:border-border">
+                      prose-h2:text-[19px] prose-h2:font-bold prose-h2:mt-4 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-primary/20
+                      prose-h3:text-[16px] prose-h3:font-bold prose-h3:mt-5 prose-h3:mb-2 prose-h3:text-primary
+                      prose-p:my-2.5 prose-p:leading-relaxed prose-p:text-foreground/90
+                      prose-ul:my-2 prose-ol:my-2 prose-li:my-1
+                      prose-strong:text-foreground prose-strong:font-bold prose-strong:bg-primary/5 prose-strong:px-0.5 prose-strong:rounded
+                      prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-md prose-blockquote:not-italic prose-blockquote:text-foreground prose-blockquote:my-4
+                      prose-hr:my-6 prose-hr:border-border">
                       <ReactMarkdown>{m.content}</ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap">{m.content}</p>
+                    <p className="whitespace-pre-wrap font-medium">{m.content}</p>
                   )}
                 </div>
               </div>
             ))}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-secondary rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-2">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Brenda está pensando…</span>
+            {loading && messages.length > 0 && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="bg-secondary/60 border border-border/60 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-3 shadow-sm">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce" />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground italic">Brenda está pensando…</span>
                 </div>
               </div>
             )}
