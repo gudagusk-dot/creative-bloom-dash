@@ -7,10 +7,10 @@ import { KpiCards } from "@/components/KpiCards";
 import { CalendarGrid, useCalendarView } from "@/components/CalendarGrid";
 import { StudentOverview } from "@/components/StudentOverview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Calendar as CalendarIcon } from "lucide-react";
+import { LayoutDashboard, Calendar as CalendarIcon, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface StudentLite { id: string; owner_id: string; name: string; slug: string; }
+interface StudentLite { id: string; owner_id: string; name: string; slug: string; calendar_published: boolean; }
 
 const StudentView = () => {
   const { slug, ownerId: legacyOwnerId } = useParams<{ slug?: string; ownerId?: string }>();
@@ -20,7 +20,7 @@ const StudentView = () => {
     const load = async () => {
       // New route: /aluno/:slug
       if (slug) {
-        const { data } = await supabase.from("students").select("id, owner_id, name, slug").eq("slug", slug).maybeSingle();
+        const { data } = await supabase.from("students").select("id, owner_id, name, slug, calendar_published").eq("slug", slug).maybeSingle();
         setStudent((data as StudentLite) || null);
         return;
       }
@@ -28,7 +28,7 @@ const StudentView = () => {
       if (legacyOwnerId) {
         const { data } = await supabase
           .from("students")
-          .select("id, owner_id, name, slug")
+          .select("id, owner_id, name, slug, calendar_published")
           .eq("owner_id", legacyOwnerId)
           .order("created_at", { ascending: true })
           .limit(1)
@@ -41,6 +41,20 @@ const StudentView = () => {
 
   if (student === undefined) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!student) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Calendário não encontrado.</div>;
+  
+  if (!student.calendar_published) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+          <EyeOff className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <h2 className="text-2xl font-display font-light text-foreground">Calendário em Manutenção</h2>
+        <p className="text-muted-foreground max-w-md">
+          Seu mentor está preparando as próximas novidades. Em breve este calendário estará disponível para você!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <StudentViewInner student={student} />

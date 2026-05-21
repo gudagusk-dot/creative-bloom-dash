@@ -13,6 +13,7 @@ export interface Student {
   tiktok_handle: string | null;
   avatar_url: string | null;
   created_at: string;
+  calendar_published: boolean;
 }
 
 interface StudentsContextType {

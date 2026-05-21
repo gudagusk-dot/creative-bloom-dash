@@ -20,6 +20,7 @@ export interface ContentPost {
   instagram_published_url?: string;
   tiktok_published_url?: string;
   student_notes?: string;
+  published: boolean;
 }
 
 /** Legacy palette — used only when seeding example posts. Real categories now

@@ -57,6 +57,7 @@ const mapRow = (p: any): ContentPost => ({
   instagram_published_url: p.instagram_published_url || "",
   tiktok_published_url: p.tiktok_published_url || "",
   student_notes: p.student_notes || "",
+  published: p.published !== false, // default true for existing
 });
 
 interface ProviderProps {
@@ -142,11 +143,11 @@ export const ContentProvider = ({ children, studentId, ownerId, viewMode = "admi
     await supabase.from("content_posts").update(updates as any).eq("id", id);
   }, []);
 
-  const addPost = useCallback(async (post: Omit<ContentPost, "id">) => {
+  const addPost = useCallback(async (post: Omit<ContentPost, "id" | "published">) => {
     if (!studentId || !ownerId) return;
     const { data } = await supabase
       .from("content_posts")
-      .insert({ ...post, student_id: studentId, user_id: ownerId } as any)
+      .insert({ ...post, student_id: studentId, user_id: ownerId, published: false } as any)
       .select("*")
       .single();
     if (data) {
@@ -200,6 +201,7 @@ export const ContentProvider = ({ children, studentId, ownerId, viewMode = "admi
   }, []);
 
   const filteredPosts = posts.filter(p => {
+    if (viewMode === "student" && !p.published) return false;
     if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
     if (networkFilter !== "all") {
       if (networkFilter === "Instagram" && p.network === "TikTok") return false;
