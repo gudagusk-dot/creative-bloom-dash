@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Sparkles, Wand2, Loader2, Link2, FileText } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
 import { Category, Format, SocialNetwork } from "@/data/content";
@@ -22,13 +22,20 @@ const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 export const NewPostDialog = ({ open, onClose, initialDate }: NewPostDialogProps) => {
   const { addPost, categories, getCategoryColor, posts } = useContent();
   const { templates } = useTemplates();
-  const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
   const [category, setCategory] = useState<Category>("");
   const [network, setNetwork] = useState<SocialNetwork>("Instagram");
   const [script, setScript] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Sync date when initialDate changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setDate(initialDate || format(new Date(), "yyyy-MM-dd"));
+    }
+  }, [open, initialDate]);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
