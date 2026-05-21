@@ -9,6 +9,7 @@ import { CoachDialog } from "./CoachDialog";
 import { exportCalendarPDF } from "@/lib/pdfExport";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useStudents } from "@/context/StudentsContext";
 
 interface Props {
   onNewPost?: () => void;
@@ -23,7 +24,7 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
   const [coachOpen, setCoachOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const { students, updateStudent } = (viewMode === "admin") ? (require("@/context/StudentsContext").useStudents()) : { students: [], updateStudent: async () => ({}) };
+  const { students, updateStudent } = useStudents();
   const currentStudent = students.find((s: any) => s.id === studentId);
   const isCalendarPublished = currentStudent?.calendar_published !== false;
 
