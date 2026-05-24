@@ -91,12 +91,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("simple_user");
   }, []);
 
-  const updateNotificationSettings = useCallback(async (settings: { email?: string; whatsapp?: string }) => {
+  const updateNotificationSettings = useCallback(async (settings: { email?: string }) => {
     if (!userId) return;
     
     const updates: any = {};
     if (settings.email !== undefined) updates.notification_email = settings.email;
-    if (settings.whatsapp !== undefined) updates.notification_whatsapp = settings.whatsapp;
 
     const { error } = await supabase
       .from("simple_users")
@@ -106,7 +105,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (error) throw error;
     
     if (settings.email !== undefined) setNotificationEmail(settings.email);
-    if (settings.whatsapp !== undefined) setNotificationWhatsapp(settings.whatsapp);
   }, [userId]);
 
   return (
@@ -114,7 +112,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       userId, 
       userName, 
       notificationEmail, 
-      notificationWhatsapp, 
       login, 
       logout, 
       updateNotificationSettings, 
