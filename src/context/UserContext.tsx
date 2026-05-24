@@ -5,10 +5,9 @@ interface UserContextType {
   userId: string | null;
   userName: string | null;
   notificationEmail: string | null;
-  notificationWhatsapp: string | null;
-  login: (name: string) => Promise<void>;
+  login: (name: string, email?: string) => Promise<void>;
   logout: () => void;
-  updateNotificationSettings: (settings: { email?: string; whatsapp?: string }) => Promise<void>;
+  updateNotificationSettings: (settings: { email?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -24,7 +23,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [notificationEmail, setNotificationEmail] = useState<string | null>(null);
-  const [notificationWhatsapp, setNotificationWhatsapp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,13 +36,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // Fetch full user data including notification settings
         const { data } = await supabase
           .from("simple_users")
-          .select("notification_email, notification_whatsapp")
+          .select("notification_email")
           .eq("id", id)
           .maybeSingle();
         
         if (data) {
           setNotificationEmail(data.notification_email);
-          setNotificationWhatsapp(data.notification_whatsapp);
         }
       }
       setLoading(false);
@@ -52,14 +49,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     loadUser();
   }, []);
 
-  const login = useCallback(async (name: string) => {
+  const login = useCallback(async (name: string, email?: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
     // Try to find existing user
     const { data: existing } = await supabase
       .from("simple_users")
-      .select("id, name, notification_email, notification_whatsapp")
+      .select("id, name, notification_email")
       .eq("name", trimmed)
       .maybeSingle();
 
@@ -67,7 +64,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setUserId(existing.id);
       setUserName(existing.name);
       setNotificationEmail(existing.notification_email);
-      setNotificationWhatsapp(existing.notification_whatsapp);
       localStorage.setItem("simple_user", JSON.stringify({ id: existing.id, name: existing.name }));
       return;
     }
@@ -75,8 +71,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     // Create new user
     const { data: created, error } = await supabase
       .from("simple_users")
-      .insert({ name: trimmed })
-      .select("id, name, notification_email, notification_whatsapp")
+      .insert({ name: trimmed, notification_email: email || null })
+      .select("id, name, notification_email")
       .single();
 
     if (error) throw error;
@@ -84,7 +80,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setUserId(created.id);
       setUserName(created.name);
       setNotificationEmail(created.notification_email);
-      setNotificationWhatsapp(created.notification_whatsapp);
       localStorage.setItem("simple_user", JSON.stringify({ id: created.id, name: created.name }));
     }
   }, []);
@@ -93,7 +88,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUserId(null);
     setUserName(null);
     setNotificationEmail(null);
-    setNotificationWhatsapp(null);
     localStorage.removeItem("simple_user");
   }, []);
 
