@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Student } from "@/context/StudentsContext";
 import { NewCategoryPopover } from "./NewCategoryPopover";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
+import { NotificationSettings } from "./NotificationSettings";
 
 interface Props {
   viewMode: "admin" | "student";
@@ -44,6 +45,7 @@ export const TopBar = ({ viewMode, student }: Props) => {
         </div>
 
         <div className="flex items-center gap-2">
+          {viewMode === "admin" && <NotificationSettings />}
           <ThemeToggle />
 
           {viewMode === "admin" && student && (
