@@ -9,16 +9,21 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { EditStudentDialog } from "@/components/EditStudentDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { AlertCircle, X, Bell } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 import { useStudentsStats } from "@/hooks/useStudentsStats";
 
 const StudentsDashboard = () => {
-  const { userName, logout } = useUser();
+  const { userName, notificationEmail, logout } = useUser();
   const { students, loading, deleteStudent } = useStudents();
   const { stats } = useStudentsStats(students.map(s => s.id));
   const [newOpen, setNewOpen] = useState(false);
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
+  const [showBanner, setShowBanner] = useState(true);
 
   const handleDelete = async (s: Student) => {
     if (!confirm(`Excluir o calendário de ${s.name}? Todos os conteúdos serão removidos.`)) return;
@@ -60,6 +65,33 @@ const StudentsDashboard = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {userName && !notificationEmail && showBanner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mb-8 overflow-hidden"
+          >
+            <Alert className="bg-primary/5 border-primary/20 relative group pr-12">
+              <Bell className="h-5 w-5 text-primary animate-pulse" />
+              <AlertTitle className="text-primary font-display font-medium">Ative as Notificações!</AlertTitle>
+              <AlertDescription className="text-muted-foreground pr-4">
+                Configure seu e-mail para ser avisado sempre que seus alunos subirem novos conteúdos ou atualizarem tarefas.
+              </AlertDescription>
+              <div className="mt-3 flex items-center gap-3">
+                <NotificationSettings />
+                <Button variant="ghost" size="sm" onClick={() => setShowBanner(false)} className="text-muted-foreground">
+                  Lembrar depois
+                </Button>
+              </div>
+              <button 
+                onClick={() => setShowBanner(false)}
+                className="absolute right-4 top-4 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </Alert>
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
