@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
-import { Bell, Mail, Loader2 } from "lucide-react";
+import { Bell, Mail, Loader2, MessageSquare } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,21 +14,22 @@ import {
 } from "@/components/ui/dialog";
 
 export function NotificationSettings() {
-  const { notificationEmail, updateNotificationEmail } = useUser();
+  const { notificationEmail, notificationWhatsapp, updateNotificationSettings } = useUser();
   const [email, setEmail] = useState(notificationEmail || "");
+  const [whatsapp, setWhatsapp] = useState(notificationWhatsapp || "");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
   const handleSave = async () => {
-    if (!email || !email.includes("@")) {
+    if (email && !email.includes("@")) {
       toast.error("Por favor, insira um e-mail válido.");
       return;
     }
 
     setLoading(true);
     try {
-      await updateNotificationEmail(email);
-      toast.success("E-mail de notificação atualizado com sucesso!");
+      await updateNotificationSettings({ email, whatsapp });
+      toast.success("Configurações de notificação atualizadas com sucesso!");
       setOpen(false);
     } catch (error) {
       console.error(error);
