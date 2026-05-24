@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
-import { Bell, Mail, Loader2, MessageSquare } from "lucide-react";
+import { Bell, Mail, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,8 @@ import {
 } from "@/components/ui/dialog";
 
 export function NotificationSettings() {
-  const { notificationEmail, notificationWhatsapp, updateNotificationSettings } = useUser();
+  const { notificationEmail, updateNotificationSettings } = useUser();
   const [email, setEmail] = useState(notificationEmail || "");
-  const [whatsapp, setWhatsapp] = useState(notificationWhatsapp || "");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -28,7 +27,7 @@ export function NotificationSettings() {
 
     setLoading(true);
     try {
-      await updateNotificationSettings({ email, whatsapp });
+      await updateNotificationSettings({ email });
       toast.success("Configurações de notificação atualizadas com sucesso!");
       setOpen(false);
     } catch (error) {
@@ -51,7 +50,7 @@ export function NotificationSettings() {
         <DialogHeader>
           <DialogTitle>Configurações de Notificação</DialogTitle>
           <DialogDescription>
-            Receba alertas por e-mail ou WhatsApp sempre que seus alunos atualizarem tarefas ou subirem novos conteúdos.
+            Receba alertas por e-mail sempre que seus alunos atualizarem tarefas ou subirem novos conteúdos.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -70,25 +69,6 @@ export function NotificationSettings() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="whatsapp" className="text-sm font-medium leading-none">
-              WhatsApp para alertas (com DDD)
-            </label>
-            <div className="relative">
-              <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="whatsapp"
-                type="tel"
-                placeholder="Ex: 11999999999"
-                className="pl-9"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-              />
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              O sistema enviará um alerta para o WhatsApp configurado.
-            </p>
           </div>
         </div>
         <div className="flex justify-end gap-3">

@@ -271,7 +271,6 @@ export type Database = {
           id: string
           post_id: string | null
           recipient_email: string
-          recipient_whatsapp: string | null
           sent: boolean | null
           student_name: string | null
           type: string
@@ -282,7 +281,6 @@ export type Database = {
           id?: string
           post_id?: string | null
           recipient_email: string
-          recipient_whatsapp?: string | null
           sent?: boolean | null
           student_name?: string | null
           type: string
@@ -293,7 +291,6 @@ export type Database = {
           id?: string
           post_id?: string | null
           recipient_email?: string
-          recipient_whatsapp?: string | null
           sent?: boolean | null
           student_name?: string | null
           type?: string
@@ -323,8 +320,6 @@ export type Database = {
           id: string
           name: string
           notification_email: string | null
-          notification_whatsapp: string | null
-          whatsapp_notifications_enabled: boolean | null
         }
         Insert: {
           created_at?: string
@@ -332,8 +327,6 @@ export type Database = {
           id?: string
           name: string
           notification_email?: string | null
-          notification_whatsapp?: string | null
-          whatsapp_notifications_enabled?: boolean | null
         }
         Update: {
           created_at?: string
@@ -341,8 +334,6 @@ export type Database = {
           id?: string
           name?: string
           notification_email?: string | null
-          notification_whatsapp?: string | null
-          whatsapp_notifications_enabled?: boolean | null
         }
         Relationships: []
       }

@@ -10,6 +10,7 @@ const GRAIN_SVG =
 const Login = () => {
   const { login } = useUser();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +20,7 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await login(name);
+      await login(name, email);
     } catch {
       setError("Erro ao entrar. Tente novamente.");
     } finally {
@@ -121,6 +122,14 @@ const Login = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Seu nome"
                 autoFocus
+                className="w-full bg-white/[0.06] border border-white/10 rounded-full px-5 py-3 text-[14px] text-white placeholder:text-white/40 focus:border-white/40 focus:bg-white/10 focus:outline-none focus:ring-0 transition-all duration-300 font-sans"
+              />
+
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail para notificações (opcional)"
                 className="w-full bg-white/[0.06] border border-white/10 rounded-full px-5 py-3 text-[14px] text-white placeholder:text-white/40 focus:border-white/40 focus:bg-white/10 focus:outline-none focus:ring-0 transition-all duration-300 font-sans"
               />
 
