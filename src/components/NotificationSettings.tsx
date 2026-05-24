@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/UserContext";
 import { toast } from "sonner";
-import { Bell, Mail, Loader2 } from "lucide-react";
+import { Bell, Mail, Loader2, MessageSquare } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,25 +14,26 @@ import {
 } from "@/components/ui/dialog";
 
 export function NotificationSettings() {
-  const { notificationEmail, updateNotificationEmail } = useUser();
+  const { notificationEmail, notificationWhatsapp, updateNotificationSettings } = useUser();
   const [email, setEmail] = useState(notificationEmail || "");
+  const [whatsapp, setWhatsapp] = useState(notificationWhatsapp || "");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
   const handleSave = async () => {
-    if (!email || !email.includes("@")) {
+    if (email && !email.includes("@")) {
       toast.error("Por favor, insira um e-mail válido.");
       return;
     }
 
     setLoading(true);
     try {
-      await updateNotificationEmail(email);
-      toast.success("E-mail de notificação atualizado com sucesso!");
+      await updateNotificationSettings({ email, whatsapp });
+      toast.success("Configurações de notificação atualizadas com sucesso!");
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao atualizar e-mail.");
+      toast.error("Erro ao atualizar configurações.");
     } finally {
       setLoading(false);
     }
@@ -50,13 +51,13 @@ export function NotificationSettings() {
         <DialogHeader>
           <DialogTitle>Configurações de Notificação</DialogTitle>
           <DialogDescription>
-            Receba alertas por e-mail sempre que seus alunos atualizarem tarefas ou subirem novos conteúdos.
+            Receba alertas por e-mail ou WhatsApp sempre que seus alunos atualizarem tarefas ou subirem novos conteúdos.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              E-mail para receber alertas
+            <label htmlFor="email" className="text-sm font-medium leading-none">
+              E-mail para alertas
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -69,6 +70,25 @@ export function NotificationSettings() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="whatsapp" className="text-sm font-medium leading-none">
+              WhatsApp para alertas (com DDD)
+            </label>
+            <div className="relative">
+              <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="whatsapp"
+                type="tel"
+                placeholder="Ex: 11999999999"
+                className="pl-9"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              O sistema enviará um alerta para o WhatsApp configurado.
+            </p>
           </div>
         </div>
         <div className="flex justify-end gap-3">

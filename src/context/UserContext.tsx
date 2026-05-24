@@ -5,9 +5,10 @@ interface UserContextType {
   userId: string | null;
   userName: string | null;
   notificationEmail: string | null;
+  notificationWhatsapp: string | null;
   login: (name: string) => Promise<void>;
   logout: () => void;
-  updateNotificationEmail: (email: string) => Promise<void>;
+  updateNotificationSettings: (settings: { email?: string; whatsapp?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -23,6 +24,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [notificationEmail, setNotificationEmail] = useState<string | null>(null);
+  const [notificationWhatsapp, setNotificationWhatsapp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,15 +35,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUserId(id);
         setUserName(name);
         
-        // Fetch full user data including notification email
+        // Fetch full user data including notification settings
         const { data } = await supabase
           .from("simple_users")
-          .select("notification_email")
+          .select("notification_email, notification_whatsapp")
           .eq("id", id)
           .maybeSingle();
         
         if (data) {
           setNotificationEmail(data.notification_email);
+          setNotificationWhatsapp(data.notification_whatsapp);
         }
       }
       setLoading(false);
@@ -56,7 +59,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     // Try to find existing user
     const { data: existing } = await supabase
       .from("simple_users")
-      .select("id, name, notification_email")
+      .select("id, name, notification_email, notification_whatsapp")
       .eq("name", trimmed)
       .maybeSingle();
 
@@ -64,6 +67,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setUserId(existing.id);
       setUserName(existing.name);
       setNotificationEmail(existing.notification_email);
+      setNotificationWhatsapp(existing.notification_whatsapp);
       localStorage.setItem("simple_user", JSON.stringify({ id: existing.id, name: existing.name }));
       return;
     }
@@ -72,7 +76,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const { data: created, error } = await supabase
       .from("simple_users")
       .insert({ name: trimmed })
-      .select("id, name, notification_email")
+      .select("id, name, notification_email, notification_whatsapp")
       .single();
 
     if (error) throw error;
@@ -80,6 +84,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setUserId(created.id);
       setUserName(created.name);
       setNotificationEmail(created.notification_email);
+      setNotificationWhatsapp(created.notification_whatsapp);
       localStorage.setItem("simple_user", JSON.stringify({ id: created.id, name: created.name }));
     }
   }, []);
@@ -88,22 +93,39 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUserId(null);
     setUserName(null);
     setNotificationEmail(null);
+    setNotificationWhatsapp(null);
     localStorage.removeItem("simple_user");
   }, []);
 
-  const updateNotificationEmail = useCallback(async (email: string) => {
+  const updateNotificationSettings = useCallback(async (settings: { email?: string; whatsapp?: string }) => {
     if (!userId) return;
+    
+    const updates: any = {};
+    if (settings.email !== undefined) updates.notification_email = settings.email;
+    if (settings.whatsapp !== undefined) updates.notification_whatsapp = settings.whatsapp;
+
     const { error } = await supabase
       .from("simple_users")
-      .update({ notification_email: email })
+      .update(updates)
       .eq("id", userId);
     
     if (error) throw error;
-    setNotificationEmail(email);
+    
+    if (settings.email !== undefined) setNotificationEmail(settings.email);
+    if (settings.whatsapp !== undefined) setNotificationWhatsapp(settings.whatsapp);
   }, [userId]);
 
   return (
-    <UserContext.Provider value={{ userId, userName, notificationEmail, login, logout, updateNotificationEmail, loading }}>
+    <UserContext.Provider value={{ 
+      userId, 
+      userName, 
+      notificationEmail, 
+      notificationWhatsapp, 
+      login, 
+      logout, 
+      updateNotificationSettings, 
+      loading 
+    }}>
       {children}
     </UserContext.Provider>
   );
