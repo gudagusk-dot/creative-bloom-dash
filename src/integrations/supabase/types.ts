@@ -265,21 +265,75 @@ export type Database = {
         }
         Relationships: []
       }
+      post_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          recipient_email: string
+          sent: boolean | null
+          student_name: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          recipient_email: string
+          sent?: boolean | null
+          student_name?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          recipient_email?: string
+          sent?: boolean | null
+          student_name?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "content_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "simple_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       simple_users: {
         Row: {
           created_at: string
+          email_notifications_enabled: boolean | null
           id: string
           name: string
+          notification_email: string | null
         }
         Insert: {
           created_at?: string
+          email_notifications_enabled?: boolean | null
           id?: string
           name: string
+          notification_email?: string | null
         }
         Update: {
           created_at?: string
+          email_notifications_enabled?: boolean | null
           id?: string
           name?: string
+          notification_email?: string | null
         }
         Relationships: []
       }
