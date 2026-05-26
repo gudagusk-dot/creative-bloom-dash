@@ -11,7 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { useContent } from "@/context/ContentContext";
 import { ContentPost } from "@/data/content";
-import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle, EyeOff } from "lucide-react";
 import { TikTokIcon } from "@/components/TikTokIcon";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
