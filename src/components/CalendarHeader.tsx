@@ -35,12 +35,13 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
   
   const currentStudent = students.find((s: any) => s.id === studentId);
   const isCalendarPublished = currentStudent?.calendar_published !== false;
-  const hasUnpublishedChanges = posts.some(p => !p.published);
-
   const monthPosts = posts.filter(p => {
     const d = new Date(p.date);
     return d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear();
   });
+
+  const hasUnpublishedChanges = monthPosts.some(p => !p.published);
+
 
   const publishedCount = monthPosts.filter(p => p.status === "Publicado").length;
   const total = monthPosts.length;
@@ -51,13 +52,18 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
     if (!studentId || publishing) return;
     setPublishing(true);
     try {
-      // 1. Mark all posts as published
-      const { error: postError } = await supabase
-        .from("content_posts")
-        .update({ published: true })
-        .eq("student_id", studentId);
+      // 1. Mark only current month's posts as published
+      const idsToPublish = monthPosts.filter(p => !p.published).map(p => p.id);
       
-      if (postError) throw postError;
+      if (idsToPublish.length > 0) {
+        const { error: postError } = await supabase
+          .from("content_posts")
+          .update({ published: true })
+          .in("id", idsToPublish);
+        
+        if (postError) throw postError;
+      }
+
 
       // 2. Mark calendar as published
       await updateStudent(studentId, { calendar_published: true } as any);
