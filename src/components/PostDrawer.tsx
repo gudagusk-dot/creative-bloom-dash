@@ -177,7 +177,6 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
                   onClick={async (e) => {
                     e.stopPropagation();
                     const newPublished = !post.published;
-                    console.log("Updating visibility to:", newPublished);
                     await updatePost(post.id, { published: newPublished });
                   }} 
                   className={`p-1.5 rounded-lg transition-colors ${post.published ? "hover:bg-amber-100 text-amber-600" : "bg-primary/10 text-primary hover:bg-primary/20"}`} 
