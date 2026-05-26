@@ -11,7 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { useContent } from "@/context/ContentContext";
 import { ContentPost } from "@/data/content";
-import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Instagram, Plus, CalendarX, CheckCircle2, Loader2, AlertCircle, EyeOff } from "lucide-react";
 import { TikTokIcon } from "@/components/TikTokIcon";
 import { PostDrawer } from "@/components/PostDrawer";
 import { NewPostDialog } from "@/components/NewPostDialog";
@@ -33,10 +33,12 @@ const statusIcons: Record<string, React.ReactNode> = {
 };
 
 const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: () => void; dragging?: boolean }) => {
-  const { getCategoryColor } = useContent();
+  const { getCategoryColor, viewMode } = useContent();
+  const isAdmin = viewMode === "admin";
   const catColor = getCategoryColor(post.category);
   
   const isOverdue = post.status === "A fazer" && isBefore(parseISO(post.date), startOfDay(new Date()));
+  const isHidden = isAdmin && post.published === false;
   
   let statusBg = "bg-status-todo";
   if (post.status === "Publicado") statusBg = "bg-status-published";
@@ -48,31 +50,32 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
       onClick={onClick}
       className={`group relative flex-1 w-full rounded-xl p-2 flex flex-col transition-all duration-300 ease-soft cursor-pointer border min-h-0 overflow-hidden text-left ${
         dragging ? "opacity-50 scale-95" : "hover:scale-[1.02] hover:shadow-soft-md shadow-sm border-border/40"
-      } ${post.status === "Publicado" ? "glow-published" : ""}`}
+      } ${post.status === "Publicado" ? "glow-published" : ""} ${isHidden ? "grayscale bg-gray-50 opacity-80" : ""}`}
       style={{
-        backgroundColor: "white",
+        backgroundColor: isHidden ? "#f9fafb" : "white",
         borderLeftWidth: "4px",
-        borderLeftColor: catColor,
+        borderLeftColor: isHidden ? "#9ca3af" : catColor,
       }}
     >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1">
-          <span className="px-1.5 py-0.5 rounded-md text-[8px] font-bold text-white uppercase tracking-tighter" style={{ backgroundColor: catColor }}>
+          <span className="px-1.5 py-0.5 rounded-md text-[8px] font-bold text-white uppercase tracking-tighter" style={{ backgroundColor: isHidden ? "#9ca3af" : catColor }}>
             {post.format}
           </span>
           <NetworkIcon network={post.network} />
+          {isHidden && <EyeOff className="h-2.5 w-2.5 text-gray-400" />}
         </div>
-        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white ${statusBg}`}>
-          {isOverdue && post.status === "A fazer" ? <AlertCircle className="h-2.5 w-2.5 animate-pulse" /> : statusIcons[post.status]}
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white ${isHidden ? "bg-gray-400" : statusBg}`}>
+          {isOverdue && post.status === "A fazer" && !isHidden ? <AlertCircle className="h-2.5 w-2.5 animate-pulse" /> : statusIcons[post.status]}
         </div>
       </div>
-      <p className="text-[10px] sm:text-[11px] text-foreground leading-tight font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+      <p className={`text-[10px] sm:text-[11px] leading-tight font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors ${isHidden ? "text-gray-400" : "text-foreground"}`}>
         {post.title}
       </p>
       <div className="flex items-center gap-1 mt-auto">
-        <span className={`w-1.5 h-1.5 rounded-full ${statusBg}`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${isHidden ? "bg-gray-400" : statusBg}`} />
         <span className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-          {post.status}
+          {isHidden ? "Oculto" : post.status}
         </span>
       </div>
     </button>

@@ -156,8 +156,13 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
               {isAdmin ? "Editar Conteúdo" : "Conteúdo"}
+              {isAdmin && post.published === false && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                  <EyeOff className="h-3 w-3" /> Conteúdo Oculto
+                </span>
+              )}
             </h2>
             {saving && (
               <span className="text-[10px] text-primary flex items-center gap-1">
@@ -169,13 +174,14 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
             {isAdmin && (
               <>
                 <button 
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    e.stopPropagation();
                     const newPublished = !post.published;
+                    console.log("Updating visibility to:", newPublished);
                     await updatePost(post.id, { published: newPublished });
-                    setDirty(false);
                   }} 
-                  className={`p-1.5 rounded-lg transition-colors ${post.published ? "hover:bg-amber-100 text-amber-600" : "hover:bg-primary/10 text-primary"}`} 
-                  title={post.published ? "Ocultar do aluno" : "Mostrar para o aluno"}
+                  className={`p-1.5 rounded-lg transition-colors ${post.published ? "hover:bg-amber-100 text-amber-600" : "bg-primary/10 text-primary hover:bg-primary/20"}`} 
+                  title={post.published ? "Ocultar do aluno" : "Publicar para o aluno"}
                 >
                   {post.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
