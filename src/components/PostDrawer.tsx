@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram } from "lucide-react";
+import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram, EyeOff } from "lucide-react";
 import { TikTokIcon } from "./TikTokIcon";
 import { ContentPost, PostStatus, Category, Format, SocialNetwork } from "@/data/content";
 import { useContent } from "@/context/ContentContext";
@@ -167,9 +167,22 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive" title="Excluir">
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <>
+                <button 
+                  onClick={async () => {
+                    const newPublished = !post.published;
+                    await updatePost(post.id, { published: newPublished });
+                    setDirty(false);
+                  }} 
+                  className={`p-1.5 rounded-lg transition-colors ${post.published ? "hover:bg-amber-100 text-amber-600" : "hover:bg-primary/10 text-primary"}`} 
+                  title={post.published ? "Ocultar do aluno" : "Mostrar para o aluno"}
+                >
+                  {post.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+                <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive" title="Excluir">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
             )}
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
               <X className="h-5 w-5" />
