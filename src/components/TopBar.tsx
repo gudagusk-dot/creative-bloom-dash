@@ -10,6 +10,24 @@ import { Student } from "@/context/StudentsContext";
 import { NewCategoryPopover } from "./NewCategoryPopover";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 import { NotificationSettings } from "./NotificationSettings";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   viewMode: "admin" | "student";
@@ -18,10 +36,12 @@ interface Props {
 
 export const TopBar = ({ viewMode, student }: Props) => {
   const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId, categories } = useContent();
-  const { userName, logout } = useUser();
+  const { userName, notificationEmail, logout } = useUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+
 
   return (
     <div className="border-b border-border/60 bg-card/90 backdrop-blur sticky top-0 z-30">
