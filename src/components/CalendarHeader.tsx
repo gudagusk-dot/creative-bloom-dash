@@ -123,9 +123,9 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <div className=\"flex flex-col items-center\">
-              <h1 className=\"font-display text-xl sm:text-2xl font-light text-foreground capitalize min-w-[160px] sm:min-w-[200px] text-center tracking-tight\">
-                {format(currentMonth, \"MMMM yyyy\", { locale: ptBR })}
+            <div className="flex flex-col items-center">
+              <h1 className="font-display text-xl sm:text-2xl font-light text-foreground capitalize min-w-[160px] sm:min-w-[200px] text-center tracking-tight">
+                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
               </h1>
               {!isSameMonth(currentMonth, new Date()) && (
                 <button 
@@ -135,7 +135,7 @@ export const CalendarHeader = ({ onNewPost, view, onChangeView, studentName }: P
                     d.setHours(0, 0, 0, 0);
                     setCurrentMonth(d);
                   }}
-                  className=\"text-[10px] font-bold text-primary uppercase tracking-wider hover:underline mt-0.5 animate-in fade-in slide-in-from-top-1\"
+                  className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline mt-0.5 animate-in fade-in slide-in-from-top-1"
                 >
                   Voltar para hoje
                 </button>
