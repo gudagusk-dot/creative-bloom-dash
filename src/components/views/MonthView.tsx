@@ -122,7 +122,7 @@ const DroppableDay = ({
 };
 
 export const MonthView = () => {
-  const { currentMonth, filteredPosts, viewMode, updatePost } = useContent();
+  const { currentMonth, setCurrentMonth, filteredPosts, viewMode, updatePost } = useContent();
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<ContentPost | null>(null);
@@ -214,10 +214,32 @@ export const MonthView = () => {
         </AnimatePresence>
 
         {!monthHasPosts && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.4 }} className="mt-6 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/60 text-xs text-muted-foreground">
-              <CalendarX className="h-3.5 w-3.5" />
-              Nenhum conteúdo neste mês {isAdmin && "— passe o mouse num dia para adicionar"}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.4 }} className="mt-12 text-center max-w-md mx-auto">
+            <div className="flex flex-col items-center gap-4 p-8 rounded-3xl bg-secondary/30 border border-border/40">
+              <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
+                <CalendarX className="h-6 w-6 text-muted-foreground/60" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-1">Nenhum conteúdo agendado</h3>
+                <p className="text-xs text-muted-foreground">
+                  {isAdmin 
+                    ? "Este mês ainda não possui conteúdos. Comece a planejar clicando no botão '+' em qualquer dia."
+                    : "Seu mentor ainda não publicou conteúdos para este mês. Fique atento às novidades!"}
+                </p>
+              </div>
+              {!isSameMonth(currentMonth, new Date()) && (
+                <button 
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(1);
+                    d.setHours(0, 0, 0, 0);
+                    setCurrentMonth(d);
+                  }}
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  Ver mês atual
+                </button>
+              )}
             </div>
           </motion.div>
         )}
