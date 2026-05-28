@@ -43,6 +43,8 @@ const StudentsDashboard = () => {
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
   const [showBanner, setShowBanner] = useState(true);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+
 
   const handleDelete = async (s: Student) => {
     if (!confirm(`Excluir o calendário de ${s.name}? Todos os conteúdos serão removidos.`)) return;
