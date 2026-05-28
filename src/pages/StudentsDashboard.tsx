@@ -13,6 +13,25 @@ import { NotificationSettings } from "@/components/NotificationSettings";
 import { AlertCircle, X, Bell } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 import { useStudentsStats } from "@/hooks/useStudentsStats";
 
@@ -24,6 +43,8 @@ const StudentsDashboard = () => {
   const [shareStudent, setShareStudent] = useState<Student | null>(null);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
   const [showBanner, setShowBanner] = useState(true);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+
 
   const handleDelete = async (s: Student) => {
     if (!confirm(`Excluir o calendário de ${s.name}? Todos os conteúdos serão removidos.`)) return;
@@ -46,23 +67,65 @@ const StudentsDashboard = () => {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {userName && (
-              <div className="flex items-center gap-1.5 ml-1">
-                <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-soft">
-                  <span className="font-display text-sm font-medium text-primary-foreground">{userName.charAt(0).toUpperCase()}</span>
-                </div>
-                <span className="hidden sm:inline text-xs font-medium text-foreground">{userName}</span>
-                <button
-                  onClick={logout}
-                  className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
-                  title="Sair"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex items-center gap-1.5 ml-1 rounded-full hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    title="Perfil"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-soft">
+                      <span className="font-display text-sm font-medium text-primary-foreground">{userName.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <span className="hidden sm:inline text-xs font-medium text-foreground pr-1">{userName}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium text-foreground">{userName}</span>
+                      {notificationEmail && (
+                        <span className="text-xs text-muted-foreground truncate">{notificationEmail}</span>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setConfirmLogoutOpen(true);
+                    }}
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
       </header>
+
+      <AlertDialog open={confirmLogoutOpen} onOpenChange={setConfirmLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja sair da sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará fazer login novamente para acessar seus calendários.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={logout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {userName && !notificationEmail && showBanner && (
