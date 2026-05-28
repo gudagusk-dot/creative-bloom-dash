@@ -1,62 +1,26 @@
-## Plano consolidado: redesign do Login + ajustes no painel do cliente
+## Objetivo
+Transformar o avatar do usuário no header em um botão clicável que abre um menu de perfil, contendo a opção "Sair" com diálogo de confirmação antes de deslogar.
 
-### 1. Redesign da tela de Login
-Visual editorial moderno, alinhado às referências (Velorah / paleta verde + Fraunces italic).
+## Mudanças
 
-- **Layout**: split em duas colunas no desktop, empilhado no mobile.
-  - **Esquerda (desktop)**: imagem cinematográfica em tela cheia (céu dourado/laranja ao entardecer) com overlay sutil e a tagline "Plano de Conteúdo®" em small caps + uma frase editorial em `Fraunces` light italic.
-  - **Direita**: formulário minimal centralizado, fundo neutro, com título grande em `Fraunces` italic ("Bem-vinda de volta"), inputs em `Geist`, botão primário sólido.
-- **Tipografia**: títulos em `Fraunces` light italic; labels, inputs e botões em `Geist`.
-- **ThemeToggle**: permanece no canto superior direito.
-- **Animação**: fade + slide (mantém lógica atual com `framer-motion` se já presente, senão CSS simples).
-- **Imagem hero**: gerar `src/assets/login-hero.jpg` (1024x1280, céu dourado cinematográfico).
-- **Lógica de auth**: sem alteração — mesmos handlers e chamadas existentes.
+**Arquivo:** `src/pages/StudentsDashboard.tsx`
 
-Arquivos: `src/pages/Login.tsx` (rewrite do layout), `src/assets/login-hero.jpg` (novo).
+1. Remover o botão `LogOut` separado (linhas 54-60) que fica ao lado do avatar.
+2. Envolver o avatar (o círculo com a inicial + nome) num `DropdownMenu` do shadcn:
+   - Trigger: o próprio avatar (com cursor-pointer e hover sutil).
+   - Conteúdo do menu:
+     - Cabeçalho com nome do usuário e e-mail (se houver `notificationEmail`).
+     - Separador.
+     - Item "Sair" com ícone `LogOut` (em vermelho/destructive).
+3. Adicionar um `AlertDialog` de confirmação ao clicar em "Sair":
+   - Título: "Deseja sair da sua conta?"
+   - Descrição: "Você precisará fazer login novamente para acessar seus calendários."
+   - Botões: "Cancelar" e "Sair" (destructive). Só executa `logout()` ao confirmar.
+4. Controlar abertura do dialog com um `useState` local (`confirmLogoutOpen`).
 
-### 2. Painel do cliente — remover filtros do topo
-Os chips de categorias (Educativo / Situações Reais / Autoridade / Destrave seu Inglês / Bastidores) e o filtro de redes (Instagram/TikTok) ficam em `TopBar.tsx` e poluem a visão do cliente.
-
-Mudança: esconder o bloco inteiro de filtros (categorias + redes + botão de gerenciar) quando `viewMode === "student"`. Continua intacto para o ADM.
-
-Arquivo: `src/components/TopBar.tsx`.
-
-### 3. Saudação com data dinâmica
-Já está dinâmica em `StudentOverview.tsx` via `format(new Date(), "eeee, d 'de' MMMM", { locale: ptBR })`. Vou apenas garantir que `today` seja calculado a cada render (sem `useMemo` com deps vazias) para nunca cachear.
-
-Arquivo: `src/components/StudentOverview.tsx`.
-
-### 4. Mobile: "Ver Calendário" em destaque no topo
-Hoje, no mobile, o card "Ver Calendário Completo" e o aviso de pendências aparecem **abaixo** das listas e ficam escondidos no fim da tela.
-
-Mudança no `StudentOverview.tsx`:
-- Reordenação responsiva com classes `order-*` do Tailwind.
-- No mobile: `Ver Calendário` (destaque) → `Posts Pendentes` (se houver) → `Para hoje` → `Próximos 7 dias` → `Desempenho do mês`.
-- No desktop: mantém o grid atual de duas colunas com a lateral à direita.
-
-Layout mobile resultante:
-```text
-┌─────────────────────────┐
-│ Saudação + data         │
-├─────────────────────────┤
-│ [ Ver Calendário → ]    │  ← destaque
-├─────────────────────────┤
-│ ⚠ Posts Pendentes       │  ← se houver
-├─────────────────────────┤
-│ Para hoje               │
-├─────────────────────────┤
-│ Próximos 7 dias         │
-├─────────────────────────┤
-│ Desempenho do mês       │
-└─────────────────────────┘
-```
-
----
-
-### Arquivos afetados
-- `src/pages/Login.tsx` — redesign completo (mantém auth)
-- `src/assets/login-hero.jpg` — nova imagem hero
-- `src/components/TopBar.tsx` — esconder filtros no modo cliente
-- `src/components/StudentOverview.tsx` — data sempre fresca + reordenação mobile
-
-Sem mudanças no backend.
+## Detalhes técnicos
+- Usar `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuSeparator` de `@/components/ui/dropdown-menu`.
+- Usar `AlertDialog` e subcomponentes de `@/components/ui/alert-dialog`.
+- Manter o estilo visual atual do avatar (gradient, ring, sombra) e adicionar `hover:opacity-90` para indicar interatividade.
+- Nenhuma mudança no `UserContext` nem na lógica de `logout()`.
+- Sem alterações em outras telas (apenas o header do StudentsDashboard).
