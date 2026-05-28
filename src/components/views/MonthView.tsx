@@ -122,7 +122,7 @@ const DroppableDay = ({
 };
 
 export const MonthView = () => {
-  const { currentMonth, filteredPosts, viewMode, updatePost } = useContent();
+  const { currentMonth, setCurrentMonth, filteredPosts, viewMode, updatePost } = useContent();
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<ContentPost | null>(null);
