@@ -10,6 +10,24 @@ import { Student } from "@/context/StudentsContext";
 import { NewCategoryPopover } from "./NewCategoryPopover";
 import { ManageCategoriesDialog } from "./ManageCategoriesDialog";
 import { NotificationSettings } from "./NotificationSettings";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   viewMode: "admin" | "student";
@@ -18,10 +36,12 @@ interface Props {
 
 export const TopBar = ({ viewMode, student }: Props) => {
   const { networkFilter, setNetworkFilter, selectedCategories, toggleCategory, studentId, categories } = useContent();
-  const { userName, logout } = useUser();
+  const { userName, notificationEmail, logout } = useUser();
   const [shareOpen, setShareOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+
 
   return (
     <div className="border-b border-border/60 bg-card/90 backdrop-blur sticky top-0 z-30">
@@ -70,15 +90,41 @@ export const TopBar = ({ viewMode, student }: Props) => {
           )}
 
           {viewMode === "admin" && userName && (
-            <div className="flex items-center gap-1.5 ml-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-soft">
-                <span className="font-display text-sm font-medium text-primary-foreground">{userName.charAt(0).toUpperCase()}</span>
-              </div>
-              <button onClick={logout} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground" title="Sair">
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-1.5 ml-1 rounded-full hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  title="Perfil"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-soft">
+                    <span className="font-display text-sm font-medium text-primary-foreground">{userName.charAt(0).toUpperCase()}</span>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-foreground">{userName}</span>
+                    {notificationEmail && (
+                      <span className="text-xs text-muted-foreground truncate">{notificationEmail}</span>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setConfirmLogoutOpen(true);
+                  }}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
+
 
           {viewMode === "student" && (
             <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md">Aluno</span>
@@ -144,6 +190,26 @@ export const TopBar = ({ viewMode, student }: Props) => {
           {studentId && <ProgressPanel open={progressOpen} onClose={() => setProgressOpen(false)} studentId={studentId} />}
         </>
       )}
+      <AlertDialog open={confirmLogoutOpen} onOpenChange={setConfirmLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja sair da sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você precisará fazer login novamente para acessar seus calendários.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={logout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 };
