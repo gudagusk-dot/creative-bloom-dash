@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, CalendarDays, LayoutGrid, List, FileText, Download, BrainCircuit, Globe, EyeOff, Check, Loader2, AlertCircle, Menu } from "lucide-react";
 import { useContent } from "@/context/ContentContext";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, isSameMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarView } from "./CalendarGrid";
 import { TemplatesDialog } from "./TemplatesDialog";
