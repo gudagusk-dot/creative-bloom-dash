@@ -117,8 +117,8 @@ const DraggablePost = ({ post, onClick, isAdmin }: { post: ContentPost; onClick:
 };
 
 const DroppableDay = ({
-  day, dateStr, inMonth, today, isAdmin, onAdd, children,
-}: { day: Date; dateStr: string; inMonth: boolean; today: boolean; isAdmin: boolean; onAdd: () => void; children: React.ReactNode; }) => {
+  day, dateStr, inMonth, today, isAdmin, onAdd, onOpenDay, children,
+}: { day: Date; dateStr: string; inMonth: boolean; today: boolean; isAdmin: boolean; onAdd: () => void; onOpenDay: () => void; children: React.ReactNode; }) => {
   const { setNodeRef, isOver } = useDroppable({ id: dateStr, disabled: !isAdmin || !inMonth });
   const wrapperBase = `relative rounded-2xl border flex flex-col min-h-[78px] sm:min-h-[120px] overflow-hidden transition-all duration-200 ease-soft group ${
     !inMonth
