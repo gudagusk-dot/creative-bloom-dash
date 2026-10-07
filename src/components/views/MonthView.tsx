@@ -82,6 +82,31 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
   );
 };
 
+const MobilePostPill = ({ post }: { post: ContentPost }) => {
+  const { getCategoryColor, viewMode } = useContent();
+  const isAdmin = viewMode === "admin";
+  const catColor = getCategoryColor(post.category);
+  const isHidden = isAdmin && post.published === false;
+  const isOverdue = post.status === "A fazer" && isBefore(parseISO(post.date), startOfDay(new Date()));
+
+  let dotColor = "bg-status-todo";
+  if (post.status === "Publicado") dotColor = "bg-status-published";
+  else if (post.status === "Em produção") dotColor = "bg-status-progress";
+  else if (isOverdue) dotColor = "bg-status-overdue";
+
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-md px-1 py-[3px] min-h-[16px] ${post.status === "Publicado" ? "ring-1 ring-status-published" : ""} ${isHidden ? "opacity-50 grayscale" : ""}`}
+      style={{ backgroundColor: `${catColor}22`, borderLeft: `3px solid ${catColor}` }}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isHidden ? "bg-gray-400" : dotColor}`} />
+      <span className="text-[8px] font-bold uppercase tracking-tight truncate" style={{ color: catColor }}>
+        {post.format}
+      </span>
+    </div>
+  );
+};
+
 const DraggablePost = ({ post, onClick, isAdmin }: { post: ContentPost; onClick: () => void; isAdmin: boolean }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: post.id, disabled: !isAdmin });
   return (
