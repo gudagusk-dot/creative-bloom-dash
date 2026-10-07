@@ -19,9 +19,44 @@ const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Live", "Conversão", "Produção", "Lembrete"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
-export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor } = useContent();
+export const PostDrawer = ({ post: incomingPost, onClose }: PostDrawerProps) => {
+  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor, filteredPosts } = useContent();
   const isAdmin = viewMode === "admin";
+
+  // Mobile swipe navigation between posts
+  const [overrideId, setOverrideId] = useState<string | null>(null);
+  useEffect(() => { setOverrideId(null); }, [incomingPost?.id]);
+  const post = (overrideId ? filteredPosts.find(p => p.id === overrideId) : null) ?? incomingPost;
+
+  const ordered = [...filteredPosts].sort((a, b) =>
+    a.date === b.date ? a.id.localeCompare(b.id) : a.date.localeCompare(b.date)
+  );
+  const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
+  const goTo = (dir: 1 | -1) => {
+    if (!post) return;
+    const idx = ordered.findIndex(p => p.id === post.id);
+    const next = ordered[idx + dir];
+    if (!next) return;
+    setSwipeDir(dir === 1 ? "left" : "right");
+    setOverrideId(next.id);
+    setTimeout(() => setSwipeDir(null), 220);
+  };
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    goTo(dx < 0 ? 1 : -1);
+  };
+
 
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
