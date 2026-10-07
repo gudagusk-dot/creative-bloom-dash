@@ -289,6 +289,72 @@ export const MonthView = () => {
         )}
       </div>
 
+      <AnimatePresence>
+        {sheetDay && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="sm:hidden fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40"
+              onClick={() => setSheetDay(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl border-t border-border/60 shadow-soft-xl max-h-[75vh] flex flex-col"
+            >
+              <div className="pt-3 pb-2 flex flex-col items-center shrink-0">
+                <div className="w-10 h-1 rounded-full bg-border mb-3" />
+                <div className="w-full flex items-center justify-between px-5">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary">
+                      {format(sheetDay, "EEEE", { locale: ptBR })}
+                    </p>
+                    <h3 className="text-lg font-bold text-foreground capitalize">
+                      {format(sheetDay, "d 'de' MMMM", { locale: ptBR })}
+                    </h3>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setNewPostDate(format(sheetDay, "yyyy-MM-dd"));
+                        setSheetDay(null);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Novo
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 pb-8 pt-2 flex flex-col gap-2">
+                {getPostsForDay(sheetDay).length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-10 text-center">
+                    <CalendarX className="h-6 w-6 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">Nenhum conteúdo neste dia.</p>
+                  </div>
+                ) : (
+                  getPostsForDay(sheetDay).map(post => (
+                    <div key={post.id} className="min-h-[84px] flex">
+                      <PostCard
+                        post={post}
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setSheetDay(null);
+                        }}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <DragOverlay>
         {activePost ? <div className="w-[120px] h-[80px]"><PostCard post={activePost} /></div> : null}
       </DragOverlay>
