@@ -158,6 +158,7 @@ export const MonthView = () => {
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<ContentPost | null>(null);
+  const [sheetDay, setSheetDay] = useState<Date | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
