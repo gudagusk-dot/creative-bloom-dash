@@ -82,6 +82,31 @@ const PostCard = ({ post, onClick, dragging }: { post: ContentPost; onClick?: ()
   );
 };
 
+const MobilePostPill = ({ post }: { post: ContentPost }) => {
+  const { getCategoryColor, viewMode } = useContent();
+  const isAdmin = viewMode === "admin";
+  const catColor = getCategoryColor(post.category);
+  const isHidden = isAdmin && post.published === false;
+  const isOverdue = post.status === "A fazer" && isBefore(parseISO(post.date), startOfDay(new Date()));
+
+  let dotColor = "bg-status-todo";
+  if (post.status === "Publicado") dotColor = "bg-status-published";
+  else if (post.status === "Em produção") dotColor = "bg-status-progress";
+  else if (isOverdue) dotColor = "bg-status-overdue";
+
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-md px-1 py-[3px] min-h-[16px] ${post.status === "Publicado" ? "ring-1 ring-status-published" : ""} ${isHidden ? "opacity-50 grayscale" : ""}`}
+      style={{ backgroundColor: `${catColor}22`, borderLeft: `3px solid ${catColor}` }}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isHidden ? "bg-gray-400" : dotColor}`} />
+      <span className="text-[8px] font-bold uppercase tracking-tight truncate" style={{ color: catColor }}>
+        {post.format}
+      </span>
+    </div>
+  );
+};
+
 const DraggablePost = ({ post, onClick, isAdmin }: { post: ContentPost; onClick: () => void; isAdmin: boolean }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: post.id, disabled: !isAdmin });
   return (
@@ -92,10 +117,10 @@ const DraggablePost = ({ post, onClick, isAdmin }: { post: ContentPost; onClick:
 };
 
 const DroppableDay = ({
-  day, dateStr, inMonth, today, isAdmin, onAdd, children,
-}: { day: Date; dateStr: string; inMonth: boolean; today: boolean; isAdmin: boolean; onAdd: () => void; children: React.ReactNode; }) => {
+  day, dateStr, inMonth, today, isAdmin, onAdd, onOpenDay, children,
+}: { day: Date; dateStr: string; inMonth: boolean; today: boolean; isAdmin: boolean; onAdd: () => void; onOpenDay: () => void; children: React.ReactNode; }) => {
   const { setNodeRef, isOver } = useDroppable({ id: dateStr, disabled: !isAdmin || !inMonth });
-  const wrapperBase = `relative rounded-2xl border flex flex-col min-h-[78px] sm:min-h-[120px] overflow-hidden transition-all duration-200 ease-soft group ${
+  const wrapperBase = `relative rounded-2xl border flex flex-col min-h-[92px] sm:min-h-[120px] overflow-hidden transition-all duration-200 ease-soft group ${
     !inMonth
       ? "bg-muted/20 border-transparent"
       : isOver
@@ -117,6 +142,13 @@ const DroppableDay = ({
         )}
       </div>
       {children}
+      {inMonth && (
+        <button
+          onClick={onOpenDay}
+          className="sm:hidden absolute inset-0 z-10"
+          aria-label={`Ver conteúdos de ${format(day, "d 'de' MMMM", { locale: ptBR })}`}
+        />
+      )}
     </div>
   );
 };
@@ -126,6 +158,7 @@ export const MonthView = () => {
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [newPostDate, setNewPostDate] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<ContentPost | null>(null);
+  const [sheetDay, setSheetDay] = useState<Date | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -191,13 +224,24 @@ export const MonthView = () => {
                   today={today}
                   isAdmin={isAdmin}
                   onAdd={() => setNewPostDate(dateStr)}
+                  onOpenDay={() => setSheetDay(day)}
                 >
                   {dayPosts.length > 0 && inMonth && (
-                    <div className="flex-1 flex flex-col gap-0.5 px-1 pb-1 min-h-0">
-                      {dayPosts.map(post => (
-                        <DraggablePost key={post.id} post={post} onClick={() => setSelectedPost(post)} isAdmin={isAdmin} />
-                      ))}
-                    </div>
+                    <>
+                      <div className="hidden sm:flex flex-1 flex-col gap-0.5 px-1 pb-1 min-h-0">
+                        {dayPosts.map(post => (
+                          <DraggablePost key={post.id} post={post} onClick={() => setSelectedPost(post)} isAdmin={isAdmin} />
+                        ))}
+                      </div>
+                      <div className="sm:hidden flex-1 flex flex-col gap-1 px-1 pb-1 min-h-0 overflow-hidden">
+                        {dayPosts.slice(0, 3).map(post => (
+                          <MobilePostPill key={post.id} post={post} />
+                        ))}
+                        {dayPosts.length > 3 && (
+                          <span className="text-[8px] font-bold text-muted-foreground text-center">+{dayPosts.length - 3}</span>
+                        )}
+                      </div>
+                    </>
                   )}
                   {dayPosts.length === 0 && inMonth && isAdmin && (
                     <button
@@ -244,6 +288,72 @@ export const MonthView = () => {
           </motion.div>
         )}
       </div>
+
+      <AnimatePresence>
+        {sheetDay && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="sm:hidden fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40"
+              onClick={() => setSheetDay(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl border-t border-border/60 shadow-soft-xl max-h-[75vh] flex flex-col"
+            >
+              <div className="pt-3 pb-2 flex flex-col items-center shrink-0">
+                <div className="w-10 h-1 rounded-full bg-border mb-3" />
+                <div className="w-full flex items-center justify-between px-5">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary">
+                      {format(sheetDay, "EEEE", { locale: ptBR })}
+                    </p>
+                    <h3 className="text-lg font-bold text-foreground capitalize">
+                      {format(sheetDay, "d 'de' MMMM", { locale: ptBR })}
+                    </h3>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setNewPostDate(format(sheetDay, "yyyy-MM-dd"));
+                        setSheetDay(null);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Novo
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 pb-8 pt-2 flex flex-col gap-2">
+                {getPostsForDay(sheetDay).length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-10 text-center">
+                    <CalendarX className="h-6 w-6 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">Nenhum conteúdo neste dia.</p>
+                  </div>
+                ) : (
+                  getPostsForDay(sheetDay).map(post => (
+                    <div key={post.id} className="min-h-[84px] flex">
+                      <PostCard
+                        post={post}
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setSheetDay(null);
+                        }}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <DragOverlay>
         {activePost ? <div className="w-[120px] h-[80px]"><PostCard post={activePost} /></div> : null}
