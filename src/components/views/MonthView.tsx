@@ -142,6 +142,13 @@ const DroppableDay = ({
         )}
       </div>
       {children}
+      {inMonth && (
+        <button
+          onClick={onOpenDay}
+          className="sm:hidden absolute inset-0 z-10"
+          aria-label={`Ver conteúdos de ${format(day, "d 'de' MMMM", { locale: ptBR })}`}
+        />
+      )}
     </div>
   );
 };
