@@ -224,13 +224,24 @@ export const MonthView = () => {
                   today={today}
                   isAdmin={isAdmin}
                   onAdd={() => setNewPostDate(dateStr)}
+                  onOpenDay={() => setSheetDay(day)}
                 >
                   {dayPosts.length > 0 && inMonth && (
-                    <div className="flex-1 flex flex-col gap-0.5 px-1 pb-1 min-h-0">
-                      {dayPosts.map(post => (
-                        <DraggablePost key={post.id} post={post} onClick={() => setSelectedPost(post)} isAdmin={isAdmin} />
-                      ))}
-                    </div>
+                    <>
+                      <div className="hidden sm:flex flex-1 flex-col gap-0.5 px-1 pb-1 min-h-0">
+                        {dayPosts.map(post => (
+                          <DraggablePost key={post.id} post={post} onClick={() => setSelectedPost(post)} isAdmin={isAdmin} />
+                        ))}
+                      </div>
+                      <div className="sm:hidden flex-1 flex flex-col gap-1 px-1 pb-1 min-h-0 overflow-hidden">
+                        {dayPosts.slice(0, 3).map(post => (
+                          <MobilePostPill key={post.id} post={post} />
+                        ))}
+                        {dayPosts.length > 3 && (
+                          <span className="text-[8px] font-bold text-muted-foreground text-center">+{dayPosts.length - 3}</span>
+                        )}
+                      </div>
+                    </>
                   )}
                   {dayPosts.length === 0 && inMonth && isAdmin && (
                     <button
