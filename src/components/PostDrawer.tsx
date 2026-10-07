@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { X, Trash2, Save, Pencil, Eye, ExternalLink, CheckCircle2, Loader2, Circle, AlertCircle, Instagram, EyeOff } from "lucide-react";
 import { TikTokIcon } from "./TikTokIcon";
@@ -19,9 +19,46 @@ const statuses: PostStatus[] = ["A fazer", "Em produção", "Publicado"];
 const formats: Format[] = ["Reels", "Carrossel", "Story", "Foto", "Vídeo", "Live", "Conversão", "Produção", "Lembrete"];
 const networks: SocialNetwork[] = ["Instagram", "TikTok", "TikTok + Instagram"];
 
-export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
-  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor } = useContent();
+export const PostDrawer = ({ post: incomingPost, onClose }: PostDrawerProps) => {
+  const { updatePost, deletePost, viewMode, ownerId, studentId, getCategoryColor, filteredPosts } = useContent();
   const isAdmin = viewMode === "admin";
+
+  // Mobile swipe navigation between posts
+  const [overrideId, setOverrideId] = useState<string | null>(null);
+  useEffect(() => { setOverrideId(null); }, [incomingPost?.id]);
+  const post = (overrideId ? filteredPosts.find(p => p.id === overrideId) : null) ?? incomingPost;
+
+  const ordered = [...filteredPosts].sort((a, b) =>
+    a.date === b.date ? a.id.localeCompare(b.id) : a.date.localeCompare(b.date)
+  );
+  const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
+  const goTo = (dir: 1 | -1) => {
+    if (!post) return;
+    const idx = ordered.findIndex(p => p.id === post.id);
+    const next = ordered[idx + dir];
+    if (!next) return;
+    setSwipeDir(dir === 1 ? "left" : "right");
+    setOverrideId(next.id);
+    setTimeout(() => setSwipeDir(null), 220);
+  };
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const el = e.target as HTMLElement;
+    if (el.closest("input, textarea, select, [contenteditable='true']")) { touch.current = null; return; }
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    goTo(dx < 0 ? 1 : -1);
+  };
+
 
   const [title, setTitle] = useState("");
   const [postFormat, setPostFormat] = useState<Format>("Reels");
@@ -152,7 +189,17 @@ export const PostDrawer = ({ post, onClose }: PostDrawerProps) => {
     <>
       <div className="fixed inset-0 bg-foreground/30 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 animate-slide-in-right flex flex-col">
+      <div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        key={post.id}
+        className={`fixed inset-y-0 right-0 w-full sm:w-[540px] bg-card border-l border-border/60 shadow-soft-xl z-50 flex flex-col ${swipeDir === "left" ? "animate-slide-in-right" : swipeDir === "right" ? "animate-fade-in" : "animate-slide-in-right"}`}
+      >
+        {ordered.length > 1 && (
+          <div className="sm:hidden text-center text-[10px] text-muted-foreground pt-2 select-none">
+            ← Arraste para ver outros dias →
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
           <div>
